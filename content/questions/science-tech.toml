@@ -1,0 +1,47 @@
+# Sample questions written for Civil Mentor. They are not UPSC previous-year questions.
+
+[[question]]
+id = "science-tech-0001"
+topics = ["gs3.science-tech.space"]
+source = "Civil Mentor sample"
+stem = "A geostationary satellite orbits above the Earth's equator at an altitude of about:"
+options = ["400 km", "2,000 km", "20,200 km", "36,000 km"]
+answer = "D"
+explanation = "A geostationary orbit is about 35,786 km above the equator. At that height a satellite takes one sidereal day to circle the Earth, so it stays over the same point. Navigation satellites such as GPS orbit at about 20,200 km."
+
+[[question]]
+id = "science-tech-0002"
+topics = ["gs3.science-tech.space"]
+source = "Civil Mentor sample"
+stem = "The spot near the lunar south pole where the Chandrayaan-3 lander touched down in August 2023 was named:"
+options = ["Tiranga Point", "Shiv Shakti Point", "Jawahar Point", "Vikram Point"]
+answer = "B"
+explanation = "The Chandrayaan-3 landing site is Shiv Shakti Point. Tiranga Point marks where the Chandrayaan-2 lander hit the surface in 2019, and Jawahar Point is where the Chandrayaan-1 Moon Impact Probe struck in 2008."
+
+[[question]]
+id = "science-tech-0003"
+topics = ["gs3.science-tech.biotech"]
+source = "Civil Mentor sample"
+stem = "CRISPR-Cas9 is best described as:"
+options = [
+  "A vaccine platform that delivers messenger RNA into cells",
+  "A gene-editing tool in which a guide RNA directs an enzyme to cut DNA at a chosen sequence",
+  "A method of copying a segment of DNA many times in a test tube",
+  "A technique for producing identical copies of a whole organism",
+]
+answer = "B"
+explanation = "In CRISPR-Cas9 a guide RNA matches a target sequence and the Cas9 enzyme cuts the DNA there, after which the cell's repair machinery can be used to change the gene. Option C describes the polymerase chain reaction."
+
+[[question]]
+id = "science-tech-0004"
+topics = ["gs3.science-tech.it-ai"]
+source = "Civil Mentor sample"
+stem = "In artificial intelligence, a large language model is:"
+options = [
+  "A database that stores the text of every indexed web page",
+  "A neural network trained on very large amounts of text to predict and generate language",
+  "A rule-based program in which experts write each response by hand",
+  "A chip designed only for speech recognition",
+]
+answer = "B"
+explanation = "A large language model is a neural network, usually of the transformer type, trained on large text collections to predict the next token. That ability lets it generate and summarise text."

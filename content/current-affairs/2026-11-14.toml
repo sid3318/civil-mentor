@@ -1,0 +1,94 @@
+# Sample brief. The stories are illustrative, written to show the format. They are not real news.
+# The file name is the date of the brief.
+#
+# Each [[story]] needs: title, topics, context, why, facts.
+# Optional: trap, pyq, mains, frame, notes, and one practice [story.question].
+
+[[story]]
+title = "Monetary Policy Committee holds the repo rate"
+topics = ["gs3.economy.inflation"]
+context = "The Monetary Policy Committee kept the policy repo rate unchanged at its bi-monthly review and retained its stance, saying retail inflation was within the tolerance band while food prices remained a risk."
+why = "Rate decisions are a standing Prelims topic, and the working of the inflation-targeting framework is asked in GS-3. Link every rate decision to the statutory mandate: price stability first, growth second."
+facts = [
+  "The committee is set up under the RBI Act, 1934, as amended in 2016.",
+  "It has six members, three from the RBI and three appointed by the central government.",
+  "The inflation target is set by the government, in consultation with the RBI, once every five years.",
+  "The target is 4 per cent CPI inflation with a band of 2 percentage points on either side.",
+]
+trap = "The committee decides the repo rate. It does not set the inflation target."
+pyq = "Prelims has asked about the composition of the committee and about which body sets the target. Mains has asked how far inflation targeting suits a supply-shock economy."
+mains = "Flexible inflation targeting has anchored expectations but cannot address supply-side food inflation. Examine."
+frame = [
+  "Define the framework and its legal basis.",
+  "Show what it has achieved: anchored expectations, transparent decisions.",
+  "Show its limit: food and fuel shocks are outside the reach of the repo rate.",
+  "Suggest complements: supply management, buffer stocks, fiscal coordination.",
+]
+notes = ["gs3-economy-inflation"]
+
+[story.question]
+stem = "Who sets the inflation target that the Reserve Bank of India is required to meet?"
+options = [
+  "The Monetary Policy Committee",
+  "The Central Board of the Reserve Bank of India",
+  "The Government of India, in consultation with the Reserve Bank of India",
+  "The Finance Commission",
+]
+answer = "C"
+explanation = "Under the RBI Act the central government sets the target, in consultation with the RBI, once every five years. The committee then sets the repo rate needed to meet it."
+
+[[story]]
+title = "Court tests a surveillance rule against the right to privacy"
+topics = ["gs2.polity.fundamental-rights", "gs2.polity.judiciary"]
+context = "A constitution bench began hearing challenges to rules that allow the bulk collection of communication data, with petitioners arguing that the rules fail the proportionality test."
+why = "Privacy cases bring together Article 21, the limits on state power and data-protection law. The proportionality test is a ready framework for any GS-2 answer on rights and restrictions."
+facts = [
+  "K.S. Puttaswamy v. Union of India (2017): a nine-judge bench held privacy to be part of Article 21.",
+  "A restriction on privacy must have a law behind it, pursue a legitimate aim and be proportionate.",
+  "The Digital Personal Data Protection Act was passed in 2023.",
+]
+trap = "Privacy is not an absolute right. The court laid down when the State may limit it."
+mains = "The right to privacy is a fundamental right, but it is not absolute. Discuss the tests a restriction must pass."
+frame = [
+  "State the holding in Puttaswamy and its basis in Article 21.",
+  "Set out the tests: legality, legitimate aim, proportionality, procedural safeguards.",
+  "Apply them to surveillance and data collection.",
+  "Conclude on oversight: judicial or independent review of interception orders.",
+]
+notes = ["gs2-polity-fundamental-rights"]
+
+[story.question]
+stem = "In K.S. Puttaswamy v. Union of India (2017), the Supreme Court held that the right to privacy is:"
+options = [
+  "A statutory right created by the Information Technology Act",
+  "A fundamental right protected as part of Article 21",
+  "A directive principle that the State should strive to secure",
+  "A common-law right that Parliament may abolish by ordinary law",
+]
+answer = "B"
+explanation = "A nine-judge bench held unanimously that privacy is intrinsic to life and personal liberty under Article 21 and to the freedoms in Part III."
+
+[[story]]
+title = "More wetlands added to the Ramsar list"
+topics = ["gs3.environment.biodiversity"]
+context = "India designated additional wetlands as sites of international importance under the Ramsar Convention, ahead of the next meeting of the contracting parties."
+why = "Ramsar sites, their states and the convention's terms are among the most repeated Prelims environment questions. Learn the convention before the list."
+facts = [
+  "The Convention on Wetlands was signed at Ramsar, Iran, in 1971. India joined in 1982.",
+  "The Montreux Record lists Ramsar sites whose ecological character is changing or likely to change.",
+  "Keoladeo National Park and Loktak Lake are the Indian sites on the Montreux Record.",
+  "World Wetlands Day is observed on 2 February.",
+]
+trap = "The convention asks for \"wise use\" of wetlands. It does not ban human activity in them."
+pyq = "Prelims has repeatedly asked to match Ramsar sites with their states, and what the Montreux Record is."
+
+[story.question]
+stem = "The Montreux Record is a register of:"
+options = [
+  "Biosphere reserves recognised by UNESCO",
+  "Ramsar sites whose ecological character has changed or is likely to change",
+  "Species that are extinct in the wild",
+  "Countries that have ratified the Ramsar Convention",
+]
+answer = "B"
+explanation = "The Montreux Record is kept under the Ramsar Convention. It lists wetlands of international importance where changes in ecological character have occurred, are occurring or are likely to occur because of human interference."

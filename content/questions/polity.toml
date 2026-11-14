@@ -1,0 +1,62 @@
+# Sample questions written for Civil Mentor. They are not UPSC previous-year questions.
+#
+# Each [[question]] needs: id, topics, stem, four options, answer (A to D), explanation.
+# Optional: source, trap, note (the id of the note that answers it).
+
+[[question]]
+id = "polity-0001"
+topics = ["gs2.polity.fundamental-rights"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following rights:
+
+1. Equality before law (Article 14)
+2. Freedom of speech and expression (Article 19)
+3. Protection of life and personal liberty (Article 21)
+4. Equality of opportunity in public employment (Article 16)
+
+Which of the rights given above are available only to citizens of India?"""
+options = ["1 and 3 only", "2 and 4 only", "2, 3 and 4 only", "1, 2, 3 and 4"]
+answer = "B"
+explanation = "Articles 15, 16, 19, 29 and 30 are available only to citizens. Articles 14 and 21 use the word \"person\" and so protect foreigners as well."
+trap = "Article 21 feels like a citizen's right, but it protects every person on Indian soil."
+note = "gs2-polity-fundamental-rights"
+
+[[question]]
+id = "polity-0002"
+topics = ["gs2.polity.fundamental-rights"]
+source = "Civil Mentor sample"
+stem = "During a national emergency, the right to move a court for the enforcement of which of the following cannot be suspended?"
+options = ["Articles 14 and 19", "Articles 20 and 21", "Articles 21 and 22", "Articles 19 and 32"]
+answer = "B"
+explanation = "The 44th Amendment Act, 1978 changed Article 359 so that the enforcement of Articles 20 and 21 can never be suspended, even during a national emergency."
+trap = "Article 19 is suspended automatically under Article 358 when the emergency is on the ground of war or external aggression."
+note = "gs2-polity-fundamental-rights"
+
+[[question]]
+id = "polity-0003"
+topics = ["gs2.polity.parliament"]
+source = "Civil Mentor sample"
+stem = """
+With reference to a Money Bill, consider the following statements:
+
+1. It can be introduced only in the Lok Sabha.
+2. The Rajya Sabha can amend or reject it.
+3. The decision of the Speaker of the Lok Sabha on whether a Bill is a Money Bill is final.
+
+Which of the statements given above are correct?"""
+options = ["1 only", "1 and 3 only", "2 and 3 only", "1, 2 and 3"]
+answer = "B"
+explanation = "A Money Bill is introduced only in the Lok Sabha, on the President's recommendation. The Rajya Sabha can only make recommendations and must return the Bill within 14 days. Under Article 110(3) the Speaker's certificate is final."
+trap = "The Rajya Sabha can discuss a Money Bill and suggest changes. It cannot amend or reject it."
+
+[[question]]
+id = "polity-0004"
+topics = ["gs2.polity.judiciary", "gs2.polity.fundamental-rights"]
+source = "Civil Mentor sample"
+stem = "Which writ does a higher court issue to a lower court or tribunal to stop it from exceeding its jurisdiction in a matter that is still pending?"
+options = ["Mandamus", "Prohibition", "Certiorari", "Quo warranto"]
+answer = "B"
+explanation = "Prohibition is preventive: it stops proceedings that are still under way. Certiorari quashes an order that has already been passed. Mandamus commands a public authority to perform a duty, and quo warranto questions a person's title to a public office."
+trap = "Prohibition and certiorari both go to lower courts. The difference is timing: before the order, or after it."
+note = "gs2-polity-fundamental-rights"

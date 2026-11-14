@@ -1,0 +1,51 @@
+# Sample questions written for Civil Mentor. They are not UPSC previous-year questions.
+
+[[question]]
+id = "history-0001"
+topics = ["gs1.history.freedom-struggle"]
+source = "Civil Mentor sample"
+stem = """
+Arrange the following events in chronological order:
+
+1. Launch of the Non-Cooperation Movement
+2. The Dandi March
+3. The Quit India resolution
+4. The Champaran Satyagraha
+
+Select the correct answer using the code given below."""
+options = ["4, 1, 2, 3", "1, 4, 2, 3", "4, 2, 1, 3", "1, 2, 4, 3"]
+answer = "A"
+explanation = "Champaran Satyagraha (1917), Non-Cooperation Movement (1920), Dandi March (1930), Quit India resolution (1942)."
+
+[[question]]
+id = "history-0002"
+topics = ["gs1.history.freedom-struggle"]
+source = "Civil Mentor sample"
+stem = "The Poona Pact of 1932 provided for:"
+options = [
+  "Separate electorates for the depressed classes in provincial legislatures",
+  "Reserved seats for the depressed classes within joint electorates",
+  "Dominion status for India within two years",
+  "The release of all political prisoners of the Civil Disobedience Movement",
+]
+answer = "B"
+explanation = "The Communal Award of August 1932 gave the depressed classes separate electorates. After Gandhi's fast in Yerawada jail, the Poona Pact between Gandhi and Ambedkar replaced these with a larger number of reserved seats elected through joint electorates."
+trap = "Separate electorates were what the Communal Award gave. The Pact withdrew them."
+
+[[question]]
+id = "history-0003"
+topics = ["gs1.history.modern-india"]
+source = "Civil Mentor sample"
+stem = "The Doctrine of Lapse is associated with which Governor-General?"
+options = ["Lord Wellesley", "Lord Dalhousie", "Lord Cornwallis", "Lord William Bentinck"]
+answer = "B"
+explanation = "Lord Dalhousie (1848 to 1856) annexed states such as Satara, Jhansi and Nagpur when their rulers died without a natural heir. Wellesley is linked to the Subsidiary Alliance and Cornwallis to the Permanent Settlement."
+
+[[question]]
+id = "history-0004"
+topics = ["gs1.history.ancient-india"]
+source = "Civil Mentor sample"
+stem = "Which Harappan site is best known for a brick structure identified as a dockyard?"
+options = ["Kalibangan", "Lothal", "Dholavira", "Banawali"]
+answer = "B"
+explanation = "Lothal, in Gujarat, has a large brick basin that most archaeologists identify as a dockyard. Kalibangan is known for a ploughed field and fire altars, and Dholavira for its water reservoirs."

@@ -1,0 +1,29 @@
+[package]
+name = "civil-mentor"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gpui-kit = "0.9.1"
+rusqlite = { version = "0.42", features = ["bundled"] }
+# The crates below are already in gpui-kit's dependency tree, so they add no build time.
+anyhow = "1"
+chrono = "0.4"
+dirs = "6"
+rust-embed = "8"
+serde = { version = "1", features = ["derive"] }
+serde-saphyr = "1"
+toml = "0.8"
+
+[dev-dependencies]
+gpui-kit = { version = "0.9.1", features = ["test-support"] }
+
+# Renders every screen offscreen and drives the shell. It needs the main thread
+# and a real renderer, so it does not use the default test harness.
+[[test]]
+name = "screens"
+harness = false
+
+# Dependencies carry no debug info: keeps target/ small on a tight disk.
+[profile.dev.package."*"]
+debug = false

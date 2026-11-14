@@ -1,0 +1,52 @@
+# Sample questions written for Civil Mentor. They are not UPSC previous-year questions.
+
+[[question]]
+id = "geography-0001"
+topics = ["gs1.geography.monsoon"]
+source = "Civil Mentor sample"
+stem = """
+Which of the following generally favour a good south-west monsoon over India?
+
+1. La Niña conditions in the Pacific Ocean
+2. A positive Indian Ocean Dipole
+3. El Niño conditions in the Pacific Ocean
+
+Select the correct answer using the code given below."""
+options = ["1 only", "1 and 2 only", "2 and 3 only", "1, 2 and 3"]
+answer = "B"
+explanation = "La Niña and a positive Indian Ocean Dipole are both linked with above-normal monsoon rain. El Niño is linked with weak monsoons."
+trap = "El Niño raises the odds of a poor monsoon. It does not make one certain, which is why statement-based questions about it need care."
+note = "gs1-geography-indian-monsoon"
+
+[[question]]
+id = "geography-0002"
+topics = ["gs1.geography.monsoon"]
+source = "Civil Mentor sample"
+stem = "The Coromandel coast receives most of its annual rainfall from:"
+options = [
+  "The Arabian Sea branch of the south-west monsoon",
+  "The Bay of Bengal branch of the south-west monsoon",
+  "The north-east monsoon",
+  "Western disturbances",
+]
+answer = "C"
+explanation = "The Tamil Nadu coast lies in the rain shadow of the Western Ghats during the south-west monsoon and parallel to the Bay of Bengal branch. It gets most of its rain from the north-east monsoon between October and December."
+note = "gs1-geography-indian-monsoon"
+
+[[question]]
+id = "geography-0003"
+topics = ["gs1.geography.rivers"]
+source = "Civil Mentor sample"
+stem = "Which one of the following rivers flows through a rift valley?"
+options = ["Godavari", "Narmada", "Krishna", "Mahanadi"]
+answer = "B"
+explanation = "The Narmada flows westward through a rift valley between the Vindhya and Satpura ranges. The Tapi also flows in a rift valley. The other three rivers flow east into the Bay of Bengal and form deltas."
+
+[[question]]
+id = "geography-0004"
+topics = ["gs1.geography.climatology"]
+source = "Civil Mentor sample"
+stem = "The ozone layer that absorbs most of the Sun's ultraviolet radiation lies mainly in the:"
+options = ["Troposphere", "Stratosphere", "Mesosphere", "Thermosphere"]
+answer = "B"
+explanation = "Most atmospheric ozone is in the stratosphere, roughly 15 to 35 km above the surface. Temperature rises with height in this layer because ozone absorbs ultraviolet radiation."

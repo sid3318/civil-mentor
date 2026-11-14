@@ -1,0 +1,75 @@
+# Sample brief. The stories are illustrative, written to show the format. They are not real news.
+
+[[story]]
+title = "North-east monsoon brings heavy rain to the Tamil Nadu coast"
+topics = ["gs1.geography.monsoon"]
+context = "A low-pressure area over the south-west Bay of Bengal brought very heavy rain to coastal Tamil Nadu and Puducherry, and the weather office issued warnings for several districts."
+why = "The north-east monsoon is the standard example of rainfall outside the June to September season. It explains why Tamil Nadu's water year differs from the rest of the country."
+facts = [
+  "The north-east monsoon season runs from October to December.",
+  "Tamil Nadu gets about half of its annual rainfall in this season.",
+  "North-easterly winds pick up moisture while crossing the Bay of Bengal.",
+]
+trap = "The retreating monsoon and the north-east monsoon describe the same season from two angles: withdrawal over the north, rain over the south-east coast."
+notes = ["gs1-geography-indian-monsoon"]
+
+[story.question]
+stem = "Which region of India receives the larger part of its annual rainfall during October to December?"
+options = ["The Konkan coast", "The Coromandel coast", "The Brahmaputra valley", "The Thar desert"]
+answer = "B"
+explanation = "The Coromandel coast of Tamil Nadu gets most of its rain from the north-east monsoon, when winds blowing over the Bay of Bengal bring moisture onshore."
+
+[[story]]
+title = "New navigation satellite readied for launch"
+topics = ["gs3.science-tech.space"]
+context = "The space agency moved the next satellite of its second-generation navigation series to the launch pad. The series replaces older satellites of the regional navigation system."
+why = "Navigation systems are asked in Prelims as a comparison: coverage, number of satellites, orbits and signals. Know how the Indian system differs from global ones."
+facts = [
+  "NavIC is India's regional navigation satellite system.",
+  "It covers India and a region extending about 1,500 km beyond its borders.",
+  "Its satellites are in geostationary and geosynchronous orbits.",
+  "Second-generation satellites add the L1 band, which is used by most civilian devices.",
+]
+trap = "NavIC is a regional system. GPS, GLONASS, Galileo and BeiDou are global."
+
+[story.question]
+stem = "With reference to NavIC, which one of the following statements is correct?"
+options = [
+  "It provides positioning services across the whole globe",
+  "Its satellites are placed in low Earth orbit",
+  "It covers India and a region up to about 1,500 km around it",
+  "It is operated jointly by India and the European Space Agency",
+]
+answer = "C"
+explanation = "NavIC is a regional system built by ISRO. Its satellites are in geostationary and geosynchronous orbits and its service area extends about 1,500 km beyond India's boundary."
+
+[[story]]
+title = "Debate over the Money Bill route returns to Parliament"
+topics = ["gs2.polity.parliament"]
+context = "Opposition members objected to the certification of a Bill as a Money Bill, arguing that it contained provisions beyond those listed in Article 110, and asked for it to be sent to the Rajya Sabha as an ordinary Bill."
+why = "The Money Bill question tests the balance between the two Houses and the scope of judicial review over the Speaker's certificate."
+facts = [
+  "Article 110 defines a Money Bill. It must deal only with the matters listed there.",
+  "The Rajya Sabha must return a Money Bill within 14 days and can only make recommendations.",
+  "Article 110(3) says the Speaker's decision is final.",
+  "In 2019 the Supreme Court referred the scope of review of that certificate to a larger bench.",
+]
+trap = "A Finance Bill is not always a Money Bill. Only a Bill that deals solely with Article 110 matters qualifies."
+mains = "The Money Bill route weakens the role of the Rajya Sabha. Critically examine."
+frame = [
+  "Explain Article 110 and the special procedure.",
+  "Argue the concern: bypassing the Upper House on non-fiscal provisions.",
+  "Give the counterpoint: the elected House must control the purse.",
+  "Suggest a way forward: clear tests and review of certification.",
+]
+
+[story.question]
+stem = "If the Rajya Sabha does not return a Money Bill to the Lok Sabha within fourteen days:"
+options = [
+  "The Bill lapses",
+  "A joint sitting of both Houses is called",
+  "The Bill is deemed to have been passed by both Houses in the form passed by the Lok Sabha",
+  "The President may return the Bill for reconsideration",
+]
+answer = "C"
+explanation = "Under Article 109, a Money Bill not returned within fourteen days is deemed to have been passed by both Houses in the form in which the Lok Sabha passed it. There is no joint sitting on a Money Bill."

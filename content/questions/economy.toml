@@ -1,0 +1,65 @@
+# Sample questions written for Civil Mentor. They are not UPSC previous-year questions.
+
+[[question]]
+id = "economy-0001"
+topics = ["gs3.economy.inflation"]
+source = "Civil Mentor sample"
+stem = """
+With reference to the Monetary Policy Committee, consider the following statements:
+
+1. It has six members.
+2. The Governor of the Reserve Bank of India is its ex officio chairperson.
+3. When votes are tied, the Governor has a second or casting vote.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "D"
+explanation = "The committee has three members from the RBI, including the Governor, and three appointed by the central government. Decisions are taken by majority and the Governor has a casting vote in a tie."
+note = "gs3-economy-inflation"
+
+[[question]]
+id = "economy-0002"
+topics = ["gs3.economy.inflation"]
+source = "Civil Mentor sample"
+stem = "Which one of the following is most likely to cause cost-push inflation?"
+options = [
+  "A rise in government spending financed by borrowing",
+  "A cut in personal income tax rates",
+  "A sharp rise in global crude oil prices",
+  "Faster growth of bank credit to households",
+]
+answer = "C"
+explanation = "Costlier crude oil raises the cost of production and transport across the economy, which pushes prices up from the supply side. The other three options raise demand."
+trap = "Three of the four options are demand-side causes. Sort each option into demand or supply before choosing."
+note = "gs3-economy-inflation"
+
+[[question]]
+id = "economy-0003"
+topics = ["gs3.economy.banking"]
+source = "Civil Mentor sample"
+stem = "Under the Statutory Liquidity Ratio, a bank must keep a share of its net demand and time liabilities in the form of:"
+options = [
+  "Cash balances with the Reserve Bank of India",
+  "Cash, gold or approved securities held by the bank itself",
+  "Deposits with other scheduled commercial banks",
+  "Foreign currency assets held abroad",
+]
+answer = "B"
+explanation = "The Statutory Liquidity Ratio is held by the bank itself in liquid assets: cash, gold or unencumbered approved securities. The Cash Reserve Ratio is the part kept as cash with the RBI."
+trap = "Option A describes the Cash Reserve Ratio."
+note = "gs3-economy-inflation"
+
+[[question]]
+id = "economy-0004"
+topics = ["gs3.economy.fiscal-policy"]
+source = "Civil Mentor sample"
+stem = "The fiscal deficit of the Union government is best described as:"
+options = [
+  "Total expenditure minus total receipts other than borrowings",
+  "Revenue expenditure minus revenue receipts",
+  "Total expenditure minus revenue receipts",
+  "Total borrowings minus capital expenditure",
+]
+answer = "A"
+explanation = "Fiscal deficit is total expenditure minus revenue receipts and non-debt capital receipts. It equals the government's total borrowing requirement for the year. Option B is the revenue deficit."
+trap = "Option C forgets non-debt capital receipts such as disinvestment proceeds and recovery of loans."

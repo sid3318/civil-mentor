@@ -1,0 +1,337 @@
+# The syllabus is the spine of the app: every note, question and news story
+# points at one or more of these topic IDs.
+#
+# An ID is a dotted path: paper.subject.topic. A parent must be listed before
+# its children. The order here is the order shown in the app.
+
+[[topic]]
+id = "gs1"
+title = "GS-1"
+
+[[topic]]
+id = "gs1.art-culture"
+title = "Art and culture"
+
+[[topic]]
+id = "gs1.art-culture.architecture"
+title = "Temple and cave architecture"
+
+[[topic]]
+id = "gs1.art-culture.performing-arts"
+title = "Music, dance and theatre"
+
+[[topic]]
+id = "gs1.art-culture.literature"
+title = "Literature and philosophy"
+
+[[topic]]
+id = "gs1.history"
+title = "History"
+
+[[topic]]
+id = "gs1.history.ancient-india"
+title = "Ancient India"
+
+[[topic]]
+id = "gs1.history.medieval-india"
+title = "Medieval India"
+
+[[topic]]
+id = "gs1.history.modern-india"
+title = "Modern India, 1757 to 1857"
+
+[[topic]]
+id = "gs1.history.freedom-struggle"
+title = "The freedom struggle"
+
+[[topic]]
+id = "gs1.history.post-independence"
+title = "India after independence"
+
+[[topic]]
+id = "gs1.history.world-history"
+title = "World history"
+
+[[topic]]
+id = "gs1.society"
+title = "Indian society"
+
+[[topic]]
+id = "gs1.society.diversity"
+title = "Diversity of India"
+
+[[topic]]
+id = "gs1.society.women-population"
+title = "Women, population and urbanisation"
+
+[[topic]]
+id = "gs1.society.globalisation"
+title = "Globalisation and society"
+
+[[topic]]
+id = "gs1.geography"
+title = "Geography"
+
+[[topic]]
+id = "gs1.geography.geomorphology"
+title = "Geomorphology"
+
+[[topic]]
+id = "gs1.geography.climatology"
+title = "Climatology"
+
+[[topic]]
+id = "gs1.geography.monsoon"
+title = "The Indian monsoon"
+
+[[topic]]
+id = "gs1.geography.rivers"
+title = "Rivers and drainage"
+
+[[topic]]
+id = "gs1.geography.resources"
+title = "Resources and industries"
+
+[[topic]]
+id = "gs2"
+title = "GS-2"
+
+[[topic]]
+id = "gs2.polity"
+title = "Polity"
+
+[[topic]]
+id = "gs2.polity.constitution"
+title = "Making and features of the Constitution"
+
+[[topic]]
+id = "gs2.polity.fundamental-rights"
+title = "Fundamental Rights"
+
+[[topic]]
+id = "gs2.polity.dpsp"
+title = "Directive Principles and Fundamental Duties"
+
+[[topic]]
+id = "gs2.polity.parliament"
+title = "Parliament and state legislatures"
+
+[[topic]]
+id = "gs2.polity.executive"
+title = "The Union and state executive"
+
+[[topic]]
+id = "gs2.polity.judiciary"
+title = "The judiciary"
+
+[[topic]]
+id = "gs2.polity.federalism"
+title = "Federalism and centre-state relations"
+
+[[topic]]
+id = "gs2.polity.constitutional-bodies"
+title = "Constitutional and statutory bodies"
+
+[[topic]]
+id = "gs2.polity.local-government"
+title = "Panchayats and municipalities"
+
+[[topic]]
+id = "gs2.governance"
+title = "Governance"
+
+[[topic]]
+id = "gs2.governance.transparency"
+title = "Transparency and accountability"
+
+[[topic]]
+id = "gs2.governance.e-governance"
+title = "E-governance"
+
+[[topic]]
+id = "gs2.governance.civil-services"
+title = "Role of civil services"
+
+[[topic]]
+id = "gs2.social-justice"
+title = "Social justice"
+
+[[topic]]
+id = "gs2.social-justice.health"
+title = "Health"
+
+[[topic]]
+id = "gs2.social-justice.education"
+title = "Education"
+
+[[topic]]
+id = "gs2.social-justice.welfare-schemes"
+title = "Welfare schemes for vulnerable sections"
+
+[[topic]]
+id = "gs2.ir"
+title = "International relations"
+
+[[topic]]
+id = "gs2.ir.neighbourhood"
+title = "India and its neighbourhood"
+
+[[topic]]
+id = "gs2.ir.groupings"
+title = "Bilateral, regional and global groupings"
+
+[[topic]]
+id = "gs2.ir.institutions"
+title = "International institutions"
+
+[[topic]]
+id = "gs3"
+title = "GS-3"
+
+[[topic]]
+id = "gs3.economy"
+title = "Economy"
+
+[[topic]]
+id = "gs3.economy.growth"
+title = "Growth, development and planning"
+
+[[topic]]
+id = "gs3.economy.inflation"
+title = "Inflation and monetary policy"
+
+[[topic]]
+id = "gs3.economy.banking"
+title = "Banking and financial markets"
+
+[[topic]]
+id = "gs3.economy.fiscal-policy"
+title = "Budgeting and fiscal policy"
+
+[[topic]]
+id = "gs3.economy.external-sector"
+title = "External sector"
+
+[[topic]]
+id = "gs3.agriculture"
+title = "Agriculture"
+
+[[topic]]
+id = "gs3.agriculture.cropping"
+title = "Cropping patterns and irrigation"
+
+[[topic]]
+id = "gs3.agriculture.msp-pds"
+title = "MSP, subsidies and the PDS"
+
+[[topic]]
+id = "gs3.agriculture.food-processing"
+title = "Food processing"
+
+[[topic]]
+id = "gs3.science-tech"
+title = "Science and technology"
+
+[[topic]]
+id = "gs3.science-tech.space"
+title = "Space"
+
+[[topic]]
+id = "gs3.science-tech.biotech"
+title = "Biotechnology"
+
+[[topic]]
+id = "gs3.science-tech.it-ai"
+title = "IT, computers and AI"
+
+[[topic]]
+id = "gs3.environment"
+title = "Environment"
+
+[[topic]]
+id = "gs3.environment.biodiversity"
+title = "Biodiversity and conservation"
+
+[[topic]]
+id = "gs3.environment.climate-change"
+title = "Climate change"
+
+[[topic]]
+id = "gs3.environment.pollution"
+title = "Pollution"
+
+[[topic]]
+id = "gs3.disaster-management"
+title = "Disaster management"
+
+[[topic]]
+id = "gs3.disaster-management.framework"
+title = "Institutional framework"
+
+[[topic]]
+id = "gs3.disaster-management.cyclones"
+title = "Cyclones and floods"
+
+[[topic]]
+id = "gs3.internal-security"
+title = "Internal security"
+
+[[topic]]
+id = "gs3.internal-security.cyber"
+title = "Cyber security"
+
+[[topic]]
+id = "gs3.internal-security.borders"
+title = "Border management"
+
+[[topic]]
+id = "gs3.internal-security.extremism"
+title = "Extremism and insurgency"
+
+[[topic]]
+id = "gs4"
+title = "GS-4"
+
+[[topic]]
+id = "gs4.ethics"
+title = "Ethics and integrity"
+
+[[topic]]
+id = "gs4.ethics.human-interface"
+title = "Ethics and human interface"
+
+[[topic]]
+id = "gs4.ethics.attitude"
+title = "Attitude"
+
+[[topic]]
+id = "gs4.ethics.aptitude"
+title = "Aptitude and foundational values"
+
+[[topic]]
+id = "gs4.ethics.emotional-intelligence"
+title = "Emotional intelligence"
+
+[[topic]]
+id = "gs4.ethics.probity"
+title = "Probity in governance"
+
+[[topic]]
+id = "gs4.thinkers"
+title = "Moral thinkers"
+
+[[topic]]
+id = "gs4.thinkers.indian"
+title = "Indian thinkers"
+
+[[topic]]
+id = "gs4.thinkers.western"
+title = "Western thinkers"
+
+[[topic]]
+id = "gs4.case-studies"
+title = "Case studies"
+
+[[topic]]
+id = "gs4.case-studies.approach"
+title = "Approach to case studies"

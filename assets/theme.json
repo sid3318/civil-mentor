@@ -1,0 +1,93 @@
+{
+  "name": "Civil Mentor",
+  "themes": [
+    {
+      "name": "Paper",
+      "mode": "light",
+      "colors": {
+        "background": "#fbfaf6",
+        "foreground": "#1c1917",
+        "border": "#e7e3d8",
+        "input.border": "#ddd8ca",
+        "ring": "#1e3a5f80",
+        "caret": "#1c1917",
+        "selection.background": "#a9c7ec",
+
+        "primary.background": "#1e3a5f",
+        "primary.hover.background": "#27496f",
+        "primary.active.background": "#162c49",
+        "primary.foreground": "#fbfaf6",
+
+        "secondary.background": "#eae6d9",
+        "secondary.hover.background": "#e3decf",
+        "secondary.active.background": "#dad4c3",
+        "secondary.foreground": "#1c1917",
+
+        "accent.background": "#efebe0",
+        "accent.foreground": "#1c1917",
+        "muted.background": "#f2efe6",
+        "muted.foreground": "#78716c",
+
+        "popover.background": "#fffefa",
+        "popover.foreground": "#1c1917",
+        "accordion.background": "#fbfaf6",
+        "group_box.background": "#f5f3ec",
+        "group_box.foreground": "#1c1917",
+        "description_list_label.foreground": "#1c1917",
+        "skeleton.background": "#efebe0",
+        "switch.background": "#d6d0c0",
+        "progress_bar.background": "#1e3a5f",
+        "slider.bar.background": "#1e3a5f",
+        "slider.thumb.background": "#fffefa",
+
+        "link.foreground": "#1e3a5f",
+        "link.hover.foreground": "#27496f",
+        "link.active.foreground": "#162c49",
+
+        "sidebar.background": "#f5f3ec",
+        "sidebar.foreground": "#292524",
+        "sidebar.border": "#e7e3d8",
+        "sidebar.accent.background": "#e8e3d5",
+        "sidebar.accent.foreground": "#1c1917",
+        "sidebar.primary.background": "#1e3a5f",
+        "sidebar.primary.foreground": "#fbfaf6",
+
+        "title_bar.background": "#f5f3ec",
+        "title_bar.border": "#e7e3d8",
+        "status_bar.background": "#f5f3ec",
+        "status_bar.border": "#e7e3d8",
+        "window.border": "#e7e3d8",
+
+        "list.background": "#fbfaf6",
+        "list.even.background": "#f8f6f0",
+        "list.head.background": "#f5f3ec",
+        "list.hover.background": "#f2efe6",
+        "list.active.background": "#1e3a5f1a",
+        "list.active.border": "#1e3a5f",
+
+        "table.background": "#fbfaf6",
+        "table.even.background": "#f8f6f0",
+        "table.head.background": "#f5f3ec",
+        "table.head.foreground": "#78716c",
+        "table.hover.background": "#f2efe6",
+        "table.active.background": "#1e3a5f1a",
+        "table.active.border": "#1e3a5f",
+        "table.row.border": "#e7e3d8b3",
+
+        "tab.background": "#00000000",
+        "tab.foreground": "#44403c",
+        "tab.active.background": "#fbfaf6",
+        "tab.active.foreground": "#1c1917",
+        "tab_bar.background": "#f2efe6",
+        "tab_bar.segmented.background": "#f2efe6",
+
+        "scrollbar.background": "#fbfaf600",
+        "scrollbar.thumb.background": "#a8a29ee6",
+        "scrollbar.thumb.hover.background": "#a8a29e",
+        "drag_border": "#1e3a5f",
+        "drop_target.background": "#1e3a5f33",
+        "overlay": "#1c19171f"
+      }
+    }
+  ]
+}

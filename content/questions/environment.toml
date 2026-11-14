@@ -1,0 +1,52 @@
+# Sample questions written for Civil Mentor. They are not UPSC previous-year questions.
+
+[[question]]
+id = "environment-0001"
+topics = ["gs3.environment.biodiversity"]
+source = "Civil Mentor sample"
+stem = """
+Which of the following global biodiversity hotspots include Indian territory?
+
+1. Himalaya
+2. Indo-Burma
+3. Western Ghats and Sri Lanka
+4. Sundaland
+
+Select the correct answer using the code given below."""
+options = ["1 and 3 only", "1, 2 and 3 only", "2, 3 and 4 only", "1, 2, 3 and 4"]
+answer = "D"
+explanation = "India has parts of four hotspots. The Nicobar Islands fall in the Sundaland hotspot, and most of north-east India falls in Indo-Burma."
+trap = "Sundaland looks like a South-East Asian hotspot only, but it includes the Nicobar Islands."
+
+[[question]]
+id = "environment-0002"
+topics = ["gs3.environment.biodiversity"]
+source = "Civil Mentor sample"
+stem = "The Ramsar Convention is an international treaty for the conservation of:"
+options = ["Migratory birds", "Wetlands", "Coral reefs", "Tropical forests"]
+answer = "B"
+explanation = "The Convention on Wetlands was signed in 1971 in Ramsar, Iran. It provides for the conservation and wise use of wetlands. The Montreux Record lists Ramsar sites whose ecological character is under threat."
+
+[[question]]
+id = "environment-0003"
+topics = ["gs3.environment.climate-change"]
+source = "Civil Mentor sample"
+stem = "Under the Paris Agreement, Nationally Determined Contributions are:"
+options = [
+  "Emission cuts imposed on each country by the Conference of the Parties",
+  "Climate targets that each country sets for itself and updates every five years",
+  "Payments that developed countries must make to the Green Climate Fund",
+  "Carbon credits traded between countries under Article 6",
+]
+answer = "B"
+explanation = "Each party decides its own contribution and is expected to submit a new or updated one every five years, with each one more ambitious than the last."
+trap = "The targets are self-determined. Nothing is imposed from above, unlike the binding targets of the Kyoto Protocol."
+
+[[question]]
+id = "environment-0004"
+topics = ["gs3.environment.climate-change", "gs3.environment.pollution"]
+source = "Civil Mentor sample"
+stem = "Which one of the following is not among the greenhouse gases covered by the Kyoto Protocol?"
+options = ["Methane", "Nitrous oxide", "Sulphur hexafluoride", "Carbon monoxide"]
+answer = "D"
+explanation = "The Kyoto Protocol covers carbon dioxide, methane, nitrous oxide, hydrofluorocarbons, perfluorocarbons and sulphur hexafluoride. Nitrogen trifluoride was added by the Doha Amendment. Carbon monoxide is an air pollutant but is not in the list."
