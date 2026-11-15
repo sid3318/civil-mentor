@@ -2,7 +2,7 @@
 
 [[question]]
 id = "geography-0001"
-topics = ["gs1.geography.monsoon"]
+topics = ["pre.gs.indian-geography.climate.el-nino-la-nina"]
 source = "Civil Mentor sample"
 stem = """
 Which of the following generally favour a good south-west monsoon over India?
@@ -20,7 +20,7 @@ note = "gs1-geography-indian-monsoon"
 
 [[question]]
 id = "geography-0002"
-topics = ["gs1.geography.monsoon"]
+topics = ["pre.gs.indian-geography.climate.seasons-and-rainfall-distribution"]
 source = "Civil Mentor sample"
 stem = "The Coromandel coast receives most of its annual rainfall from:"
 options = [
@@ -35,7 +35,7 @@ note = "gs1-geography-indian-monsoon"
 
 [[question]]
 id = "geography-0003"
-topics = ["gs1.geography.rivers"]
+topics = ["pre.gs.indian-geography.drainage.peninsular.west-flowing-rivers"]
 source = "Civil Mentor sample"
 stem = "Which one of the following rivers flows through a rift valley?"
 options = ["Godavari", "Narmada", "Krishna", "Mahanadi"]
@@ -44,7 +44,7 @@ explanation = "The Narmada flows westward through a rift valley between the Vind
 
 [[question]]
 id = "geography-0004"
-topics = ["gs1.geography.climatology"]
+topics = ["pre.gs.physical-geography.climatology.composition-and-structure"]
 source = "Civil Mentor sample"
 stem = "The ozone layer that absorbs most of the Sun's ultraviolet radiation lies mainly in the:"
 options = ["Troposphere", "Stratosphere", "Mesosphere", "Thermosphere"]

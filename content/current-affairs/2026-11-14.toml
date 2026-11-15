@@ -6,7 +6,7 @@
 
 [[story]]
 title = "Monetary Policy Committee holds the repo rate"
-topics = ["gs3.economy.inflation"]
+topics = ["pre.gs.economy.inflation.inflation-targeting-and-the-monetary", "mains.gs3.economy.planning.inflation.monetary-policy-framework-and-inflation", "pre.gs.current.economy.monetary-policy-decisions"]
 context = "The Monetary Policy Committee kept the policy repo rate unchanged at its bi-monthly review and retained its stance, saying retail inflation was within the tolerance band while food prices remained a risk."
 why = "Rate decisions are a standing Prelims topic, and the working of the inflation-targeting framework is asked in GS-3. Link every rate decision to the statutory mandate: price stability first, growth second."
 facts = [
@@ -39,7 +39,7 @@ explanation = "Under the RBI Act the central government sets the target, in cons
 
 [[story]]
 title = "Court tests a surveillance rule against the right to privacy"
-topics = ["gs2.polity.fundamental-rights", "gs2.polity.judiciary"]
+topics = ["pre.gs.polity.rights.fundamental-rights.right-to-freedom", "mains.gs2.polity.constitution.provisions.fundamental-rights", "pre.gs.current.national.landmark-judgments"]
 context = "A constitution bench began hearing challenges to rules that allow the bulk collection of communication data, with petitioners arguing that the rules fail the proportionality test."
 why = "Privacy cases bring together Article 21, the limits on state power and data-protection law. The proportionality test is a ready framework for any GS-2 answer on rights and restrictions."
 facts = [
@@ -70,7 +70,7 @@ explanation = "A nine-judge bench held unanimously that privacy is intrinsic to 
 
 [[story]]
 title = "More wetlands added to the Ramsar list"
-topics = ["gs3.environment.biodiversity"]
+topics = ["pre.gs.environment.conventions.ramsar-convention-cites-and-cms", "pre.gs.environment.ecosystems.wetlands", "pre.gs.current.environment.protected-areas-and-ramsar-sites"]
 context = "India designated additional wetlands as sites of international importance under the Ramsar Convention, ahead of the next meeting of the contracting parties."
 why = "Ramsar sites, their states and the convention's terms are among the most repeated Prelims environment questions. Learn the convention before the list."
 facts = [
@@ -81,6 +81,7 @@ facts = [
 ]
 trap = "The convention asks for \"wise use\" of wetlands. It does not ban human activity in them."
 pyq = "Prelims has repeatedly asked to match Ramsar sites with their states, and what the Montreux Record is."
+notes = ["gs3-environment-biodiversity-conservation"]
 
 [story.question]
 stem = "The Montreux Record is a register of:"

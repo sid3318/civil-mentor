@@ -1,7 +1,8 @@
 ---
 id: gs4-ethics-emotional-intelligence
 title: Emotional intelligence in administration
-topics: [gs4.ethics.emotional-intelligence]
+topics:
+  - mains.gs4.ei
 updated: 2026-08-30
 ---
 

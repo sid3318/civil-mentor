@@ -1,7 +1,10 @@
 ---
 id: gs2-polity-fundamental-rights
 title: Fundamental Rights (Articles 12 to 35)
-topics: [gs2.polity.fundamental-rights]
+topics:
+  - mains.gs2.polity.constitution.provisions.fundamental-rights
+  - pre.gs.polity.rights.fundamental-rights
+  - pre.gs.polity.rights.writs
 updated: 2026-11-01
 ---
 

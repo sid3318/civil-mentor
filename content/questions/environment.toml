@@ -2,7 +2,7 @@
 
 [[question]]
 id = "environment-0001"
-topics = ["gs3.environment.biodiversity"]
+topics = ["pre.gs.environment.biodiversity.biodiversity-hotspots"]
 source = "Civil Mentor sample"
 stem = """
 Which of the following global biodiversity hotspots include Indian territory?
@@ -17,19 +17,21 @@ options = ["1 and 3 only", "1, 2 and 3 only", "2, 3 and 4 only", "1, 2, 3 and 4"
 answer = "D"
 explanation = "India has parts of four hotspots. The Nicobar Islands fall in the Sundaland hotspot, and most of north-east India falls in Indo-Burma."
 trap = "Sundaland looks like a South-East Asian hotspot only, but it includes the Nicobar Islands."
+note = "gs3-environment-biodiversity-conservation"
 
 [[question]]
 id = "environment-0002"
-topics = ["gs3.environment.biodiversity"]
+topics = ["pre.gs.environment.conventions.ramsar-convention-cites-and-cms"]
 source = "Civil Mentor sample"
 stem = "The Ramsar Convention is an international treaty for the conservation of:"
 options = ["Migratory birds", "Wetlands", "Coral reefs", "Tropical forests"]
 answer = "B"
 explanation = "The Convention on Wetlands was signed in 1971 in Ramsar, Iran. It provides for the conservation and wise use of wetlands. The Montreux Record lists Ramsar sites whose ecological character is under threat."
+note = "gs3-environment-biodiversity-conservation"
 
 [[question]]
 id = "environment-0003"
-topics = ["gs3.environment.climate-change"]
+topics = ["pre.gs.environment.conventions.unfccc-kyoto-protocol"]
 source = "Civil Mentor sample"
 stem = "Under the Paris Agreement, Nationally Determined Contributions are:"
 options = [
@@ -44,7 +46,7 @@ trap = "The targets are self-determined. Nothing is imposed from above, unlike t
 
 [[question]]
 id = "environment-0004"
-topics = ["gs3.environment.climate-change", "gs3.environment.pollution"]
+topics = ["pre.gs.environment.conventions.unfccc-kyoto-protocol", "pre.gs.environment.climate-change.greenhouse-effect-and-greenhouse-gases"]
 source = "Civil Mentor sample"
 stem = "Which one of the following is not among the greenhouse gases covered by the Kyoto Protocol?"
 options = ["Methane", "Nitrous oxide", "Sulphur hexafluoride", "Carbon monoxide"]

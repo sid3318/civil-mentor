@@ -2,7 +2,7 @@
 
 [[question]]
 id = "economy-0001"
-topics = ["gs3.economy.inflation"]
+topics = ["pre.gs.economy.inflation.inflation-targeting-and-the-monetary"]
 source = "Civil Mentor sample"
 stem = """
 With reference to the Monetary Policy Committee, consider the following statements:
@@ -19,7 +19,7 @@ note = "gs3-economy-inflation"
 
 [[question]]
 id = "economy-0002"
-topics = ["gs3.economy.inflation"]
+topics = ["pre.gs.economy.inflation.types-and-causes-of-inflation"]
 source = "Civil Mentor sample"
 stem = "Which one of the following is most likely to cause cost-push inflation?"
 options = [
@@ -35,7 +35,7 @@ note = "gs3-economy-inflation"
 
 [[question]]
 id = "economy-0003"
-topics = ["gs3.economy.banking"]
+topics = ["pre.gs.economy.money.monetary-policy.crr-and-slr"]
 source = "Civil Mentor sample"
 stem = "Under the Statutory Liquidity Ratio, a bank must keep a share of its net demand and time liabilities in the form of:"
 options = [
@@ -51,7 +51,7 @@ note = "gs3-economy-inflation"
 
 [[question]]
 id = "economy-0004"
-topics = ["gs3.economy.fiscal-policy"]
+topics = ["pre.gs.economy.fiscal.deficits"]
 source = "Civil Mentor sample"
 stem = "The fiscal deficit of the Union government is best described as:"
 options = [

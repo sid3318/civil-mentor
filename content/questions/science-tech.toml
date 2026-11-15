@@ -2,25 +2,27 @@
 
 [[question]]
 id = "science-tech-0001"
-topics = ["gs3.science-tech.space"]
+topics = ["pre.gs.science-tech.space.orbits-and-satellites"]
 source = "Civil Mentor sample"
 stem = "A geostationary satellite orbits above the Earth's equator at an altitude of about:"
 options = ["400 km", "2,000 km", "20,200 km", "36,000 km"]
 answer = "D"
 explanation = "A geostationary orbit is about 35,786 km above the equator. At that height a satellite takes one sidereal day to circle the Earth, so it stays over the same point. Navigation satellites such as GPS orbit at about 20,200 km."
+note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "science-tech-0002"
-topics = ["gs3.science-tech.space"]
+topics = ["pre.gs.science-tech.space.indian-space-missions"]
 source = "Civil Mentor sample"
 stem = "The spot near the lunar south pole where the Chandrayaan-3 lander touched down in August 2023 was named:"
 options = ["Tiranga Point", "Shiv Shakti Point", "Jawahar Point", "Vikram Point"]
 answer = "B"
 explanation = "The Chandrayaan-3 landing site is Shiv Shakti Point. Tiranga Point marks where the Chandrayaan-2 lander hit the surface in 2019, and Jawahar Point is where the Chandrayaan-1 Moon Impact Probe struck in 2008."
+note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "science-tech-0003"
-topics = ["gs3.science-tech.biotech"]
+topics = ["pre.gs.science-tech.biotech.gene-editing"]
 source = "Civil Mentor sample"
 stem = "CRISPR-Cas9 is best described as:"
 options = [
@@ -34,7 +36,7 @@ explanation = "In CRISPR-Cas9 a guide RNA matches a target sequence and the Cas9
 
 [[question]]
 id = "science-tech-0004"
-topics = ["gs3.science-tech.it-ai"]
+topics = ["pre.gs.science-tech.emerging.artificial-intelligence-and-machine-learning"]
 source = "Civil Mentor sample"
 stem = "In artificial intelligence, a large language model is:"
 options = [

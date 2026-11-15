@@ -13,17 +13,19 @@ use gpui_kit::component::sidebar::{
     Sidebar, SidebarGroup, SidebarItem as _, SidebarMenu, SidebarMenuItem, SidebarToggleButton,
 };
 use gpui_kit::component::{
-    ActiveTheme as _, Collapsible as _, Icon, Sizable as _, StyledExt as _, Theme, TitleBar,
-    WindowExt as _, h_flex, v_flex,
+    ActiveTheme as _, Collapsible as _, Disableable as _, Icon, Sizable as _, StyledExt as _,
+    Theme, TitleBar, WindowExt as _, h_flex, v_flex,
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
 use crate::AppState;
 use crate::content::Target;
+use crate::notes::NotesScreen;
 use crate::screens;
 use crate::settings::SettingsScreen;
 use crate::store::ThemeChoice;
+use crate::syllabus::SyllabusScreen;
 
 actions!(
     civil_mentor,
@@ -33,6 +35,8 @@ actions!(
         OpenSettings,
         ToggleSidebar,
         ToggleTheme,
+        GoBack,
+        GoForward,
         GoToday,
         GoNotes,
         GoPractice,
@@ -114,6 +118,22 @@ impl Screen {
     }
 }
 
+/// Where the student is: a section, or a note open in the reader.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Place {
+    Screen(Screen),
+    Note(usize),
+}
+
+impl Place {
+    fn screen(self) -> Screen {
+        match self {
+            Place::Screen(screen) => screen,
+            Place::Note(_) => Screen::Notes,
+        }
+    }
+}
+
 const SEARCH_KEYS: &str = "secondary-k";
 
 /// Key bindings, menus and the actions that need no window.
@@ -129,6 +149,8 @@ pub(crate) fn init(cx: &mut App) {
         key(cx, SEARCH_KEYS, OpenSearch),
         key(cx, "secondary-,", OpenSettings),
         key(cx, "secondary-\\", ToggleSidebar),
+        key(cx, "secondary-[", GoBack),
+        key(cx, "secondary-]", GoForward),
         key(cx, "secondary-1", GoToday),
         key(cx, "secondary-2", GoNotes),
         key(cx, "secondary-3", GoPractice),
@@ -152,6 +174,8 @@ pub(crate) fn init(cx: &mut App) {
         ]),
         Menu::new("View").items([
             MenuItem::action("Search", OpenSearch),
+            MenuItem::action("Back", GoBack),
+            MenuItem::action("Forward", GoForward),
             MenuItem::separator(),
             MenuItem::action("Today", GoToday),
             MenuItem::action("Notes", GoNotes),
@@ -196,6 +220,8 @@ pub(crate) fn route_actions(window: AnyWindowHandle, shell: &Entity<Shell>, cx: 
         shell.go(Screen::Settings, cx)
     });
     route::<ToggleSidebar>(cx, window, shell, |shell, _, cx| shell.toggle_sidebar(cx));
+    route::<GoBack>(cx, window, shell, |shell, _, cx| shell.back(cx));
+    route::<GoForward>(cx, window, shell, |shell, _, cx| shell.forward(cx));
     route::<GoToday>(cx, window, shell, |shell, _, cx| {
         shell.go(Screen::Today, cx)
     });
@@ -225,9 +251,17 @@ fn toggle_theme(cx: &mut App) {
 }
 
 pub struct Shell {
-    screen: Screen,
+    /// Every place visited, oldest first, and which one is current. Back and
+    /// forward move `at`; going somewhere new drops the places ahead of it.
+    history: Vec<Place>,
+    at: usize,
     sidebar_collapsed: bool,
+    /// Set when the sidebar folded itself for reading, so that it unfolds
+    /// again when the student leaves the notes.
+    unfold_sidebar: bool,
     palette: Entity<SearchPalette>,
+    notes: Entity<NotesScreen>,
+    syllabus: Entity<SyllabusScreen>,
     settings: Entity<SettingsScreen>,
     _appearance: Subscription,
 }
@@ -241,36 +275,94 @@ impl Shell {
             }
         });
         Shell {
-            screen: Screen::Today,
+            history: vec![Place::Screen(Screen::Today)],
+            at: 0,
             sidebar_collapsed: false,
-            palette: cx.new(|cx| SearchPalette::new(shell, window, cx)),
+            unfold_sidebar: false,
+            palette: cx.new(|cx| SearchPalette::new(shell.clone(), window, cx)),
+            notes: cx.new(|_| NotesScreen::new(shell.clone())),
+            syllabus: cx.new(|_| SyllabusScreen::new(shell)),
             settings: cx.new(|cx| SettingsScreen::new(window, cx)),
             _appearance: appearance,
         }
     }
 
     pub fn screen(&self) -> Screen {
-        self.screen
+        self.history[self.at].screen()
+    }
+
+    /// The note open in the reader, if any.
+    pub fn note(&self, cx: &App) -> Option<usize> {
+        self.notes.read(cx).note()
     }
 
     pub fn go(&mut self, screen: Screen, cx: &mut Context<Self>) {
-        self.screen = screen;
-        cx.notify();
+        self.visit(Place::Screen(screen), cx);
     }
 
-    /// Opens what a search result points at. For now that is the section it
-    /// belongs to; the notes, practice and current-affairs phases open the item.
+    /// Opens what a link or search result points at. A question or a story
+    /// opens its section until the practice and current-affairs phases.
     pub fn open(&mut self, target: Target, cx: &mut Context<Self>) {
-        let screen = match target {
-            Target::Note(_) => Screen::Notes,
-            Target::Question(_) => Screen::Practice,
-            Target::Story { .. } => Screen::CurrentAffairs,
+        let place = match target {
+            Target::Note(ix) => Place::Note(ix),
+            Target::Question(_) => Place::Screen(Screen::Practice),
+            Target::Story { .. } => Place::Screen(Screen::CurrentAffairs),
         };
-        self.go(screen, cx);
+        self.visit(place, cx);
+    }
+
+    fn visit(&mut self, mut place: Place, cx: &mut Context<Self>) {
+        // The notes screen is wherever the reader was left, so that going
+        // back returns to that note.
+        if place == Place::Screen(Screen::Notes)
+            && let Some(ix) = self.note(cx)
+        {
+            place = Place::Note(ix);
+        }
+        if self.history[self.at] != place {
+            self.history.truncate(self.at + 1);
+            self.history.push(place);
+            self.at += 1;
+        }
+        self.show(cx);
+    }
+
+    pub fn back(&mut self, cx: &mut Context<Self>) {
+        if self.at > 0 {
+            self.at -= 1;
+            self.show(cx);
+        }
+    }
+
+    pub fn forward(&mut self, cx: &mut Context<Self>) {
+        if self.at + 1 < self.history.len() {
+            self.at += 1;
+            self.show(cx);
+        }
+    }
+
+    /// Brings up the current place.
+    fn show(&mut self, cx: &mut Context<Self>) {
+        let place = self.history[self.at];
+        if let Place::Note(ix) = place {
+            self.notes.update(cx, |notes, cx| notes.show(ix, cx));
+        }
+        // The sidebar folds to a rail while reading, and unfolds after.
+        let reading = place.screen() == Screen::Notes;
+        if reading && !self.sidebar_collapsed {
+            self.sidebar_collapsed = true;
+            self.unfold_sidebar = true;
+        } else if !reading && self.unfold_sidebar {
+            self.sidebar_collapsed = false;
+            self.unfold_sidebar = false;
+        }
+        cx.notify();
     }
 
     pub fn toggle_sidebar(&mut self, cx: &mut Context<Self>) {
         self.sidebar_collapsed = !self.sidebar_collapsed;
+        // The student's own choice stays as they set it.
+        self.unfold_sidebar = false;
         cx.notify();
     }
 
@@ -318,6 +410,24 @@ impl Shell {
                             .collapsed(self.sidebar_collapsed)
                             .accessibility_label("Toggle sidebar")
                             .on_click(cx.listener(|this, _, _, cx| this.toggle_sidebar(cx))),
+                    )
+                    .child(
+                        Button::new("back")
+                            .ghost()
+                            .small()
+                            .icon(Icon::new(IconName::ChevronLeft))
+                            .tooltip("Back")
+                            .disabled(self.at == 0)
+                            .on_click(cx.listener(|this, _, _, cx| this.back(cx))),
+                    )
+                    .child(
+                        Button::new("forward")
+                            .ghost()
+                            .small()
+                            .icon(Icon::new(IconName::ChevronRight))
+                            .tooltip("Forward")
+                            .disabled(self.at + 1 == self.history.len())
+                            .on_click(cx.listener(|this, _, _, cx| this.forward(cx))),
                     )
                     .child(div().text_sm().font_semibold().child("Civil Mentor")),
             )
@@ -372,7 +482,7 @@ impl Shell {
     }
 
     fn sidebar(&self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let current = self.screen;
+        let current = self.screen();
         let item = |screen: Screen, cx: &mut Context<Self>| {
             SidebarMenuItem::new(screen.title())
                 .icon(Icon::new(screen.icon()))
@@ -399,9 +509,32 @@ impl Shell {
 impl Render for Shell {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let store_error = AppState::get(cx).store_error.clone();
-        let content = match self.screen {
-            Screen::Settings => self.settings.clone().into_any_element(),
-            screen => screens::placeholder(screen, cx).into_any_element(),
+        let screen = self.screen();
+        // Notes has panes that scroll on their own; every other screen is one
+        // column that scrolls as a whole.
+        let content = match screen {
+            Screen::Notes => div()
+                .flex_1()
+                .min_w_0()
+                .h_full()
+                .child(self.notes.clone())
+                .into_any_element(),
+            screen => {
+                let page = match screen {
+                    Screen::Settings => self.settings.clone().into_any_element(),
+                    Screen::Syllabus => self.syllabus.clone().into_any_element(),
+                    screen => screens::placeholder(screen, cx).into_any_element(),
+                };
+                div()
+                    .flex_1()
+                    .min_w_0()
+                    .h_full()
+                    .overflow_y_scrollbar()
+                    // One scroll position per screen.
+                    .id(("screen", screen as usize))
+                    .child(page)
+                    .into_any_element()
+            }
         };
 
         v_flex()
@@ -430,16 +563,7 @@ impl Render for Shell {
                     .flex_1()
                     .min_h_0()
                     .child(self.sidebar(window, cx))
-                    .child(
-                        div()
-                            .flex_1()
-                            .min_w_0()
-                            .h_full()
-                            .overflow_y_scrollbar()
-                            // One scroll position per screen.
-                            .id(("screen", self.screen as usize))
-                            .child(content),
-                    ),
+                    .child(content),
             )
     }
 }

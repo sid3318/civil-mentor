@@ -5,7 +5,7 @@
 
 [[question]]
 id = "polity-0001"
-topics = ["gs2.polity.fundamental-rights"]
+topics = ["pre.gs.polity.rights.fundamental-rights"]
 source = "Civil Mentor sample"
 stem = """
 Consider the following rights:
@@ -24,7 +24,7 @@ note = "gs2-polity-fundamental-rights"
 
 [[question]]
 id = "polity-0002"
-topics = ["gs2.polity.fundamental-rights"]
+topics = ["pre.gs.polity.rights.fundamental-rights", "pre.gs.polity.system.emergency.national-emergency"]
 source = "Civil Mentor sample"
 stem = "During a national emergency, the right to move a court for the enforcement of which of the following cannot be suspended?"
 options = ["Articles 14 and 19", "Articles 20 and 21", "Articles 21 and 22", "Articles 19 and 32"]
@@ -35,7 +35,7 @@ note = "gs2-polity-fundamental-rights"
 
 [[question]]
 id = "polity-0003"
-topics = ["gs2.polity.parliament"]
+topics = ["pre.gs.polity.parliament.bills.money-bills"]
 source = "Civil Mentor sample"
 stem = """
 With reference to a Money Bill, consider the following statements:
@@ -49,10 +49,11 @@ options = ["1 only", "1 and 3 only", "2 and 3 only", "1, 2 and 3"]
 answer = "B"
 explanation = "A Money Bill is introduced only in the Lok Sabha, on the President's recommendation. The Rajya Sabha can only make recommendations and must return the Bill within 14 days. Under Article 110(3) the Speaker's certificate is final."
 trap = "The Rajya Sabha can discuss a Money Bill and suggest changes. It cannot amend or reject it."
+note = "gs2-polity-parliament"
 
 [[question]]
 id = "polity-0004"
-topics = ["gs2.polity.judiciary", "gs2.polity.fundamental-rights"]
+topics = ["pre.gs.polity.rights.writs.prohibition"]
 source = "Civil Mentor sample"
 stem = "Which writ does a higher court issue to a lower court or tribunal to stop it from exceeding its jurisdiction in a matter that is still pending?"
 options = ["Mandamus", "Prohibition", "Certiorari", "Quo warranto"]

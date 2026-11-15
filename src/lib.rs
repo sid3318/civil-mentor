@@ -3,15 +3,20 @@
 //! - [`content`] is the read-only content pack (syllabus, notes, questions, briefs).
 //! - [`store`] is the SQLite file holding everything the student does.
 //! - `app` is the window shell: title bar, sidebar, search and the active screen.
+//! - `notes` is the reader; [`syllabus`] tracks topics and coverage.
 
 mod app;
 pub mod content;
+mod notes;
 mod screens;
 mod settings;
 pub mod store;
+pub mod syllabus;
 
 use std::borrow::Cow;
+use std::collections::HashMap;
 
+use chrono::{Local, NaiveDate};
 use gpui_kit::assets::Assets;
 use gpui_kit::component::{Theme, ThemeMode, ThemeRegistry, TitleBar};
 use gpui_kit::{
@@ -21,13 +26,20 @@ use gpui_kit::{
 
 pub use app::{Screen, Shell};
 use content::Library;
-use store::{Settings, Store, ThemeChoice};
+use store::{Reading, Settings, Store, ThemeChoice};
 
 // Lucide icons the app uses beyond the set bundled with the components.
 gpui_kit::assets::icon_assets!(
     ExtraIcons,
     [
+        AArrowDown,
+        AArrowUp,
+        Bookmark,
+        BookmarkCheck,
         ChartColumn,
+        ChevronsLeftRight,
+        Circle,
+        CircleDot,
         ListTree,
         Newspaper,
         NotebookText,
@@ -60,6 +72,9 @@ pub struct AppState {
     pub library: Library,
     pub store: Store,
     pub settings: Settings,
+    /// What the student has done with each note, by note id. Kept in step
+    /// with the store by [`AppState::update_reading`].
+    pub reading: HashMap<String, Reading>,
     /// Set when the data file cannot be used. The shell shows it as a banner,
     /// because from then on nothing the student does is being saved.
     pub store_error: Option<String>,
@@ -81,6 +96,22 @@ impl AppState {
         }
         let theme = state.settings.theme;
         apply_theme(theme, cx);
+        cx.refresh_windows();
+    }
+
+    /// Changes what the student has done with a note, saves it and redraws
+    /// every window. A note opened for the first time starts a fresh record.
+    pub fn update_reading(cx: &mut App, note: &str, change: impl FnOnce(&mut Reading, NaiveDate)) {
+        let today = Local::now().date_naive();
+        let state = cx.global_mut::<AppState>();
+        let reading = state
+            .reading
+            .entry(note.to_string())
+            .or_insert_with(|| Reading::new(today));
+        change(reading, today);
+        if let Err(err) = state.store.save_reading(note, reading) {
+            state.store_error = Some(format!("{err:#}"));
+        }
         cx.refresh_windows();
     }
 }
@@ -110,7 +141,7 @@ fn apply_theme(choice: ThemeChoice, cx: &mut App) {
 
 /// Sets up the component library, loads the content and installs the app
 /// state, key bindings and menus. Call once, before opening the window.
-pub fn init(store: Store, store_error: Option<String>, cx: &mut App) {
+pub fn init(mut store: Store, mut store_error: Option<String>, cx: &mut App) {
     gpui_kit::init(cx);
     install_paper_theme(cx);
 
@@ -120,10 +151,18 @@ pub fn init(store: Store, store_error: Option<String>, cx: &mut App) {
     }
     let settings = store.settings();
     apply_theme(settings.theme, cx);
+    // Saving on top of rows that could not be read would overwrite them, so
+    // carry on with a throwaway store instead and say so.
+    let reading = store.readings().unwrap_or_else(|err| {
+        store_error = Some(format!("{err:#}"));
+        store = Store::in_memory();
+        HashMap::new()
+    });
     cx.set_global(AppState {
         library,
         store,
         settings,
+        reading,
         store_error,
     });
     app::init(cx);

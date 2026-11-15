@@ -72,7 +72,7 @@ fn coming(phase: u8, what: &'static str, cx: &App) -> Div {
         .child(format!("Phase {phase} builds this screen: {what}."))
 }
 
-fn count(n: usize, one: &str, many: &str) -> String {
+pub(crate) fn count(n: usize, one: &str, many: &str) -> String {
     format!("{n} {}", if n == 1 { one } else { many })
 }
 
@@ -142,36 +142,11 @@ pub(crate) fn placeholder(screen: Screen, cx: &App) -> impl IntoElement {
                 ))
             })
         }
-        Screen::Notes => {
-            let rows = library
-                .notes
-                .iter()
-                .map(|note| {
-                    let detail = format!(
-                        "{} · {} min",
-                        first_subject(library, &note.topics),
-                        note.minutes
-                    );
-                    row(note.title.clone(), detail, cx)
-                })
-                .collect();
-            page(
-                screen.title(),
-                count(library.notes.len(), "note", "notes"),
-                cx,
-            )
-            .child(coming(
-                1,
-                "the reader, with full and distilled modes and linked questions",
-                cx,
-            ))
-            .child(section("All notes", rows, cx))
-        }
         Screen::Practice => {
             let rows: Vec<Div> = library
                 .topics
                 .iter()
-                .filter(|topic| topic.depth == 1)
+                .filter(|topic| topic.depth == 2)
                 .filter_map(|topic| {
                     let questions = library
                         .questions
@@ -213,56 +188,6 @@ pub(crate) fn placeholder(screen: Screen, cx: &App) -> impl IntoElement {
                 cx,
             )
         })),
-        Screen::Syllabus => {
-            // One section per paper, holding its subjects and their topics.
-            let papers = library
-                .topics
-                .iter()
-                .filter(|topic| topic.depth == 0)
-                .map(|paper| {
-                    let rows = library
-                        .topics
-                        .iter()
-                        .filter(|topic| {
-                            topic.depth > 0 && is_under(std::slice::from_ref(&topic.id), &paper.id)
-                        })
-                        .map(|topic| {
-                            let notes = library
-                                .notes
-                                .iter()
-                                .filter(|n| is_under(&n.topics, &topic.id))
-                                .count();
-                            let questions = library
-                                .questions
-                                .iter()
-                                .filter(|q| is_under(&q.topics, &topic.id))
-                                .count();
-                            let linked = [
-                                (notes > 0).then(|| count(notes, "note", "notes")),
-                                (questions > 0).then(|| count(questions, "question", "questions")),
-                            ];
-                            let linked: Vec<String> = linked.into_iter().flatten().collect();
-                            let title = div()
-                                .when(topic.depth == 1, |this| this.font_medium())
-                                .when(topic.depth > 1, |this| this.pl_6())
-                                .child(topic.title.clone());
-                            row(title, linked.join(" · "), cx)
-                        })
-                        .collect();
-                    section(paper.title.clone(), rows, cx)
-                });
-            page(
-                screen.title(),
-                count(library.topics.len(), "topic", "topics"),
-                cx,
-            )
-            .child(coming(
-                1,
-                "progress for every topic and coverage for every paper",
-                cx,
-            ))
-            .children(papers)
-        }
         Screen::Analysis => page(
             screen.title(),
             "Where your marks come from and where they go",
@@ -286,7 +211,7 @@ pub(crate) fn placeholder(screen: Screen, cx: &App) -> impl IntoElement {
         Screen::Notebook => page(screen.title(), "Your highlights, clips and own notes", cx).child(
             coming(5, "highlights, clips, bookmarks and your own notes", cx),
         ),
-        // The shell renders Settings itself; this arm only keeps the match total.
-        Screen::Settings => page(screen.title(), "", cx),
+        // The shell renders these itself; this arm only keeps the match total.
+        Screen::Notes | Screen::Syllabus | Screen::Settings => page(screen.title(), "", cx),
     }
 }

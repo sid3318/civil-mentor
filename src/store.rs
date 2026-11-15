@@ -1,5 +1,6 @@
 //! Everything the student does, kept in one SQLite file in the OS app-data folder.
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context as _, Result, bail};
@@ -8,8 +9,17 @@ use rusqlite::{Connection, OptionalExtension as _, params};
 
 /// Schema changes, oldest first. Never edit an entry that has shipped: add a new
 /// one. `PRAGMA user_version` records how many have been applied to a file.
-const MIGRATIONS: &[&str] =
-    &["CREATE TABLE setting (key TEXT PRIMARY KEY, value TEXT NOT NULL) STRICT"];
+const MIGRATIONS: &[&str] = &[
+    "CREATE TABLE setting (key TEXT PRIMARY KEY, value TEXT NOT NULL) STRICT",
+    // One row per note the student has opened. Dates are YYYY-MM-DD.
+    "CREATE TABLE reading (
+        item TEXT PRIMARY KEY,
+        first TEXT NOT NULL,
+        last TEXT NOT NULL,
+        done TEXT,
+        bookmarked INTEGER NOT NULL DEFAULT 0
+    ) STRICT",
+];
 
 // ponytail: queries run on the UI thread. They take microseconds at one
 // student's volume; move them to the background executor if one ever shows up
@@ -45,6 +55,10 @@ pub struct Settings {
     /// How long the student means to study each day. Today's plan is sized to it.
     pub daily_minutes: u32,
     pub theme: ThemeChoice,
+    /// Body text size in the reader, in pixels.
+    pub reader_size: u32,
+    /// Whether the reader uses the wide column.
+    pub reader_wide: bool,
 }
 
 impl Default for Settings {
@@ -54,6 +68,33 @@ impl Default for Settings {
             exam_date: NaiveDate::from_ymd_opt(2027, 5, 23).expect("valid date"),
             daily_minutes: 90,
             theme: ThemeChoice::Light,
+            reader_size: 16,
+            reader_wide: false,
+        }
+    }
+}
+
+/// What the student has done with one note. A note with no `Reading` has
+/// never been opened.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Reading {
+    /// The day it was first opened.
+    pub first: NaiveDate,
+    /// The day it was last opened.
+    pub last: NaiveDate,
+    /// The day the student marked it read.
+    pub done: Option<NaiveDate>,
+    pub bookmarked: bool,
+}
+
+impl Reading {
+    /// A note opened for the first time today.
+    pub fn new(today: NaiveDate) -> Reading {
+        Reading {
+            first: today,
+            last: today,
+            done: None,
+            bookmarked: false,
         }
     }
 }
@@ -140,6 +181,12 @@ impl Store {
             theme: read("theme")
                 .and_then(|value| ThemeChoice::ALL.into_iter().find(|t| t.name() == value))
                 .unwrap_or(defaults.theme),
+            reader_size: read("reader_size")
+                .and_then(|value| value.parse().ok())
+                .unwrap_or(defaults.reader_size),
+            reader_wide: read("reader_wide")
+                .and_then(|value| value.parse().ok())
+                .unwrap_or(defaults.reader_wide),
         }
     }
 
@@ -147,6 +194,59 @@ impl Store {
         self.set("exam_date", &settings.exam_date.to_string())?;
         self.set("daily_minutes", &settings.daily_minutes.to_string())?;
         self.set("theme", settings.theme.name())?;
+        self.set("reader_size", &settings.reader_size.to_string())?;
+        self.set("reader_wide", &settings.reader_wide.to_string())?;
+        Ok(())
+    }
+
+    /// Every note the student has opened, by note id. A row whose dates
+    /// cannot be read is left out rather than stopping the rest loading.
+    pub fn readings(&self) -> Result<HashMap<String, Reading>> {
+        let mut query = self
+            .conn
+            .prepare("SELECT item, first, last, done, bookmarked FROM reading")?;
+        let rows = query.query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, Option<String>>(3)?,
+                row.get::<_, bool>(4)?,
+            ))
+        })?;
+        let mut readings = HashMap::new();
+        for row in rows {
+            let (item, first, last, done, bookmarked) = row?;
+            let (Ok(first), Ok(last)) = (first.parse(), last.parse()) else {
+                continue;
+            };
+            let done = done.and_then(|done| done.parse().ok());
+            readings.insert(
+                item,
+                Reading {
+                    first,
+                    last,
+                    done,
+                    bookmarked,
+                },
+            );
+        }
+        Ok(readings)
+    }
+
+    pub fn save_reading(&self, item: &str, reading: &Reading) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO reading (item, first, last, done, bookmarked) VALUES (?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT (item) DO UPDATE SET first = excluded.first, last = excluded.last,
+                 done = excluded.done, bookmarked = excluded.bookmarked",
+            params![
+                item,
+                reading.first.to_string(),
+                reading.last.to_string(),
+                reading.done.map(|done| done.to_string()),
+                reading.bookmarked
+            ],
+        )?;
         Ok(())
     }
 }
@@ -160,6 +260,8 @@ mod tests {
             exam_date: NaiveDate::from_ymd_opt(2028, 6, 4).unwrap(),
             daily_minutes: 240,
             theme: ThemeChoice::Dark,
+            reader_size: 19,
+            reader_wide: true,
         }
     }
 
@@ -199,6 +301,38 @@ mod tests {
         assert_eq!(settings.exam_date, Settings::default().exam_date);
         assert_eq!(settings.theme, Settings::default().theme);
         assert_eq!(settings.daily_minutes, 240, "good rows are still read");
+    }
+
+    #[test]
+    fn readings_are_saved_updated_and_read_back() {
+        let store = Store::in_memory();
+        assert_eq!(store.readings().unwrap(), HashMap::new());
+        let day = |d| NaiveDate::from_ymd_opt(2026, 11, d).unwrap();
+
+        let mut reading = Reading::new(day(14));
+        store.save_reading("fr", &reading).unwrap();
+        reading.last = day(15);
+        reading.done = Some(day(15));
+        reading.bookmarked = true;
+        store.save_reading("fr", &reading).unwrap();
+        store
+            .save_reading("monsoon", &Reading::new(day(15)))
+            .unwrap();
+
+        let readings = store.readings().unwrap();
+        assert_eq!(readings.len(), 2, "saving again updates the row");
+        assert_eq!(readings["fr"], reading);
+        assert_eq!(readings["monsoon"].done, None);
+
+        // A row with a broken date is skipped; the others still load.
+        store
+            .conn
+            .execute(
+                "UPDATE reading SET first = 'soon' WHERE item = 'monsoon'",
+                [],
+            )
+            .unwrap();
+        assert_eq!(store.readings().unwrap().len(), 1);
     }
 
     #[test]

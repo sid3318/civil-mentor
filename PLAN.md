@@ -1,6 +1,6 @@
 # Civil Mentor: build plan
 
-Status: Phase 0 (the shell) is built and tested. Phases 1 to 6 are not started. Plan written 14 Nov 2026.
+Status: Phase 0 (the shell) and Phase 1 (notes and the full UPSC syllabus) are built and tested. Phases 2 to 6 are not started. Plan written 14 Nov 2026, updated 15 Nov 2026.
 
 A desktop study companion for UPSC CSE aspirants. It plans the student's day, gives them the notes and current affairs to read, tests them in an exam-like room, and turns the results into the next thing to study.
 
@@ -232,7 +232,7 @@ Current affairs:
 
 ### Project structure
 
-As built in Phase 0:
+As built in Phases 0 and 1:
 
 ```
 Cargo.toml
@@ -245,9 +245,11 @@ content/                 the content pack (dummy now, ours later)
 src/
   main.rs                calls run()
   lib.rs                 start-up: app state, theme, icons, window
-  app.rs                 shell: title bar, sidebar, shortcuts, search palette, open(target)
-  content.rs             content types, loader, validation, search
-  store.rs               SQLite schema, migrations, settings
+  app.rs                 shell: title bar, sidebar, shortcuts, search palette, open(target), back and forward
+  content.rs             content types, loader, validation, search, note sections
+  store.rs               SQLite schema, migrations, settings, reading records
+  notes.rs               the Notes screen: list, reader, outline, linked questions
+  syllabus.rs            the Syllabus screen, topic status and coverage
   settings.rs            the Settings screen
   screens.rs             stand-in screens, replaced phase by phase
 tests/
@@ -265,6 +267,21 @@ One crate, no workspace. The app is a library plus a three-line `main.rs` so the
 - The content test loads the shipped `content/` folder and fails on any problem, so it doubles as the linter for writers.
 
 ### Content format
+
+The syllabus is `content/syllabus.toml`, one line per node:
+
+```toml
+topic = [
+  { id = "mains", title = "Mains", official = "The Written Examination will consist of 9 papers ..." },
+    { id = "mains.gs2", title = "GS-2", official = "General Studies-II: Governance, Constitution, Polity, ..." },
+      { id = "mains.gs2.polity", title = "Constitution and polity" },
+        { id = "mains.gs2.polity.constitution", title = "Indian Constitution", official = "Indian Constitution—historical underpinnings, ..." },
+]
+```
+
+- The levels are stage (Prelims, Mains), paper, subject, chapter, topic and subtopic. The trees cover Prelims GS Paper I and CSAT, and Mains Papers A and B, the Essay and GS-1 to GS-4: 1,805 nodes, 1,440 of them at the bottom level. The optional subjects are not in yet.
+- `official` is UPSC's wording, copied from Examination Notice No. 05/2026-CSE (Appendix I, Section III), on every node that matches a line of the official syllabus. The breakdown below those lines is ours, cross-checked against the subject-wise syllabus guides of Drishti IAS, Vajiram & Ravi, Vision IAS, Next IAS, ClearIAS and Insights IAS.
+- Content is tagged with the most specific nodes it covers in full. A note covers everything under the nodes it is tagged with, so a note on a whole chapter is tagged with the chapter. Notes and stories carry both the Mains node and the Prelims node when both apply. Questions carry Prelims nodes.
 
 A note is one Markdown file:
 
@@ -311,9 +328,9 @@ A day of current affairs is one TOML file with a list of stories. Each story has
 |---|---|---|
 | `attempt` | test sitting | kind, start, finish (empty while in progress), time allowed, marks for right and wrong |
 | `answer` | question in a sitting | question ID, subject, topic, chosen option, correct, confidence, marked, time taken |
-| `reading` | note or story opened | status, time spent, first, last and done dates |
+| `reading` | note or story opened | first, last and done dates, bookmark. Time spent comes with Phase 3 |
 | `review` | flashcard or mistake | box (1 to 5), due date |
-| `mark` | bookmark, highlight or clip | item, text range, the student's comment |
+| `mark` | highlight or clip | item, text range, the student's comment |
 | `my_note` | note the student wrote | title, body |
 | `session` | block of study time | day, kind, seconds |
 | `plan_task` | task in a day's plan | kind, target, minutes, done |
@@ -336,7 +353,7 @@ Each phase ends with an app that runs and can be clicked through.
 | Phase | Scope | Done when |
 |---|---|---|
 | 0. Shell (done) | Update Rust. Window, sidebar, title bar, light and dark theme, routing. Content loader with validation. Store and settings. Dummy content. ⌘K search | The app launches, every sidebar item opens its screen, dummy content loads with no validation errors, and `cargo test` passes the loader and store round trip |
-| 1. Notes and syllabus | Notes tree, reader (Read and Distilled, outline, text size and width, at a glance, linked PYQs), mark as read, bookmark. Syllabus tracker | A note can be read in both modes and marked read, and the coverage figure changes |
+| 1. Notes and syllabus (done) | Notes tree, reader (Read and Distilled, outline, text size and width, at a glance, linked PYQs), mark as read, bookmark. Syllabus tracker | A note can be read in both modes and marked read, and the coverage figure changes |
 | 2. Practice | Practice hub, drill builder, exam room, result and review, PYQ papers by year | A drill can be sat against the clock, quit, resumed, submitted and reviewed. A unit test checks the score against a hand-worked case |
 | 3. Analysis and Today | Analysis dashboard, mentor rules, Today screen, streak, countdown, demo-history loader | With demo history loaded the charts draw, and the plan and insights appear and are covered by tests |
 | 4. Current affairs | Brief by date, Full and Rapid modes, story reader with inline question, editorials, calendar, daily quiz | A brief can be read and its quiz taken, and both show up in Today and Analysis |
@@ -354,6 +371,22 @@ All four "done when" conditions are met and checked by `cargo test`. What differ
 - **Search opens the section a result belongs to**, not the item. Opening the note, question or story itself comes with Phases 1, 2 and 4, and so do the back and forward buttons.
 - **The store has one table, `setting`.** The other tables are added by the phase that needs them, as numbered migrations.
 - **The default Prelims date is 23 May 2027.** It is a placeholder for the student to change in Settings.
+
+### Phase 1 as built
+
+The "done when" condition is met and checked by `cargo test`: the UI test opens a note, switches it to Distilled, marks it read and watches GS-2 coverage go from 0 to 1 of 18 topics. What differs from the plan above:
+
+- **The notes list** groups notes by paper and subject, in syllabus order, with bookmarked notes on top. Subjects do not fold yet; add that when there are hundreds of notes.
+- **"At a glance" is the line under the title**: reading time, linked questions and the date the note was last updated. "Asked in" years wait for real PYQs, which come with Phase 2's papers.
+- **Linked questions sit at the end of the note**, each with its answer behind a button, because the side panel is too narrow for a question. The side panel holds the outline, made from the note's `## ` headings, and its last entry jumps to the questions. A question is linked when it names the note or shares a topic with it.
+- **Text size** (13 to 24 px) and **column width** (720 or 960 px) are saved as settings, so the reader remembers them.
+- **Bookmarks are a column on `reading`**, not rows in `mark`. Only notes and stories are bookmarked, and both already have a reading row. `mark` is left to Phase 5 for highlights and clips.
+- **Reading records** the first and last day a note was opened and the day it was marked read. Time spent waits for Phase 3, which needs study time anyway.
+- **The syllabus was rebuilt** from the official notice into the full Prelims and Mains trees described under "Content format", replacing the 83-topic starter. The Syllabus screen shows it as a tree that folds: papers first, each showing its coverage, then subjects, chapters, topics and subtopics. UPSC's wording appears under a row once it is opened.
+- **Topic status comes from the notes that cover it**: no notes yet, not started, in progress, or read once every such note is read. Coverage is read topics over all bottom-level topics, including those with no notes yet, so it is an honest share of the syllabus. There is no manual status per topic; add one if students want to tick off topics studied elsewhere.
+- **Search and links open the note itself**, and the title bar has back and forward buttons (also Cmd+[ and Cmd+]). Questions and stories still open their section until Phases 2 and 4.
+- **The sidebar folds to an icon rail on the Notes screen** and unfolds when the student leaves, unless they opened or closed it themselves.
+- **Content**: 12 notes, 3 per GS paper. Existing questions and stories link to the new notes, and everything is tagged with the new syllabus ids.
 
 Dummy data for the first build, all original and marked as sample: 12 notes (3 per GS paper), about 100 MCQs across 6 subjects, 7 days of briefs with 5 stories each, 30 flashcards, 10 Mains questions with model answers, and a "load demo history" action that adds 30 days of made-up attempts so Analysis is not empty.
 

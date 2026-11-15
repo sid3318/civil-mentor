@@ -2,7 +2,7 @@
 
 [[story]]
 title = "North-east monsoon brings heavy rain to the Tamil Nadu coast"
-topics = ["gs1.geography.monsoon"]
+topics = ["pre.gs.indian-geography.climate.seasons-and-rainfall-distribution", "mains.gs1.geography.india.climate-and-the-monsoon"]
 context = "A low-pressure area over the south-west Bay of Bengal brought very heavy rain to coastal Tamil Nadu and Puducherry, and the weather office issued warnings for several districts."
 why = "The north-east monsoon is the standard example of rainfall outside the June to September season. It explains why Tamil Nadu's water year differs from the rest of the country."
 facts = [
@@ -21,7 +21,7 @@ explanation = "The Coromandel coast of Tamil Nadu gets most of its rain from the
 
 [[story]]
 title = "New navigation satellite readied for launch"
-topics = ["gs3.science-tech.space"]
+topics = ["pre.gs.science-tech.space.navigation-systems", "mains.gs3.science-tech.awareness.space.space-applications", "pre.gs.current.science.space-missions"]
 context = "The space agency moved the next satellite of its second-generation navigation series to the launch pad. The series replaces older satellites of the regional navigation system."
 why = "Navigation systems are asked in Prelims as a comparison: coverage, number of satellites, orbits and signals. Know how the Indian system differs from global ones."
 facts = [
@@ -31,6 +31,7 @@ facts = [
   "Second-generation satellites add the L1 band, which is used by most civilian devices.",
 ]
 trap = "NavIC is a regional system. GPS, GLONASS, Galileo and BeiDou are global."
+notes = ["gs3-science-tech-space-programme"]
 
 [story.question]
 stem = "With reference to NavIC, which one of the following statements is correct?"
@@ -45,7 +46,7 @@ explanation = "NavIC is a regional system built by ISRO. Its satellites are in g
 
 [[story]]
 title = "Debate over the Money Bill route returns to Parliament"
-topics = ["gs2.polity.parliament"]
+topics = ["pre.gs.polity.parliament.bills.money-bills", "mains.gs2.polity.legislature.legislative-procedure", "pre.gs.current.national.polity-and-governance-developments"]
 context = "Opposition members objected to the certification of a Bill as a Money Bill, arguing that it contained provisions beyond those listed in Article 110, and asked for it to be sent to the Rajya Sabha as an ordinary Bill."
 why = "The Money Bill question tests the balance between the two Houses and the scope of judicial review over the Speaker's certificate."
 facts = [
@@ -62,6 +63,7 @@ frame = [
   "Give the counterpoint: the elected House must control the purse.",
   "Suggest a way forward: clear tests and review of certification.",
 ]
+notes = ["gs2-polity-parliament"]
 
 [story.question]
 stem = "If the Rajya Sabha does not return a Money Bill to the Lok Sabha within fourteen days:"

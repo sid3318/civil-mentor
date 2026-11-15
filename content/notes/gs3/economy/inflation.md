@@ -1,7 +1,14 @@
 ---
 id: gs3-economy-inflation
 title: Inflation and monetary policy
-topics: [gs3.economy.inflation, gs3.economy.banking]
+topics:
+  - mains.gs3.economy.planning.inflation.types-causes-measurement
+  - mains.gs3.economy.planning.inflation.monetary-policy-framework-and-inflation
+  - pre.gs.economy.inflation.types-and-causes-of-inflation
+  - pre.gs.economy.inflation.measurement
+  - pre.gs.economy.inflation.inflation-targeting-and-the-monetary
+  - pre.gs.economy.money.monetary-policy.repo-reverse-repo-sdf
+  - pre.gs.economy.money.monetary-policy.crr-and-slr
 updated: 2026-10-20
 ---
 

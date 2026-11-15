@@ -1,7 +1,11 @@
 ---
 id: gs1-geography-indian-monsoon
 title: "The Indian monsoon: mechanism and variability"
-topics: [gs1.geography.monsoon, gs1.geography.climatology]
+topics:
+  - mains.gs1.geography.india.climate-and-the-monsoon
+  - pre.gs.indian-geography.climate.mechanism-of-the-indian-monsoon
+  - pre.gs.indian-geography.climate.el-nino-la-nina
+  - pre.gs.indian-geography.climate.seasons-and-rainfall-distribution
 updated: 2026-09-12
 ---
 

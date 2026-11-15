@@ -16,12 +16,17 @@ use serde::Deserialize;
 #[folder = "content/"]
 struct ContentFiles;
 
-/// One node of the syllabus. `gs2.polity.fundamental-rights` has depth 2.
+/// One node of the syllabus: a stage, paper, subject, chapter, topic or
+/// subtopic. `mains.gs2.polity` (a subject) has depth 2.
 #[derive(Debug, Clone)]
 pub struct Topic {
     pub id: String,
     pub title: String,
     pub depth: usize,
+    /// True when no topic sits below this one. Coverage counts these.
+    pub leaf: bool,
+    /// UPSC's own wording, where the node matches a line of the official syllabus.
+    pub official: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -30,7 +35,7 @@ pub struct Note {
     pub title: String,
     pub topics: Vec<String>,
     pub kind: String,
-    pub updated: Option<String>,
+    pub updated: Option<NaiveDate>,
     /// Full text, Markdown.
     pub body: String,
     /// Short version, Markdown. Empty when the note has none.
@@ -126,6 +131,7 @@ struct SyllabusFile {
 struct RawTopic {
     id: String,
     title: String,
+    official: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -270,11 +276,16 @@ impl Library {
                 );
                 continue;
             }
+            if let Some((parent, _)) = raw.id.rsplit_once('.') {
+                self.topics[self.topic_index[parent]].leaf = false;
+            }
             self.topic_index.insert(raw.id.clone(), self.topics.len());
             self.topics.push(Topic {
                 depth: raw.id.matches('.').count(),
                 id: raw.id,
                 title: raw.title,
+                leaf: true,
+                official: raw.official,
             });
         }
     }
@@ -297,6 +308,16 @@ impl Library {
         if body.is_empty() {
             return self.problem(path, "the note has no text");
         }
+        let updated = meta.updated.and_then(|text| {
+            let date = NaiveDate::parse_from_str(&text, "%Y-%m-%d").ok();
+            if date.is_none() {
+                self.problem(
+                    path,
+                    format!("`updated: {text}` is not a date like 2026-11-01"),
+                );
+            }
+            date
+        });
         // ponytail: 100 words a minute is a study pace, not a skim. Tune when
         // real reading times are tracked.
         let minutes = (body.split_whitespace().count() as u32)
@@ -309,7 +330,7 @@ impl Library {
             title: meta.title,
             topics: meta.topics,
             kind: meta.kind.unwrap_or_else(|| "note".into()),
-            updated: meta.updated,
+            updated,
             body: body.to_string(),
             distilled: distilled.to_string(),
             minutes,
@@ -477,19 +498,35 @@ impl Library {
         self.question_index.get(id).map(|&ix| &self.questions[ix])
     }
 
-    /// "GS-2 · Polity" for `gs2.polity.fundamental-rights`: the paper and the
-    /// subject, which is how the app groups things for the student.
+    /// The questions that go with a note: those that name it, then those on
+    /// a topic the note covers.
+    pub fn questions_for(&self, note: &Note) -> Vec<usize> {
+        let named = |q: &Question| q.note.as_deref() == Some(note.id.as_str());
+        let on_topic = |q: &Question| q.topics.iter().any(|t| covers(&note.topics, t));
+        let (mut found, mut rest) = (Vec::new(), Vec::new());
+        for (ix, question) in self.questions.iter().enumerate() {
+            if named(question) {
+                found.push(ix);
+            } else if on_topic(question) {
+                rest.push(ix);
+            }
+        }
+        found.extend(rest);
+        found
+    }
+
+    /// "GS-2 · Polity" for `mains.gs2.polity.rights`: the paper and the
+    /// subject, the two levels under the stage, which is how the app groups
+    /// things for the student.
     pub fn subject_label(&self, topic_id: &str) -> String {
-        let mut parts = topic_id.split('.');
-        let paper = parts.next().unwrap_or_default();
-        let subject = parts.next().map(|subject| format!("{paper}.{subject}"));
-        let title = |id: &str| {
-            self.topic(id)
-                .map_or_else(|| id.to_string(), |t| t.title.clone())
+        let parts: Vec<&str> = topic_id.split('.').collect();
+        let title = |depth: usize| {
+            let id = parts[..=depth].join(".");
+            self.topic(&id).map_or(id, |topic| topic.title.clone())
         };
-        match subject {
-            Some(subject) => format!("{} · {}", title(paper), title(&subject)),
-            None => title(paper),
+        match parts.len() {
+            1 | 2 => title(parts.len() - 1),
+            _ => format!("{} · {}", title(1), title(2)),
         }
     }
 
@@ -566,13 +603,56 @@ impl Library {
     }
 }
 
+/// True when `id` is `under` itself or sits below it in the syllabus.
+pub fn within(id: &str, under: &str) -> bool {
+    id.strip_prefix(under)
+        .is_some_and(|rest| rest.is_empty() || rest.starts_with('.'))
+}
+
 /// True when any of `topics` is `under` itself or sits below it in the syllabus.
 pub fn is_under(topics: &[String], under: &str) -> bool {
-    topics.iter().any(|topic| {
-        topic
-            .strip_prefix(under)
-            .is_some_and(|rest| rest.is_empty() || rest.starts_with('.'))
-    })
+    topics.iter().any(|topic| within(topic, under))
+}
+
+/// True when content tagged with `topics` covers `topic`: a tag covers its
+/// own node and everything below it.
+pub fn covers(topics: &[String], topic: &str) -> bool {
+    topics.iter().any(|tag| within(topic, tag))
+}
+
+/// A part of a note that starts at a `## ` heading. The text before the
+/// first heading is a section with no heading.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Section<'a> {
+    pub heading: Option<&'a str>,
+    /// Markdown, starting with the heading line.
+    pub text: &'a str,
+}
+
+/// Splits Markdown at its `## ` headings, which make the reader's outline.
+/// A `## ` line inside a fenced code block is not a heading.
+pub fn sections(markdown: &str) -> Vec<Section<'_>> {
+    fn push<'a>(sections: &mut Vec<Section<'a>>, heading: Option<&'a str>, text: &'a str) {
+        let text = text.trim();
+        if !text.is_empty() {
+            sections.push(Section { heading, text });
+        }
+    }
+    let (mut sections, mut heading, mut start, mut offset) = (Vec::new(), None, 0, 0);
+    let mut fenced = false;
+    for line in markdown.split_inclusive('\n') {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            fenced = !fenced;
+        } else if !fenced && let Some(title) = line.strip_prefix("## ") {
+            push(&mut sections, heading, &markdown[start..offset]);
+            heading = Some(title.trim());
+            start = offset;
+        }
+        offset += line.len();
+    }
+    push(&mut sections, heading, &markdown[start..]);
+    sections
 }
 
 /// The first line of `text`, cut to about `max` characters.
@@ -621,23 +701,27 @@ mod tests {
 
     const SYLLABUS: &str = r#"
 [[topic]]
-id = "gs2"
-title = "GS-2"
+id = "mains"
+title = "Mains"
 [[topic]]
-id = "gs2.polity"
+id = "mains.gs2"
+title = "GS-2"
+official = "General Studies-II"
+[[topic]]
+id = "mains.gs2.polity"
 title = "Polity"
 [[topic]]
-id = "gs2.polity.rights"
+id = "mains.gs2.polity.rights"
 title = "Fundamental Rights"
 "#;
 
-    const NOTE: &str = "---\nid: rights\ntitle: Fundamental Rights\ntopics: [gs2.polity.rights]\n---\n\
+    const NOTE: &str = "---\nid: rights\ntitle: Fundamental Rights\ntopics: [mains.gs2.polity.rights]\n---\n\
         Part III of the Constitution.\n\n<!-- distilled -->\n- Part III.\n";
 
     const QUESTION: &str = r#"
 [[question]]
 id = "q1"
-topics = ["gs2.polity.rights"]
+topics = ["mains.gs2.polity.rights"]
 stem = "Which writ means 'to have the body'?"
 options = ["Habeas corpus", "Mandamus", "Certiorari", "Quo warranto"]
 answer = "a"
@@ -650,8 +734,29 @@ note = "rights"
     fn embedded_content_has_no_problems() {
         let library = Library::embedded();
         assert_eq!(library.problems, Vec::<String>::new());
-        assert!(library.topics.len() > 50, "syllabus loaded");
-        assert!(library.notes.len() >= 4, "notes loaded");
+        assert!(library.topics.len() > 1500, "syllabus loaded");
+        let papers: Vec<&str> = library
+            .topics
+            .iter()
+            .filter(|topic| topic.depth == 1)
+            .map(|topic| topic.id.as_str())
+            .collect();
+        assert_eq!(
+            papers,
+            [
+                "pre.gs",
+                "pre.csat",
+                "mains.paper-a",
+                "mains.paper-b",
+                "mains.essay",
+                "mains.gs1",
+                "mains.gs2",
+                "mains.gs3",
+                "mains.gs4"
+            ],
+            "both stages and every compulsory paper"
+        );
+        assert!(library.notes.len() >= 12, "notes loaded");
         assert!(library.questions.len() >= 24, "questions loaded");
         assert!(library.briefs.len() >= 2, "briefs loaded");
         assert!(
@@ -664,6 +769,15 @@ note = "rights"
                 "{} has a distilled version",
                 note.id
             );
+            assert!(
+                sections(&note.body).iter().any(|s| s.heading.is_some()),
+                "{} has sections for the outline",
+                note.id
+            );
+        }
+        for paper in ["mains.gs1", "mains.gs2", "mains.gs3", "mains.gs4"] {
+            let notes = library.notes.iter().filter(|n| is_under(&n.topics, paper));
+            assert!(notes.count() >= 3, "{paper} has at least three notes");
         }
     }
 
@@ -675,19 +789,43 @@ note = "rights"
             ("questions/polity.toml", QUESTION),
         ]));
         assert_eq!(library.problems, Vec::<String>::new());
-        assert_eq!(library.topic("gs2.polity.rights").unwrap().depth, 2);
+        assert_eq!(library.topic("mains.gs2.polity.rights").unwrap().depth, 3);
+        assert!(library.topic("mains.gs2.polity.rights").unwrap().leaf);
+        assert!(!library.topic("mains.gs2.polity").unwrap().leaf);
 
         let note = library.note("rights").unwrap();
         assert_eq!(note.body, "Part III of the Constitution.");
         assert_eq!(note.distilled, "- Part III.");
         assert_eq!(note.minutes, 1);
+        assert_eq!(
+            library.questions_for(note),
+            [0],
+            "the question names the note"
+        );
 
         let question = library.question("q1").unwrap();
         assert_eq!(question.answer, 0, "answer letters are case-insensitive");
-        assert_eq!(library.subject_label("gs2.polity.rights"), "GS-2 · Polity");
-        assert!(is_under(&question.topics, "gs2.polity"));
+        assert_eq!(
+            library.subject_label("mains.gs2.polity.rights"),
+            "GS-2 · Polity"
+        );
+        assert_eq!(library.subject_label("mains.gs2"), "GS-2");
+        assert_eq!(
+            library.topic("mains.gs2").unwrap().official.as_deref(),
+            Some("General Studies-II")
+        );
+        assert!(covers(&note.topics, "mains.gs2.polity.rights"));
         assert!(
-            !is_under(&question.topics, "gs2.pol"),
+            covers(&["mains.gs2.polity".to_string()], "mains.gs2.polity.rights"),
+            "a tag covers everything below it"
+        );
+        assert!(
+            !covers(&note.topics, "mains.gs2.polity"),
+            "but not above it"
+        );
+        assert!(is_under(&question.topics, "mains.gs2.polity"));
+        assert!(
+            !is_under(&question.topics, "mains.gs2.pol"),
             "only whole path segments match"
         );
     }
@@ -704,16 +842,21 @@ note = "rights"
             // Misspelt header field: rejected.
             (
                 "notes/b.md",
-                "---\nid: b\ntitle: B\ntopic: [gs2]\n---\nText.\n",
+                "---\nid: b\ntitle: B\ntopic: [mains.gs2]\n---\nText.\n",
             ),
             // No header at all: rejected.
             ("notes/c.md", "Just text.\n"),
+            // A date that is not a date: kept, but reported.
+            (
+                "notes/d.md",
+                "---\nid: d\ntitle: D\ntopics: [mains.gs2]\nupdated: last week\n---\nText.\n",
+            ),
             (
                 "questions/bad.toml",
                 r#"
 [[question]]
 id = "three-options"
-topics = ["gs2.polity"]
+topics = ["mains.gs2.polity"]
 stem = "?"
 options = ["1", "2", "3"]
 answer = "A"
@@ -721,7 +864,7 @@ explanation = "."
 
 [[question]]
 id = "answer-e"
-topics = ["gs2.polity"]
+topics = ["mains.gs2.polity"]
 stem = "?"
 options = ["1", "2", "3", "4"]
 answer = "E"
@@ -729,7 +872,7 @@ explanation = "."
 
 [[question]]
 id = "missing-note"
-topics = ["gs2.polity"]
+topics = ["mains.gs2.polity"]
 stem = "?"
 options = ["1", "2", "3", "4"]
 answer = "D"
@@ -746,6 +889,7 @@ note = "no-such-note"
             "note `a`: unknown topic `gs9.nowhere`",
             "notes/b.md: header:",
             "notes/c.md: missing the `---` header block",
+            "notes/d.md: `updated: last week` is not a date",
             "question `three-options` has 3 options",
             "question `answer-e` has answer `E`",
             "question `missing-note`: unknown note `no-such-note`",
@@ -757,10 +901,10 @@ note = "no-such-note"
                 "missing {expected:?} in:\n{problems}"
             );
         }
-        assert_eq!(library.problems.len(), 8, "{problems}");
+        assert_eq!(library.problems.len(), 9, "{problems}");
 
         let notes: Vec<&str> = library.notes.iter().map(|note| note.id.as_str()).collect();
-        assert_eq!(notes, ["a"]);
+        assert_eq!(notes, ["a", "d"]);
         let questions: Vec<&str> = library.questions.iter().map(|q| q.id.as_str()).collect();
         assert_eq!(questions, ["missing-note"]);
     }
@@ -774,7 +918,7 @@ note = "no-such-note"
                 r#"
 [[story]]
 title = "Court hears a privacy case"
-topics = ["gs2.polity.rights"]
+topics = ["mains.gs2.polity.rights"]
 context = "A bench began hearing the case."
 why = "Rights."
 facts = ["Privacy is part of Article 21."]
@@ -793,7 +937,7 @@ explanation = "Article 21."
             .question(story.question.as_deref().unwrap())
             .unwrap();
         assert_eq!(question.id, "ca-2026-11-14-1");
-        assert_eq!(question.topics, ["gs2.polity.rights"]);
+        assert_eq!(question.topics, ["mains.gs2.polity.rights"]);
         assert_eq!(question.source, "Current affairs, 14 Nov 2026");
         assert_eq!(question.answer, 2);
     }
@@ -805,7 +949,7 @@ explanation = "Article 21."
             ("notes/gs2/rights.md", NOTE),
             (
                 "notes/gs2/writs.md",
-                "---\nid: writs\ntitle: Writs\ntopics: [gs2.polity]\n---\n\
+                "---\nid: writs\ntitle: Writs\ntopics: [mains.gs2.polity]\n---\n\
                  Writs enforce fundamental rights.\n",
             ),
             ("questions/polity.toml", QUESTION),
@@ -826,5 +970,28 @@ explanation = "Article 21."
         assert_eq!(titles("rights nothing-matches-this"), Vec::<String>::new());
         assert_eq!(titles("   "), Vec::<String>::new());
         assert_eq!(library.search("rights", 1).len(), 1, "limit is respected");
+    }
+
+    #[test]
+    fn sections_split_at_level_two_headings_outside_code() {
+        let text = "Intro.\n\n## 1. First\nOne.\n\n```\n## not a heading\n```\n## 2. Second\n### Sub\nTwo.\n";
+        let found: Vec<(Option<&str>, &str)> =
+            sections(text).iter().map(|s| (s.heading, s.text)).collect();
+        assert_eq!(
+            found,
+            [
+                (None, "Intro."),
+                (
+                    Some("1. First"),
+                    "## 1. First\nOne.\n\n```\n## not a heading\n```"
+                ),
+                (Some("2. Second"), "## 2. Second\n### Sub\nTwo."),
+            ]
+        );
+        assert_eq!(
+            sections("## Only\nText.").len(),
+            1,
+            "no empty section before a leading heading"
+        );
     }
 }
