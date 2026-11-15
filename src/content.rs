@@ -52,13 +52,24 @@ pub struct Question {
     pub stem: String,
     /// Always four.
     pub options: Vec<String>,
-    /// Index into `options`.
-    pub answer: usize,
+    /// Index into `options`. `None` when UPSC dropped the question from
+    /// its official answer key: it is shown, but never scored.
+    pub answer: Option<usize>,
     pub explanation: String,
     pub trap: Option<String>,
     /// Id of the note that answers it.
     pub note: Option<String>,
     search: String,
+}
+
+/// The prefix of `source` on a question from a real UPSC paper, followed by its year.
+pub const PAPER_SOURCE: &str = "UPSC Prelims ";
+
+impl Question {
+    /// The year of the UPSC Prelims paper the question comes from, if it does.
+    pub fn year(&self) -> Option<u16> {
+        self.source.strip_prefix(PAPER_SOURCE)?.trim().parse().ok()
+    }
 }
 
 /// One day of current affairs.
@@ -161,7 +172,10 @@ struct RawQuestion {
     source: Option<String>,
     stem: String,
     options: Vec<String>,
-    answer: String,
+    answer: Option<String>,
+    /// A past-paper question UPSC dropped from its key. It has no answer.
+    #[serde(default)]
+    dropped: bool,
     explanation: String,
     trap: Option<String>,
     note: Option<String>,
@@ -368,18 +382,32 @@ impl Library {
             );
             return None;
         }
-        let Some(answer) = ["A", "B", "C", "D"]
-            .iter()
-            .position(|letter| raw.answer.trim().eq_ignore_ascii_case(letter))
-        else {
-            self.problem(
-                path,
-                format!(
-                    "question `{id}` has answer `{}`, it must be A, B, C or D",
-                    raw.answer
-                ),
-            );
-            return None;
+        let answer = match (raw.dropped, raw.answer) {
+            (true, None) => None,
+            (true, Some(_)) => {
+                self.problem(
+                    path,
+                    format!("question `{id}` is dropped, so it cannot have an answer"),
+                );
+                return None;
+            }
+            (false, None) => {
+                self.problem(path, format!("question `{id}` has no answer"));
+                return None;
+            }
+            (false, Some(letter)) => {
+                let Some(answer) = ["A", "B", "C", "D"]
+                    .iter()
+                    .position(|candidate| letter.trim().eq_ignore_ascii_case(candidate))
+                else {
+                    self.problem(
+                        path,
+                        format!("question `{id}` has answer `{letter}`, it must be A, B, C or D"),
+                    );
+                    return None;
+                };
+                Some(answer)
+            }
         };
         if raw.topics.is_empty() {
             self.problem(path, format!("question `{id}` has no topics"));
@@ -498,6 +526,11 @@ impl Library {
         self.question_index.get(id).map(|&ix| &self.questions[ix])
     }
 
+    /// Where a question sits in [`Library::questions`].
+    pub fn question_ix(&self, id: &str) -> Option<usize> {
+        self.question_index.get(id).copied()
+    }
+
     /// The questions that go with a note: those that name it, then those on
     /// a topic the note covers.
     pub fn questions_for(&self, note: &Note) -> Vec<usize> {
@@ -513,6 +546,35 @@ impl Library {
         }
         found.extend(rest);
         found
+    }
+
+    /// Every past paper in the bank, newest first: its year and its
+    /// questions in the paper's own order.
+    pub fn papers(&self) -> Vec<(u16, Vec<usize>)> {
+        let mut papers: Vec<(u16, Vec<usize>)> = Vec::new();
+        for (ix, question) in self.questions.iter().enumerate() {
+            let Some(year) = question.year() else {
+                continue;
+            };
+            match papers.iter_mut().find(|(y, _)| *y == year) {
+                Some((_, questions)) => questions.push(ix),
+                None => papers.push((year, vec![ix])),
+            }
+        }
+        papers.sort_by_key(|(year, _)| std::cmp::Reverse(*year));
+        papers
+    }
+
+    /// The years UPSC asked a question on a topic the note covers, newest first.
+    pub fn years_asked(&self, note: &Note) -> Vec<u16> {
+        let mut years: Vec<u16> = self
+            .questions_for(note)
+            .into_iter()
+            .filter_map(|ix| self.questions[ix].year())
+            .collect();
+        years.sort_by_key(|&year| std::cmp::Reverse(year));
+        years.dedup();
+        years
     }
 
     /// "GS-2 · Polity" for `mains.gs2.polity.rights`: the paper and the
@@ -757,7 +819,24 @@ note = "rights"
             "both stages and every compulsory paper"
         );
         assert!(library.notes.len() >= 12, "notes loaded");
-        assert!(library.questions.len() >= 24, "questions loaded");
+        let samples = library
+            .questions
+            .iter()
+            .filter(|q| q.source == "Civil Mentor sample")
+            .count();
+        assert!(samples >= 96, "about 100 sample questions, found {samples}");
+        for question in &library.questions {
+            assert!(
+                question.year().is_some() || !question.source.contains("UPSC"),
+                "{} is invented, so it must not carry a UPSC label",
+                question.id
+            );
+        }
+        let papers = library.papers();
+        assert!(!papers.is_empty(), "at least one real past paper");
+        for (year, questions) in &papers {
+            assert_eq!(questions.len(), 100, "the {year} paper is complete");
+        }
         assert!(library.briefs.len() >= 2, "briefs loaded");
         assert!(
             library.briefs[0].date > library.briefs[1].date,
@@ -804,7 +883,11 @@ note = "rights"
         );
 
         let question = library.question("q1").unwrap();
-        assert_eq!(question.answer, 0, "answer letters are case-insensitive");
+        assert_eq!(
+            question.answer,
+            Some(0),
+            "answer letters are case-insensitive"
+        );
         assert_eq!(
             library.subject_label("mains.gs2.polity.rights"),
             "GS-2 · Polity"
@@ -910,6 +993,79 @@ note = "no-such-note"
     }
 
     #[test]
+    fn a_dropped_question_has_no_answer_and_papers_group_by_year() {
+        let questions = r#"
+[[question]]
+id = "upsc-2025-001"
+topics = ["mains.gs2.polity.rights"]
+source = "UPSC Prelims 2025"
+stem = "?"
+options = ["1", "2", "3", "4"]
+dropped = true
+explanation = "Dropped."
+
+[[question]]
+id = "upsc-2024-001"
+topics = ["mains.gs2.polity.rights"]
+source = "UPSC Prelims 2024"
+stem = "?"
+options = ["1", "2", "3", "4"]
+answer = "C"
+explanation = "."
+
+[[question]]
+id = "dropped-with-answer"
+topics = ["mains.gs2.polity"]
+stem = "?"
+options = ["1", "2", "3", "4"]
+answer = "A"
+dropped = true
+explanation = "."
+
+[[question]]
+id = "no-answer"
+topics = ["mains.gs2.polity"]
+stem = "?"
+options = ["1", "2", "3", "4"]
+explanation = "."
+"#;
+        let library = Library::from_files(files(&[
+            ("syllabus.toml", SYLLABUS),
+            ("notes/gs2/rights.md", NOTE),
+            ("questions/upsc.toml", questions),
+        ]));
+        let problems = library.problems.join(
+            "
+",
+        );
+        assert!(
+            problems.contains("question `dropped-with-answer` is dropped"),
+            "{problems}"
+        );
+        assert!(
+            problems.contains("question `no-answer` has no answer"),
+            "{problems}"
+        );
+        assert_eq!(library.problems.len(), 2, "{problems}");
+        assert_eq!(library.question("upsc-2025-001").unwrap().answer, None);
+        assert_eq!(
+            library.question("upsc-2024-001").unwrap().year(),
+            Some(2024)
+        );
+        assert_eq!(
+            library.papers(),
+            vec![(2025, vec![0]), (2024, vec![1])],
+            "newest first"
+        );
+        let note = library.note("rights").unwrap();
+        assert_eq!(
+            library.years_asked(note),
+            [2025, 2024],
+            "the note's topic was asked twice"
+        );
+    }
+
+    #[test]
     fn a_story_question_joins_the_question_bank() {
         let library = Library::from_files(files(&[
             ("syllabus.toml", SYLLABUS),
@@ -939,7 +1095,7 @@ explanation = "Article 21."
         assert_eq!(question.id, "ca-2026-11-14-1");
         assert_eq!(question.topics, ["mains.gs2.polity.rights"]);
         assert_eq!(question.source, "Current affairs, 14 Nov 2026");
-        assert_eq!(question.answer, 2);
+        assert_eq!(question.answer, Some(2));
     }
 
     #[test]

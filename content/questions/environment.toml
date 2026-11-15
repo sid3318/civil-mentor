@@ -52,3 +52,173 @@ stem = "Which one of the following is not among the greenhouse gases covered by 
 options = ["Methane", "Nitrous oxide", "Sulphur hexafluoride", "Carbon monoxide"]
 answer = "D"
 explanation = "The Kyoto Protocol covers carbon dioxide, methane, nitrous oxide, hydrofluorocarbons, perfluorocarbons and sulphur hexafluoride. Nitrogen trifluoride was added by the Doha Amendment. Carbon monoxide is an air pollutant but is not in the list."
+
+[[question]]
+id = "environment-0005"
+topics = ["pre.gs.environment.biodiversity.biodiversity-hotspots"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about biodiversity hotspots:
+
+1. The concept was proposed by Norman Myers.
+2. A hotspot must have at least 1,500 species of vascular plants that are endemic to it.
+3. A hotspot must have lost at least 30 per cent of its original habitat.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "Norman Myers proposed the idea in 1988. A region qualifies if it holds at least 1,500 endemic vascular plant species and has lost at least 70 per cent of its original habitat."
+trap = "A region that has lost 30 per cent of its habitat is only moderately disturbed. The test is 70 per cent."
+note = "gs3-environment-biodiversity-conservation"
+
+[[question]]
+id = "environment-0006"
+topics = ["pre.gs.environment.conservation.in-situ-conservation"]
+source = "Civil Mentor sample"
+stem = "Under the Wild Life (Protection) Act, 1972, which category of protected area can be declared on community or private land when the owners volunteer to conserve it?"
+options = ["National park", "Wildlife sanctuary", "Community reserve", "Conservation reserve"]
+answer = "C"
+explanation = "A community reserve is created on land owned by a community or by private owners who choose to protect it. A conservation reserve is declared on government land, often as a corridor between larger protected areas."
+trap = "Conservation reserves and community reserves were added by the same 2002 amendment, but only one of them is on private land."
+note = "gs3-environment-biodiversity-conservation"
+
+[[question]]
+id = "environment-0007"
+topics = ["pre.gs.environment.conservation.biosphere-reserves"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about biosphere reserves in India:
+
+1. They are declared under the Wild Life (Protection) Act, 1972.
+2. Each has a core zone, a buffer zone and a transition zone.
+3. The Nilgiri Biosphere Reserve was the first to be set up in the country.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "1 and 3 only", "1, 2 and 3", "2 and 3 only"]
+answer = "D"
+explanation = "Biosphere reserves come from UNESCO's Man and the Biosphere Programme, and the Wild Life (Protection) Act has no such category. The Nilgiri reserve was set up in 1986."
+trap = "The Act names national parks, sanctuaries, conservation reserves and community reserves. A biosphere reserve may include such areas but is not one of them."
+note = "gs3-environment-biodiversity-conservation"
+
+[[question]]
+id = "environment-0008"
+topics = ["pre.gs.environment.conventions.ramsar-convention-cites-and-cms", "pre.gs.environment.conventions.cbd-and-the-cartagena"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following pairs:
+
+1. CITES: regulation of international trade in endangered species
+2. Convention on Migratory Species: conservation of animals that cross national borders
+3. Nagoya Protocol: safe handling and transfer of living modified organisms
+
+How many of the pairs given above are correctly matched?"""
+options = ["Only one", "Only two", "All three", "None"]
+answer = "B"
+explanation = "CITES and the Convention on Migratory Species are matched correctly. The safe movement of living modified organisms is the subject of the Cartagena Protocol, while the Nagoya Protocol covers access to genetic resources and the sharing of their benefits."
+trap = "Cartagena and Nagoya are both protocols to the Convention on Biological Diversity, and the two names are easy to swap."
+note = "gs3-environment-biodiversity-conservation"
+
+[[question]]
+id = "environment-0009"
+topics = ["pre.gs.environment.conventions.vienna-convention-montreal-protocol"]
+source = "Civil Mentor sample"
+stem = "The Kigali Amendment to the Montreal Protocol is intended to phase down the production and use of:"
+options = ["Chlorofluorocarbons", "Halons", "Hydrofluorocarbons", "Methyl bromide"]
+answer = "C"
+explanation = "Hydrofluorocarbons replaced the ozone-depleting chlorofluorocarbons but are powerful greenhouse gases. The Kigali Amendment of 2016 brings them under the Montreal Protocol to limit their contribution to global warming."
+trap = "The Montreal Protocol began as an ozone treaty, but the Kigali Amendment is a climate measure, since hydrofluorocarbons do not harm the ozone layer."
+
+[[question]]
+id = "environment-0010"
+topics = ["pre.gs.environment.pollution.water-pollution-and-eutrophication"]
+source = "Civil Mentor sample"
+stem = "Which one of the following best describes eutrophication?"
+options = ["Enrichment of a water body with nutrients, leading to algal blooms and a fall in dissolved oxygen", "A rise in the salt content of a water body because of excessive evaporation", "A rise in the temperature of a water body because of the discharge of hot water from a power plant", "The build-up of toxic metals in organisms at successive levels of a food chain"]
+answer = "A"
+explanation = "Nitrates and phosphates from fertilisers and sewage feed algae. When the algae die, bacteria use up the dissolved oxygen as they decompose them, and fish and other organisms die. Option B describes increasing salinity, option C thermal pollution and option D biomagnification."
+trap = "The algal bloom is the sign of eutrophication. The harm is done by the oxygen loss that follows."
+
+[[question]]
+id = "environment-0011"
+topics = ["pre.gs.environment.ecology.energy-flow"]
+source = "Civil Mentor sample"
+stem = "Which one of the following is correct about the flow of energy in an ecosystem?"
+options = ["Energy flows in a cycle and is reused by every trophic level", "The amount of energy available rises at each successive trophic level", "Only a small fraction, about one-tenth, passes from one trophic level to the next", "Decomposers form the first trophic level"]
+answer = "C"
+explanation = "Most of the energy at each level is lost as heat in respiration and is not passed on. Energy flows one way from the Sun through producers to consumers. Producers form the first trophic level, and decomposers act on the dead matter from all levels."
+trap = "Matter cycles through an ecosystem, but energy flows through it once and cannot be reused."
+
+[[question]]
+id = "environment-0012"
+topics = ["pre.gs.environment.ecology.ecological-succession"]
+source = "Civil Mentor sample"
+stem = "In primary succession on a bare rock surface, the pioneer species are usually:"
+options = ["Mosses", "Lichens", "Grasses", "Shrubs"]
+answer = "B"
+explanation = "Lichens secrete acids that break the rock into soil particles, and this makes it possible for mosses to grow later. Grasses, shrubs and trees follow, and the community ends in a climax."
+trap = "Mosses come next, after lichens have started to make soil. They are not the first colonisers on bare rock."
+
+[[question]]
+id = "environment-0013"
+topics = ["pre.gs.environment.laws.national-green-tribunal"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about the National Green Tribunal:
+
+1. It was set up under the National Green Tribunal Act, 2010.
+2. It can hear civil cases that raise a substantial question about the environment and arise under the Water Act, the Air Act and the Environment Protection Act.
+3. It can decide disputes arising under the Wild Life (Protection) Act, 1972.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "The Tribunal has jurisdiction over the seven laws listed in Schedule I of the 2010 Act. These include the Water Act, the Air Act, the Environment Protection Act, the Forest Conservation Act and the Biological Diversity Act. The Wild Life (Protection) Act and the Indian Forest Act, 1927 are not on the list."
+trap = "The Tribunal handles pollution and forest-clearance cases, but wildlife offences go to the ordinary courts."
+
+[[question]]
+id = "environment-0014"
+topics = ["pre.gs.environment.conventions.unccd"]
+source = "Civil Mentor sample"
+stem = "India hosted the fourteenth Conference of the Parties to the United Nations Convention to Combat Desertification in 2019 at:"
+options = ["Chennai", "Bhubaneswar", "Kochi", "Greater Noida"]
+answer = "D"
+explanation = "The Convention was adopted in 1994 and addresses desertification, land degradation and drought. India held the fourteenth Conference of the Parties at Greater Noida in September 2019."
+trap = "The three other cities have all hosted national environmental events, but the UNCCD meeting was held near Delhi."
+
+[[question]]
+id = "environment-0015"
+topics = ["pre.gs.environment.biodiversity.iucn-red-list-categories"]
+source = "Civil Mentor sample"
+stem = "In the IUCN Red List, which one of the following arranges the categories in descending order of the risk of extinction?"
+options = ["Endangered, Critically Endangered, Vulnerable", "Vulnerable, Endangered, Critically Endangered", "Critically Endangered, Endangered, Vulnerable", "Near Threatened, Vulnerable, Endangered"]
+answer = "C"
+explanation = "The threatened categories rank Critically Endangered above Endangered, and Endangered above Vulnerable. Near Threatened comes below Vulnerable and is not counted as threatened, and Extinct in the Wild is beyond them all."
+trap = "Vulnerable sounds like the more serious word, but it is the mildest of the three threatened categories."
+
+[[question]]
+id = "environment-0016"
+topics = ["pre.gs.environment.conservation.species-projects"]
+source = "Civil Mentor sample"
+stem = "Project Tiger was launched in 1973 from which one of the following national parks?"
+options = ["Jim Corbett National Park", "Kaziranga National Park", "Ranthambore National Park", "Bandipur National Park"]
+answer = "A"
+explanation = "Project Tiger was launched at Jim Corbett National Park in Uttarakhand with nine tiger reserves. The National Tiger Conservation Authority became a statutory body through the 2006 amendment of the Wild Life (Protection) Act."
+trap = "Ranthambore and Bandipur were among the first nine reserves, but the launch took place at Corbett."
+
+[[question]]
+id = "environment-0017"
+topics = ["pre.gs.environment.biodiversity.invasive-alien-species"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following plants:
+
+1. Lantana camara
+2. Eichhornia crassipes (water hyacinth)
+3. Prosopis juliflora
+4. Azadirachta indica (neem)
+
+How many of the plants given above are invasive alien species in India?"""
+options = ["Only one", "Only two", "All four", "Only three"]
+answer = "D"
+explanation = "Lantana, water hyacinth and Prosopis juliflora all came from the Americas and spread aggressively in India. Neem is a native tree."
+trap = "Prosopis juliflora was planted deliberately on dry land, which is why it is not always thought of as an invader."

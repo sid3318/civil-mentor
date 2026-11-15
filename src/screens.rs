@@ -9,7 +9,7 @@ use gpui_kit::*;
 
 use crate::AppState;
 use crate::app::Screen;
-use crate::content::{Library, Story, is_under};
+use crate::content::{Library, Story};
 
 /// A centred column with a title and a one-line summary. Screens add to it.
 pub(crate) fn page(title: &'static str, summary: impl Into<SharedString>, cx: &App) -> Div {
@@ -142,35 +142,6 @@ pub(crate) fn placeholder(screen: Screen, cx: &App) -> impl IntoElement {
                 ))
             })
         }
-        Screen::Practice => {
-            let rows: Vec<Div> = library
-                .topics
-                .iter()
-                .filter(|topic| topic.depth == 2)
-                .filter_map(|topic| {
-                    let questions = library
-                        .questions
-                        .iter()
-                        .filter(|q| is_under(&q.topics, &topic.id))
-                        .count();
-                    (questions > 0).then(|| {
-                        row(
-                            library.subject_label(&topic.id),
-                            count(questions, "question", "questions"),
-                            cx,
-                        )
-                    })
-                })
-                .collect();
-            let summary = format!(
-                "{} in {}",
-                count(library.questions.len(), "question", "questions"),
-                count(rows.len(), "subject", "subjects")
-            );
-            page(screen.title(), summary, cx)
-                .child(coming(2, "drills, mock tests and the exam room", cx))
-                .child(section("Questions by subject", rows, cx))
-        }
         Screen::CurrentAffairs => page(
             screen.title(),
             count(library.briefs.len(), "daily brief", "daily briefs"),
@@ -212,6 +183,8 @@ pub(crate) fn placeholder(screen: Screen, cx: &App) -> impl IntoElement {
             coming(5, "highlights, clips, bookmarks and your own notes", cx),
         ),
         // The shell renders these itself; this arm only keeps the match total.
-        Screen::Notes | Screen::Syllabus | Screen::Settings => page(screen.title(), "", cx),
+        Screen::Notes | Screen::Practice | Screen::Syllabus | Screen::Settings => {
+            page(screen.title(), "", cx)
+        }
     }
 }

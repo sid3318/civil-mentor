@@ -1,6 +1,6 @@
 # Civil Mentor: build plan
 
-Status: Phase 0 (the shell) and Phase 1 (notes and the full UPSC syllabus) are built and tested. Phases 2 to 6 are not started. Plan written 14 Nov 2026, updated 15 Nov 2026.
+Status: Phase 0 (the shell), Phase 1 (notes and the full UPSC syllabus) and Phase 2 (practice: tests, the exam room, results and past papers) are built and tested. Phases 3 to 6 are not started. Plan written 14 Nov 2026, updated 16 Nov 2026.
 
 A desktop study companion for UPSC CSE aspirants. It plans the student's day, gives them the notes and current affairs to read, tests them in an exam-like room, and turns the results into the next thing to study.
 
@@ -232,7 +232,7 @@ Current affairs:
 
 ### Project structure
 
-As built in Phases 0 and 1:
+As built in Phases 0 to 2:
 
 ```
 Cargo.toml
@@ -240,15 +240,20 @@ assets/theme.json        the "Paper" light theme
 content/                 the content pack (dummy now, ours later)
   syllabus.toml
   notes/gs2/polity/fundamental-rights.md
-  questions/polity.toml
+  questions/polity.toml   sample questions, one file per subject
+  questions/upsc-prelims-2025.toml   a real paper with UPSC's answer key
   current-affairs/2026-11-14.toml
 src/
   main.rs                calls run()
   lib.rs                 start-up: app state, theme, icons, window
   app.rs                 shell: title bar, sidebar, shortcuts, search palette, open(target), back and forward
   content.rs             content types, loader, validation, search, note sections
-  store.rs               SQLite schema, migrations, settings, reading records
+  store.rs               SQLite schema, migrations, settings, reading records, tests and answers
+  mentor.rs              subjects, scoring and question choice (the plan and insights come in Phase 3)
   notes.rs               the Notes screen: list, reader, outline, linked questions
+  practice.rs            the Practice hub: every kind of test, unfinished tests, past papers, results
+  exam.rs                the exam room: the clock, the question grid, keys, saving every change
+  review.rs              the result and review, one question on its own, a past paper with answers
   syllabus.rs            the Syllabus screen, topic status and coverage
   settings.rs            the Settings screen
   screens.rs             stand-in screens, replaced phase by phase
@@ -256,7 +261,7 @@ tests/
   screens.rs             drives the shell offscreen and saves a PNG of every screen
 ```
 
-Still to come, each with its phase: `mentor.rs` (plan, insights, question mix, review dates, scoring), one file per real screen, and `content/mains/` and `content/flashcards/`.
+Still to come, each with its phase: the rest of `mentor.rs` (plan, insights, review dates), one file per real screen, and `content/mains/` and `content/flashcards/`.
 
 One crate, no workspace. The app is a library plus a three-line `main.rs` so the tests can drive it.
 
@@ -320,6 +325,8 @@ trap = "..."
 note = "gs2-polity-fundamental-rights"
 ```
 
+A question from a real paper has `source = "UPSC Prelims YYYY"`, and those questions make up that year's paper. If UPSC dropped a question from its key, it has `dropped = true` and no `answer`: it is shown in its paper but never scored.
+
 A day of current affairs is one TOML file with a list of stories. Each story has: title, GS paper, topics, context, why it matters, key facts, the trap, PYQ pattern, a practice question, a Mains question with an answer frame, and linked notes.
 
 ### What the store holds
@@ -354,8 +361,8 @@ Each phase ends with an app that runs and can be clicked through. The first buil
 |---|---|---|
 | 0. Shell | Window, navigation, content loader, store and search | Done |
 | 1. Notes and syllabus | Read notes and track the whole syllabus | Done |
-| 2. Practice | Timed tests in an exam room, with results and review | Next |
-| 3. Analysis and Today | Charts, the mentor's rules and the daily plan | To do |
+| 2. Practice | Timed tests in an exam room, with results and review | Done |
+| 3. Analysis and Today | Charts, the mentor's rules and the daily plan | Next |
 | 4. Current affairs | Daily briefs, the story reader and the daily quiz | To do |
 | 5. Revision and notebook | Mistake book, flashcards, highlights and own notes | To do |
 | 6. Mains | Answer writing against the clock, with self-evaluation | To do |
@@ -420,15 +427,30 @@ Every phase below has a to-do list, so any agent can pick up the next open task.
 
 ### Phase 2: Practice
 
-- [ ] **2.1 Store tables.** Add `attempt` and `answer`, with the fields under "What the store holds", as the next migration. Save each answer the moment it is given. Add store functions to start, answer, finish and resume an attempt.
-- [ ] **2.2 Scoring and question choice.** Start `src/mentor.rs`. `score()` gives +2 for right, minus a third of that for wrong and 0 for blank, reading the marks from the attempt so CSAT marking can be added later. `pick()` chooses the questions for each kind of test, with the personalised mix weighted as under "Mentor rules", and takes a seed so tests are repeatable. Unit-test the score against a hand-worked case.
-- [ ] **2.3 Practice hub.** Replace the stand-in with `src/practice.rs`: micro (10 questions), mini (30), full mock (100), subject drill (20), custom drill (the student picks subjects, count and time), personalised mix, past papers by year, and unfinished tests to resume. Unless the student sets the time, a test allows 72 seconds a question, as Prelims does. Grey out a choice the question bank cannot fill.
-- [ ] **2.4 Exam room.** `src/exam.rs`, taking the whole window as in the sketch under "Layout": one question at a time, a countdown, the question grid with answered, marked and not-visited counts, mark for review, clear, the confidence tag (Sure, 50-50, Guess) and option strike-out. Keys: A to D answer, M marks, the arrow keys move. The test submits itself when time runs out. After quitting or a crash it stays open with its remaining time, and Practice offers to resume it.
-- [ ] **2.5 Result and review.** The net score, right, wrong and blank counts, marks by subject and by confidence level, and time per question. Below that, every question with the chosen and correct answers, the explanation, the trap and a link to its note. `open(Target::Question)` now shows the question itself, so search results for questions land on it.
-- [ ] **2.6 Past papers.** Group questions whose `source` is "UPSC Prelims YYYY" by year. A paper can be read with its answers or sat as a full mock. A note's "at a glance" line gains the years its topics were asked in.
-- [ ] **2.7 Content and tests.** Grow the bank to about 100 original sample questions across the six subject files, tagged with Prelims nodes and linked to notes. Transcribe one real Prelims GS paper from upsc.gov.in with UPSC's answer key and our own explanations, and never put a UPSC label on an invented question. The UI test starts a drill, answers, quits, resumes, submits and reviews it, and saves screenshots.
+- [x] **2.1 Store tables.** Add `attempt` and `answer`, with the fields under "What the store holds", as the next migration. Save each answer the moment it is given. Add store functions to start, answer, finish and resume an attempt.
+- [x] **2.2 Scoring and question choice.** Start `src/mentor.rs`. `score()` gives +2 for right, minus a third of that for wrong and 0 for blank, reading the marks from the attempt so CSAT marking can be added later. `pick()` chooses the questions for each kind of test, with the personalised mix weighted as under "Mentor rules", and takes a seed so tests are repeatable. Unit-test the score against a hand-worked case.
+- [x] **2.3 Practice hub.** Replace the stand-in with `src/practice.rs`: micro (10 questions), mini (30), full mock (100), subject drill (20), custom drill (the student picks subjects, count and time), personalised mix, past papers by year, and unfinished tests to resume. Unless the student sets the time, a test allows 72 seconds a question, as Prelims does. Grey out a choice the question bank cannot fill.
+- [x] **2.4 Exam room.** `src/exam.rs`, taking the whole window as in the sketch under "Layout": one question at a time, a countdown, the question grid with answered, marked and not-visited counts, mark for review, clear, the confidence tag (Sure, 50-50, Guess) and option strike-out. Keys: A to D answer, M marks, the arrow keys move. The test submits itself when time runs out. After quitting or a crash it stays open with its remaining time, and Practice offers to resume it.
+- [x] **2.5 Result and review.** The net score, right, wrong and blank counts, marks by subject and by confidence level, and time per question. Below that, every question with the chosen and correct answers, the explanation, the trap and a link to its note. `open(Target::Question)` now shows the question itself, so search results for questions land on it.
+- [x] **2.6 Past papers.** Group questions whose `source` is "UPSC Prelims YYYY" by year. A paper can be read with its answers or sat as a full mock. A note's "at a glance" line gains the years its topics were asked in.
+- [x] **2.7 Content and tests.** Grow the bank to about 100 original sample questions across the six subject files, tagged with Prelims nodes and linked to notes. Transcribe one real Prelims GS paper from upsc.gov.in with UPSC's answer key and our own explanations, and never put a UPSC label on an invented question. The UI test starts a drill, answers, quits, resumes, submits and reviews it, and saves screenshots.
 
 **Done when** a drill can be sat against the clock, quit, resumed, submitted and reviewed, and a unit test checks the score against a hand-worked case.
+
+**As built.** The condition is met and checked by `cargo test`. The UI test starts a Polity drill on a real data file, answers with the keys and the mouse, strikes out an option, tags confidence, marks a question, lets the clock run, leaves, resumes, then reopens the app on the same file as if it had crashed, resumes again with the time left, submits and reviews it. It also lets a micro test run out of time and submit itself, reads and sits the 2025 paper, and opens a question from search. `mentor::tests::the_score_matches_a_hand_worked_case` checks 6 right, 3 wrong and 1 blank at 10 marks. What differs from the plan:
+
+- **Subjects for drills and marks are the seven a student thinks in**: History and culture, Geography, Polity, Economy, Environment, Science and technology, and Current affairs, each made of one or more Prelims syllabus subjects (`mentor::SUBJECTS`). The `answer` row stores that subject id and the question's first Prelims topic, so Phase 3 can group by either without the content.
+- **The store keeps more than the table above lists.** `attempt` also has a title, the seconds used so far and the question on screen, so a test resumes where it was left. `answer` also has its position, the struck-out options and whether it was visited. Times are local and to the second.
+- **Every change is saved at once**, and the clock is saved every second, so a crash loses at most a second. The clock only runs while the exam room is on screen; leaving stops it.
+- **The exam room locks navigation.** Shortcuts, search and back do nothing there; only Save and leave, or Submit, lead out. Back after a test skips the exam room. On macOS the window's own buttons stay at the top left, so the header leaves room for them.
+- **Submitting with blank or marked questions asks first**, in a bar under the header rather than a dialog.
+- **Clear also clears the confidence tag**, and striking out the chosen option takes the answer back.
+- **The personalised mix** uses the weights under "Mentor rules", with a topic weak below 50% over at least 8 answers, as for insights. The other random tests use the same weights without the weak-topic boost, so wrong answers come back in every test. It asks 20 questions.
+- **The Practice hub also lists recent results**, so a result can be reviewed again. A test the bank cannot fill shows how many questions it has and its Start is greyed out (today only the Current affairs drill, with 12).
+- **Result and review** sit in `src/review.rs`, which also shows one question on its own (where search and links land) and a past paper read with its answers. Time per question is the average over the whole test, and every question's own time is on its card.
+- **Content**: 102 original sample questions (17 per subject file, 48 of them linked to notes), and the 2025 GS Paper I (Series A) with UPSC's key published on 13 May 2026, both from upsc.gov.in. No question was dropped from that key. Its explanations and traps are ours. Statement items keep UPSC's Roman numerals, so they match the options. A note's "at a glance" line now names the years its topics were asked.
+- **A `dropped` field** was added to the question format for questions UPSC drops from a key (see "Content format").
+- **Not built here, as planned**: the mistake book and `review` table (Phase 5), study-time `session` records and the Analysis and Today screens (Phase 3), the daily quiz (Phase 4) and CSAT marking. A new kind of test is a variant of `mentor::TestKind` with its pool.
 
 ### Phase 3: Analysis and Today
 

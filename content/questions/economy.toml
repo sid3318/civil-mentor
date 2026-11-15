@@ -63,3 +63,172 @@ options = [
 answer = "A"
 explanation = "Fiscal deficit is total expenditure minus revenue receipts and non-debt capital receipts. It equals the government's total borrowing requirement for the year. Option B is the revenue deficit."
 trap = "Option C forgets non-debt capital receipts such as disinvestment proceeds and recovery of loans."
+
+[[question]]
+id = "economy-0005"
+topics = ["pre.gs.economy.inflation.measurement"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements:
+
+1. The Wholesale Price Index does not include services.
+2. The Wholesale Price Index is compiled by the Office of the Economic Adviser in the Department for Promotion of Industry and Internal Trade.
+3. The Consumer Price Index (Combined) is published by the Reserve Bank of India.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "The WPI tracks wholesale prices of goods only, and it is compiled by the Office of the Economic Adviser. The CPI (Combined) is published by the National Statistics Office, not by the RBI, although the RBI's inflation target is set on it."
+trap = "The RBI targets CPI inflation, which makes it easy to assume that it also publishes the index."
+note = "gs3-economy-inflation"
+
+[[question]]
+id = "economy-0006"
+topics = ["pre.gs.economy.inflation.inflation-targeting-and-the-monetary"]
+source = "Civil Mentor sample"
+stem = "Under the flexible inflation-targeting framework adopted in 2016, the inflation target is notified by:"
+options = ["The Governor of the Reserve Bank of India alone", "The Central Government, in consultation with the Reserve Bank of India", "The Monetary Policy Committee", "The Finance Commission"]
+answer = "B"
+explanation = "The RBI Act, as amended in 2016, makes the Central Government responsible for setting the target once every five years, in consultation with the RBI. The Monetary Policy Committee then uses the repo rate to meet it."
+trap = "The committee decides the repo rate to hit the target. It does not decide the target."
+note = "gs3-economy-inflation"
+
+[[question]]
+id = "economy-0007"
+topics = ["pre.gs.economy.inflation.measurement"]
+source = "Civil Mentor sample"
+stem = "Core inflation is calculated by leaving out which of the following components from the headline inflation index?"
+options = ["Services and housing", "Goods that are imported", "Food and fuel", "Items on which GST is levied"]
+answer = "C"
+explanation = "Core inflation strips out food and fuel, whose prices swing widely with weather and global energy markets. What remains gives a steadier view of the underlying trend."
+trap = "Core inflation is not an index of goods alone. Services stay in it."
+note = "gs3-economy-inflation"
+
+[[question]]
+id = "economy-0008"
+topics = ["pre.gs.economy.inflation.phillips-curve-stagflation-and-deflation"]
+source = "Civil Mentor sample"
+stem = "Stagflation is best described as a situation in which an economy experiences:"
+options = ["Falling prices together with rising output", "Rising prices together with rapidly rising employment", "Falling prices together with rising unemployment", "Rising prices together with high unemployment and slow growth"]
+answer = "D"
+explanation = "Stagflation combines stagnant output and high unemployment with rising prices. The Phillips curve suggests a trade-off between inflation and unemployment, and the supply shocks of the 1970s showed that both can rise together."
+trap = "The Phillips curve would lead one to expect inflation and unemployment to move in opposite directions, so stagflation looks impossible. It happens when the supply side is hit."
+
+[[question]]
+id = "economy-0009"
+topics = ["pre.gs.economy.money.monetary-policy.repo-reverse-repo-sdf"]
+source = "Civil Mentor sample"
+stem = "Since April 2022, which of the following has formed the floor of the Reserve Bank of India's policy rate corridor?"
+options = ["Standing Deposit Facility rate", "Repo rate", "Reverse repo rate", "Marginal Standing Facility rate"]
+answer = "A"
+explanation = "The Standing Deposit Facility lets banks park surplus funds with the RBI without collateral, at a rate set below the repo rate. The Marginal Standing Facility sits above the repo rate and forms the ceiling of the corridor."
+trap = "Until 2022 the reverse repo rate was the floor. The Standing Deposit Facility has taken that role."
+note = "gs3-economy-inflation"
+
+[[question]]
+id = "economy-0010"
+topics = ["pre.gs.economy.fiscal.taxation.goods-and-services-tax", "pre.gs.polity.constitutional-bodies.gst-council"]
+source = "Civil Mentor sample"
+stem = "A decision of the Goods and Services Tax Council is taken by a majority of:"
+options = ["A simple majority of the members present", "Not less than three-fourths of the weighted votes of the members present and voting", "Two-thirds of all the members of the Council", "Unanimity of the Centre and all the states"]
+answer = "B"
+explanation = "Under Article 279A the Centre's vote carries a weight of one-third and the votes of all the states together carry two-thirds. A decision needs three-fourths of the weighted votes of members present and voting, so the Centre has a veto but cannot decide alone."
+trap = "The Centre holds only one-third of the weight, but because three-fourths are needed, it can block any decision."
+
+[[question]]
+id = "economy-0011"
+topics = ["pre.gs.economy.money.non-performing-assets-and-banking"]
+source = "Civil Mentor sample"
+stem = "A loan is classified as a non-performing asset when interest or principal on it remains overdue for more than:"
+options = ["30 days", "60 days", "90 days", "180 days"]
+answer = "C"
+explanation = "Under the RBI's prudential norms, an asset becomes non-performing when the borrower has not paid interest or principal for more than 90 days. A loan then moves through sub-standard, doubtful and loss categories as time passes."
+trap = "The 30 and 60 day marks matter for special mention accounts, which are an early warning and are still treated as performing."
+
+[[question]]
+id = "economy-0012"
+topics = ["pre.gs.economy.external.bop.current-account"]
+source = "Civil Mentor sample"
+stem = """
+Which of the following are recorded in the current account of India's balance of payments?
+
+1. Exports of merchandise
+2. Remittances sent home by Indians working abroad
+3. Foreign direct investment inflows
+
+Select the correct answer using the code given below."""
+options = ["1 only", "3 only", "2 and 3 only", "1 and 2 only"]
+answer = "D"
+explanation = "The current account records trade in goods and services, primary income and secondary income, and remittances are secondary income. Foreign direct investment is a capital flow and belongs in the capital and financial account."
+trap = "Remittances are money that enters the country, which tempts students to class them as investment. They are a transfer and sit in the current account."
+
+[[question]]
+id = "economy-0013"
+topics = ["pre.gs.economy.fiscal.union-budget"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about the Consolidated Fund of India:
+
+1. All revenues received by the Union government and all loans it raises are credited to it.
+2. No money can be withdrawn from it without an appropriation made by Parliament.
+3. Every withdrawal from the Public Account of India also needs an appropriation by Parliament.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "Article 266 sets up the Consolidated Fund, and Article 114 bars withdrawal without an Appropriation Act. The Public Account holds money the government keeps as a banker, such as provident funds, and it is operated by executive action without parliamentary appropriation."
+trap = "The Public Account is the one fund of the three that Parliament does not appropriate."
+
+[[question]]
+id = "economy-0014"
+topics = ["pre.gs.economy.agriculture.agricultural-price-policy"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about the Minimum Support Price (MSP):
+
+1. The Commission for Agricultural Costs and Prices recommends it.
+2. The Union government announces it for 22 mandated crops after the Cabinet Committee on Economic Affairs approves it.
+3. Private traders are legally bound to buy at the MSP under the Essential Commodities Act, 1955.
+
+Which of the statements given above are correct?"""
+options = ["1 only", "1 and 2 only", "2 and 3 only", "1, 2 and 3"]
+answer = "B"
+explanation = "The Commission recommends the MSP, and the Cabinet Committee on Economic Affairs approves it. The government buys at the MSP through agencies such as the Food Corporation of India, but no law binds private traders to pay it."
+trap = "The MSP is a floor that the government offers by its own purchases. It is not a legal price for private sales."
+
+[[question]]
+id = "economy-0015"
+topics = ["pre.gs.economy.poverty.multidimensional-poverty"]
+source = "Civil Mentor sample"
+stem = "The National Multidimensional Poverty Index of India, published by NITI Aayog, is built on which of the following three dimensions?"
+options = ["Income, consumption and assets", "Health, education and employment", "Health, education and standard of living", "Health, nutrition and sanitation"]
+answer = "C"
+explanation = "The index follows the global MPI. It gives equal weight to health, education and standard of living, which are measured through a set of indicators such as nutrition, years of schooling, cooking fuel and housing."
+trap = "Employment and income do not enter the index. It looks at deprivation across indicators and not at money."
+
+[[question]]
+id = "economy-0016"
+topics = ["pre.gs.economy.international.new-development-bank-and-aiib"]
+source = "Civil Mentor sample"
+stem = "The New Development Bank, set up by the BRICS countries, has its headquarters at:"
+options = ["New Delhi", "Moscow", "Beijing", "Shanghai"]
+answer = "D"
+explanation = "The New Development Bank was established in 2014 and is headquartered in Shanghai, with a regional office in Johannesburg. The Asian Infrastructure Investment Bank, a different institution, is headquartered in Beijing."
+trap = "China hosts both banks, and the Asian Infrastructure Investment Bank in Beijing is the one more often named."
+
+[[question]]
+id = "economy-0017"
+topics = ["pre.gs.economy.money.payment-systems-and-digital-payments"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements:
+
+1. The Unified Payments Interface is operated by the National Payments Corporation of India.
+2. The National Payments Corporation of India is a not-for-profit company promoted by the Reserve Bank of India with the Indian Banks' Association.
+3. The Reserve Bank of India regulates payment systems under the Payment and Settlement Systems Act, 2007.
+
+Which of the statements given above are correct?"""
+options = ["1 only", "1 and 2 only", "2 and 3 only", "1, 2 and 3"]
+answer = "D"
+explanation = "The National Payments Corporation of India runs retail payment systems such as UPI and RuPay. It was set up in 2008 as a not-for-profit company, and the RBI is the regulator of payment systems under the 2007 Act."
+trap = "The RBI regulates UPI and the payment sector but does not operate UPI itself."

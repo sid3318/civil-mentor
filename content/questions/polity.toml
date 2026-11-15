@@ -61,3 +61,191 @@ answer = "B"
 explanation = "Prohibition is preventive: it stops proceedings that are still under way. Certiorari quashes an order that has already been passed. Mandamus commands a public authority to perform a duty, and quo warranto questions a person's title to a public office."
 trap = "Prohibition and certiorari both go to lower courts. The difference is timing: before the order, or after it."
 note = "gs2-polity-fundamental-rights"
+
+[[question]]
+id = "polity-0005"
+topics = ["pre.gs.polity.parliament.composition-and-the-presiding-officers"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about the Rajya Sabha:
+
+1. One-third of its members retire every second year.
+2. The Vice-President, as its Chairman, votes in the first instance on every question.
+3. Its elected members are chosen by the elected members of state legislative assemblies by the single transferable vote.
+
+Which of the statements given above are correct?"""
+options = ["1 and 3 only", "2 only", "2 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "The Rajya Sabha is a permanent House, and each member serves six years, so one-third retire every second year. Members are elected by the single transferable vote. The Chairman votes only to break a tie."
+trap = "A presiding officer who has a casting vote is not a member who votes on every question."
+note = "gs2-polity-parliament"
+
+[[question]]
+id = "polity-0006"
+topics = ["pre.gs.polity.parliament.committees.financial-committees"]
+source = "Civil Mentor sample"
+stem = "Which one of the following parliamentary committees has no member from the Rajya Sabha?"
+options = ["Public Accounts Committee", "Committee on Public Undertakings", "Estimates Committee", "Departmentally related standing committees"]
+answer = "C"
+explanation = "The Estimates Committee has 30 members, all from the Lok Sabha. The Public Accounts Committee and the Committee on Public Undertakings each include Rajya Sabha members (7 of 22), and the departmentally related standing committees draw on both Houses."
+trap = "The Public Accounts Committee looks like a Lok Sabha body because the Lok Sabha dominates it, but the Rajya Sabha has seats on it."
+note = "gs2-polity-parliament"
+
+[[question]]
+id = "polity-0007"
+topics = ["pre.gs.polity.parliament.bills.joint-sitting"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about a joint sitting of the two Houses of Parliament:
+
+1. It is presided over by the Speaker of the Lok Sabha.
+2. It can be summoned to resolve a disagreement over a Constitution amendment bill.
+3. It has been held three times so far.
+
+Which of the statements given above are correct?"""
+options = ["1 only", "3 only", "1 and 2 only", "1 and 3 only"]
+answer = "D"
+explanation = "Article 108 provides for a joint sitting on an ordinary bill, and the Speaker presides. It has been used in 1961, 1978 and 2002. Constitution amendment bills under Article 368 need a special majority in each House and cannot go to a joint sitting."
+trap = "A deadlock on an amendment bill ends the bill. There is no joint sitting to rescue it."
+note = "gs2-polity-parliament"
+
+[[question]]
+id = "polity-0008"
+topics = ["pre.gs.polity.constitution.preamble"]
+source = "Civil Mentor sample"
+stem = "Which amendment to the Constitution added the words 'Socialist', 'Secular' and 'Integrity' to the Preamble?"
+options = ["7th Amendment Act, 1956", "24th Amendment Act, 1971", "42nd Amendment Act, 1976", "44th Amendment Act, 1978"]
+answer = "C"
+explanation = "The 42nd Amendment Act, 1976 inserted these three words, the only change ever made to the Preamble. The 44th Amendment of 1978 reversed several other changes of the 42nd but left the Preamble alone."
+trap = "The 44th Amendment undid much of the 42nd, so it is tempting to think it also reversed this change. It did not."
+
+[[question]]
+id = "polity-0009"
+topics = ["pre.gs.polity.union.president.veto-ordinance-and-pardoning-powers"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about an ordinance promulgated by the President under Article 123:
+
+1. It can be promulgated only when at least one House of Parliament is not in session.
+2. It ceases to operate six weeks after Parliament reassembles, unless it is disapproved earlier.
+3. It can be used to amend a provision of the Constitution.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "An ordinance has the force of an Act of Parliament but is temporary, and it must be laid before both Houses. It is an ordinary law-making power, so it cannot amend the Constitution, which needs the procedure of Article 368."
+trap = "The six weeks run from the reassembly of Parliament, not from the date of promulgation."
+
+[[question]]
+id = "polity-0010"
+topics = ["pre.gs.polity.states.governor"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about the Governor of a state:
+
+1. The Governor is appointed by the President.
+2. The same person can be appointed Governor of two or more states.
+3. The Governor holds office for a fixed term of five years and cannot be removed before it ends.
+
+Which of the statements given above are correct?"""
+options = ["2 only", "3 only", "1 and 3 only", "1 and 2 only"]
+answer = "D"
+explanation = "The Governor is appointed by the President, and since the 7th Amendment (1956) one person can serve as Governor of more than one state. The five-year term is only a normal term. The Governor holds office during the pleasure of the President."
+trap = "A five-year term sounds like security of tenure, but the Governor can be removed at any time at the President's pleasure."
+
+[[question]]
+id = "polity-0011"
+topics = ["pre.gs.polity.local.73rd-amendment"]
+source = "Civil Mentor sample"
+stem = "Which one of the following is NOT compulsory for a state under the 73rd Constitutional Amendment Act, 1992?"
+options = ["Reservation of not less than one-third of the seats for women", "Reservation of seats for backward classes", "A State Election Commission to conduct panchayat elections", "Direct election to seats at all levels of the panchayat"]
+answer = "B"
+explanation = "Part IX makes reservation for Scheduled Castes, Scheduled Tribes and women compulsory. Reservation for backward classes is left to the state legislature to provide."
+trap = "Reservation is compulsory for three groups: Scheduled Castes, Scheduled Tribes and women. Backward classes are not among them."
+note = "gs2-polity-panchayati-raj"
+
+[[question]]
+id = "polity-0012"
+topics = ["pre.gs.polity.local.73rd-amendment", "pre.gs.polity.local.committees"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements:
+
+1. The Eleventh Schedule lists 29 subjects that a state may devolve to panchayats.
+2. The Balwantrai Mehta Committee recommended a three-tier system, and Rajasthan was the first state to adopt it.
+3. A state whose population is below 20 lakh need not constitute panchayats at the intermediate level.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1, 2 and 3", "1 and 3 only"]
+answer = "C"
+explanation = "The Eleventh Schedule added by the 73rd Amendment has 29 subjects. The Balwantrai Mehta Committee reported in 1957, and Rajasthan began the system at Nagaur in 1959. Article 243B allows a small state to skip the intermediate tier."
+trap = "The 73rd Amendment made three tiers compulsory, but only for states with at least 20 lakh people."
+note = "gs2-polity-panchayati-raj"
+
+[[question]]
+id = "polity-0013"
+topics = ["pre.gs.polity.local.pesa-act-1996"]
+source = "Civil Mentor sample"
+stem = "The Panchayats (Extension to the Scheduled Areas) Act, 1996 extends the provisions of Part IX of the Constitution to the areas covered by which of the following?"
+options = ["The Fifth Schedule", "The Sixth Schedule", "All tribal districts of the country", "All Union territories"]
+answer = "A"
+explanation = "PESA applies to the Fifth Schedule areas, and it gives the Gram Sabha powers over minor forest produce, land alienation and local resources. The Sixth Schedule areas of the north-east are governed through autonomous councils."
+trap = "Both the Fifth and Sixth Schedules deal with tribal areas, but only the Fifth Schedule areas come under PESA."
+note = "gs2-polity-panchayati-raj"
+
+[[question]]
+id = "polity-0014"
+topics = ["pre.gs.polity.rights.writs", "pre.gs.polity.rights.fundamental-rights.right-to-constitutional-remedies"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements:
+
+1. The right to move the Supreme Court under Article 32 is itself a Fundamental Right.
+2. A High Court can issue writs under Article 226 for the enforcement of Fundamental Rights and also for other purposes.
+3. The Supreme Court can issue writs under Article 32 for the enforcement of any legal right.
+
+Which of the statements given above are correct?"""
+options = ["1 only", "3 only", "2 and 3 only", "1 and 2 only"]
+answer = "D"
+explanation = "Article 32 is in Part III, so the remedy is itself guaranteed. Article 226 is wider than Article 32 because a High Court can also act for 'any other purpose'. The Supreme Court's writ power under Article 32 is limited to Fundamental Rights."
+trap = "Article 226 gives the High Courts a wider writ jurisdiction than the Supreme Court has under Article 32."
+note = "gs2-polity-fundamental-rights"
+
+[[question]]
+id = "polity-0015"
+topics = ["pre.gs.polity.rights.fundamental-rights.right-to-equality"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements:
+
+1. Article 17 abolishes untouchability, and its practice is a punishable offence.
+2. Article 18 prohibits the State from conferring titles other than military and academic distinctions.
+3. The Supreme Court has held that the Bharat Ratna and Padma awards are titles prohibited by Article 18.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "Article 17 makes untouchability an offence, and Article 18(1) bars the State from conferring titles other than military and academic distinctions. In Balaji Raghavan (1995) the Supreme Court held that national awards are not titles within Article 18."
+trap = "The awards carry names but not titles. A recipient may not use them as a prefix or suffix to a name."
+note = "gs2-polity-fundamental-rights"
+
+[[question]]
+id = "polity-0016"
+topics = ["pre.gs.polity.amendment.doctrine-of-basic-structure"]
+source = "Civil Mentor sample"
+stem = "The doctrine that Parliament cannot amend the Constitution so as to destroy its basic structure was laid down in:"
+options = ["Golaknath v. State of Punjab (1967)", "Maneka Gandhi v. Union of India (1978)", "Kesavananda Bharati v. State of Kerala (1973)", "S.R. Bommai v. Union of India (1994)"]
+answer = "C"
+explanation = "A 13-judge bench in Kesavananda Bharati held that Parliament can amend any part of the Constitution but cannot alter its basic structure. Golaknath had held that Fundamental Rights could not be amended at all, and Kesavananda overruled it."
+trap = "Golaknath came first and also limited Parliament, but it barred amendment of Fundamental Rights altogether. The basic structure doctrine began with Kesavananda."
+note = "gs2-polity-fundamental-rights"
+
+[[question]]
+id = "polity-0017"
+topics = ["pre.gs.polity.other-bodies.niti-aayog"]
+source = "Civil Mentor sample"
+stem = "Which one of the following bodies was set up by a resolution of the Union Cabinet, and not by the Constitution or an Act of Parliament?"
+options = ["Election Commission of India", "Finance Commission", "National Human Rights Commission", "NITI Aayog"]
+answer = "D"
+explanation = "NITI Aayog replaced the Planning Commission by a Cabinet resolution on 1 January 2015. The Election Commission and the Finance Commission are constitutional bodies, and the National Human Rights Commission is a statutory body set up under the Protection of Human Rights Act, 1993."
+trap = "A body that carries advice to the Government of India is not necessarily constitutional. NITI Aayog, like the Planning Commission before it, is not."

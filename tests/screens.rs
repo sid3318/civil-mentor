@@ -7,8 +7,11 @@
 
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 
-use civil_mentor::store::{Reading, Settings, Store, ThemeChoice};
+use civil_mentor::content::Target;
+use civil_mentor::mentor::{self, SUBJECTS};
+use civil_mentor::store::{Attempt, Reading, Settings, Store, ThemeChoice};
 use civil_mentor::syllabus::{coverage, statuses};
 use civil_mentor::{AppAssets, AppState, Screen, Shell};
 use gpui_kit::component::{Theme, WindowExt as _};
@@ -26,7 +29,7 @@ struct Harness {
 }
 
 impl Harness {
-    fn new(store_error: Option<&str>) -> Harness {
+    fn new(store: Store, store_error: Option<&str>) -> Harness {
         let store_error = store_error.map(str::to_string);
         let mut cx = HeadlessAppContext::with_platform(
             gpui_kit::platform::current_platform(true).text_system(),
@@ -34,7 +37,7 @@ impl Harness {
             gpui_kit::platform::current_headless_renderer,
         );
         cx.update(|cx| {
-            civil_mentor::init(Store::in_memory(), store_error, cx);
+            civil_mentor::init(store, store_error, cx);
             // Animations run on wall time; without this a screenshot catches
             // a dialog halfway through fading in.
             cx.set_reduce_motion(true);
@@ -84,6 +87,32 @@ impl Harness {
         let at = at.into();
         let delta = ScrollDelta::Pixels(point(px(0.), px(-by)));
         self.act(|window, cx| window.scroll(at, delta, cx));
+    }
+
+    /// Scrolls the page until `id` is on screen, scrolling at whichever of
+    /// `anchors` is in view.
+    fn reveal(&mut self, id: impl Into<ElementId>, anchors: &[ElementId]) {
+        let id = id.into();
+        for _ in 0..20 {
+            let (target, anchor) = self.act(|window, _| {
+                let target = window.try_find(id.clone()).expect("the element exists");
+                let anchor = anchors
+                    .iter()
+                    .find(|a| window.try_find((*a).clone()).is_some_and(|e| e.visible()))
+                    .cloned();
+                (target, anchor)
+            });
+            if target.visible() {
+                return;
+            }
+            let bounds = target.bounds();
+            let by = f32::from(bounds.origin.y + bounds.size.height / 2.) - 410.;
+            self.scroll_down(
+                anchor.expect("something on the page is in view"),
+                by.clamp(-600., 600.),
+            );
+        }
+        panic!("{id:?} never came into view");
     }
 
     fn topic_ix(&mut self, id: &str) -> usize {
@@ -162,6 +191,49 @@ impl Harness {
         })
     }
 
+    fn in_exam(&mut self) -> bool {
+        let shell = self.shell.clone();
+        self.cx.update(|cx| shell.read(cx).in_exam())
+    }
+
+    /// The sitting in the exam room, checked against the data file.
+    fn exam(&mut self) -> Attempt {
+        let shell = self.shell.clone();
+        self.cx.update(|cx| {
+            let attempt = shell.read(cx).exam_attempt(cx).expect("a test is open");
+            let saved = AppState::get(cx).store.attempt(attempt.id).unwrap();
+            assert_eq!(
+                saved.as_ref(),
+                Some(&attempt),
+                "every change is saved at once"
+            );
+            attempt
+        })
+    }
+
+    fn saved(&mut self, id: i64) -> Attempt {
+        self.cx
+            .update(|cx| AppState::get(cx).store.attempt(id).unwrap())
+            .expect("the test is in the data file")
+    }
+
+    fn result(&mut self) -> Option<i64> {
+        let shell = self.shell.clone();
+        self.cx.update(|cx| shell.read(cx).result())
+    }
+
+    /// Moves the app's clock on, as if the student sat there for `seconds`.
+    fn wait(&mut self, seconds: u64) {
+        self.cx.advance_clock(Duration::from_secs(seconds));
+        self.cx.run_until_parked();
+        self.act(|_, _| {});
+    }
+
+    fn open(&mut self, target: Target) {
+        let shell = self.shell.clone();
+        self.act(|_, cx| shell.update(cx, |shell, cx| shell.open(target, cx)));
+    }
+
     fn dialog_open(&mut self) -> bool {
         self.act(|window, cx| window.has_active_dialog(cx))
     }
@@ -179,7 +251,7 @@ impl Harness {
 }
 
 fn main() {
-    let mut app = Harness::new(None);
+    let mut app = Harness::new(Store::in_memory(), None);
     assert_eq!(app.screen(), Screen::Today, "the app opens on Today");
     let theme = app.cx.update(|cx| Theme::global(cx).theme_name().clone());
     assert_eq!(theme, "Paper", "the light theme is the app's own palette");
@@ -412,7 +484,12 @@ fn main() {
 
     // When the data file cannot be opened the app still starts, on a
     // throwaway store, and says so on every screen.
-    let mut unsaved = Harness::new(Some("could not open civil-mentor.db: disk is read-only"));
+    practice();
+
+    let mut unsaved = Harness::new(
+        Store::in_memory(),
+        Some("could not open civil-mentor.db: disk is read-only"),
+    );
     assert!(
         unsaved
             .cx
@@ -423,4 +500,225 @@ fn main() {
     unsaved.shot("store-error");
 
     println!("screens: ok, screenshots in {}", app.shots.display());
+}
+
+/// Phase 2: a drill is sat against the clock, left, resumed, survives a
+/// crash, is submitted and reviewed; a test submits itself when time runs
+/// out; past papers and single questions open.
+fn practice() {
+    // Things on the Practice hub to scroll it by.
+    let hub: Vec<ElementId> = ["start-micro", "start-custom"]
+        .into_iter()
+        .map(ElementId::from)
+        .chain((0..SUBJECTS.len()).flat_map(|ix| {
+            [
+                ElementId::from(("start-subject", ix)),
+                ElementId::from(("custom-subject", ix)),
+            ]
+        }))
+        .collect();
+
+    let dir = std::env::temp_dir().join(format!("civil-mentor-screens-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let db = dir.join("civil-mentor.db");
+    let mut app = Harness::new(Store::open(&db).expect("the data file opens"), None);
+
+    app.click("0-0-2");
+    assert_eq!(app.screen(), Screen::Practice);
+    app.shot("practice-hub");
+    let polity = SUBJECTS.iter().position(|s| s.id == "polity").unwrap();
+    app.click(("start-subject", polity));
+    assert!(app.in_exam(), "the drill opens in the exam room");
+    assert!(
+        !app.shows("search-trigger"),
+        "no title bar in the exam room"
+    );
+    assert!(!app.shows("0-0-0"), "no sidebar in the exam room");
+    let test = app.exam();
+    assert_eq!(test.answers.len(), 20);
+    assert_eq!(test.seconds_allowed, 20 * 72, "72 seconds a question");
+    assert!(test.answers.iter().all(|a| a.subject == "polity"));
+    let id = test.id;
+    app.shot("exam-room");
+
+    // The shortcuts that leave a screen do nothing in the exam room.
+    app.press("secondary-1");
+    app.press("secondary-k");
+    assert!(
+        app.in_exam() && !app.dialog_open(),
+        "nothing leads out but Leave or Submit"
+    );
+
+    // Keys answer and move; the panel tags confidence; options strike out.
+    app.press("b");
+    assert_eq!(app.exam().answers[0].chosen, Some(1), "B answers");
+    app.click("fifty-fifty");
+    assert_eq!(
+        app.exam().answers[0].confidence,
+        Some(civil_mentor::store::Confidence::FiftyFifty)
+    );
+    app.press("right");
+    assert_eq!(app.exam().current, 1, "the right arrow moves on");
+    app.click(("strike", 0usize));
+    app.click(("option", 2usize));
+    app.press("m");
+    let second = &app.exam().answers[1];
+    assert!(second.is_struck(0) && second.marked && second.chosen == Some(2));
+    app.wait(90);
+    let test = app.exam();
+    assert_eq!(test.seconds_used, 90, "the clock runs");
+    assert_eq!(
+        test.answers[1].seconds, 90,
+        "time counts against the question on screen"
+    );
+    app.click(("cell", 4usize));
+    assert_eq!(app.exam().current, 4, "the grid jumps to a question");
+    app.shot("exam-answered");
+
+    // Leaving keeps the test open; Practice offers to resume it.
+    app.click("leave");
+    assert!(!app.in_exam());
+    assert_eq!(app.screen(), Screen::Practice);
+    assert!(app.shows(("resume", id as u64)), "listed as unfinished");
+    app.shot("practice-resume");
+    app.click(("resume", id as u64));
+    let test = app.exam();
+    assert_eq!(
+        (test.current, test.seconds_used, test.answered()),
+        (4, 90, 2)
+    );
+    app.press("a");
+    app.wait(30);
+
+    // The app dies mid-test. Reopened on the same file, the test is waiting.
+    drop(app);
+    let mut app = Harness::new(Store::open(&db).expect("the data file reopens"), None);
+    app.click("0-0-2");
+    assert!(
+        app.shows(("resume", id as u64)),
+        "still unfinished after a crash"
+    );
+    let saved = app.saved(id);
+    assert_eq!((saved.seconds_used, saved.answered()), (120, 3));
+    app.click(("resume", id as u64));
+    assert_eq!(
+        app.exam().seconds_left(),
+        20 * 72 - 120,
+        "with its time left"
+    );
+
+    // Submitting with blanks asks first.
+    app.click("submit");
+    assert!(
+        app.shows("submit-anyway"),
+        "asks before submitting with blanks"
+    );
+    app.shot("exam-confirm");
+    app.click("submit-anyway");
+    assert!(!app.in_exam());
+    assert_eq!(app.result(), Some(id), "the result follows");
+    let done = app.saved(id);
+    assert!(done.finished.is_some());
+    // The score is +2 for each right answer and -2/3 for each wrong one.
+    let right = done
+        .answers
+        .iter()
+        .filter(|a| a.correct == Some(true))
+        .count();
+    let wrong = done
+        .answers
+        .iter()
+        .filter(|a| a.correct == Some(false))
+        .count();
+    assert_eq!(right + wrong, 3);
+    let score = mentor::score(&done);
+    assert!((score.marks - (2.0 * right as f64 - 2.0 / 3.0 * wrong as f64)).abs() < 1e-9);
+    assert_eq!(score.blank, 17);
+    app.shot("result");
+    app.scroll_down("score", 900.);
+    app.shot("review");
+    app.press("secondary-[");
+    assert_eq!(app.screen(), Screen::Practice, "back skips the exam room");
+    assert!(!app.in_exam());
+
+    // A test submits itself when its time runs out.
+    app.press("secondary-3");
+    app.click("start-micro");
+    let micro = app.exam().id;
+    app.press("c");
+    app.wait(10 * 72);
+    assert!(!app.in_exam(), "submitted when time ran out");
+    assert_eq!(app.result(), Some(micro));
+    let micro = app.saved(micro);
+    assert!(micro.finished.is_some());
+    assert_eq!(micro.seconds_used, 720);
+    assert_eq!(micro.answered(), 1);
+
+    // Recent results reopen a result.
+    app.press("secondary-3");
+    app.reveal(("result", id as u64), &hub);
+    app.shot("practice-results");
+    assert!(app.shows(("result", id as u64)));
+    app.click(("result", id as u64));
+    assert_eq!(app.result(), Some(id));
+
+    // Past papers: read one with its answers, or sit it as a mock.
+    let papers = app.cx.update(|cx| AppState::get(cx).library.papers());
+    if let Some((year, questions)) = papers.first().cloned() {
+        app.press("secondary-3");
+        app.reveal(("read-paper", year as u64), &hub);
+        app.click(("read-paper", year as u64));
+        app.click(("answer", questions[0]));
+        app.shot("paper");
+        app.click("sit-this-paper");
+        assert!(app.in_exam());
+        let mock = app.exam();
+        assert_eq!(mock.answers.len(), questions.len(), "the whole paper");
+        assert_eq!(mock.seconds_allowed, questions.len() as u32 * 72);
+        app.shot("exam-paper");
+        app.click("leave");
+    }
+
+    // A search result for a question lands on the question itself.
+    let (word, question) = app.cx.update(|cx| {
+        let library = &AppState::get(cx).library;
+        library
+            .questions
+            .iter()
+            .enumerate()
+            .filter(|(_, q)| q.note.is_some())
+            .flat_map(|(ix, q)| {
+                q.stem
+                    .split_whitespace()
+                    .map(move |w| (w.to_lowercase(), ix))
+            })
+            .find(|(word, ix)| {
+                let hits = library.search(word, 30);
+                word.len() > 7
+                    && word.chars().all(char::is_alphabetic)
+                    && hits.first().map(|hit| hit.target) == Some(Target::Question(*ix))
+                    && hits
+                        .iter()
+                        .all(|hit| matches!(hit.target, Target::Question(_)))
+            })
+            .expect("a word only one question uses")
+    });
+    app.press("secondary-k");
+    app.act(|window, cx| window.input(&word, cx));
+    app.press("enter");
+    assert_eq!(app.screen(), Screen::Practice);
+    assert!(
+        app.shows(("answer", question)),
+        "the question itself, not the hub"
+    );
+    app.click(("answer", question));
+    app.shot("question");
+    app.click(("open-note", question));
+    assert!(app.note().is_some(), "the question links to its note");
+    app.press("secondary-[");
+    assert!(app.shows(("answer", question)), "and back");
+    app.open(Target::Question(question));
+
+    drop(app);
+    std::fs::remove_dir_all(&dir).unwrap();
 }

@@ -4,10 +4,16 @@
 //! - [`store`] is the SQLite file holding everything the student does.
 //! - `app` is the window shell: title bar, sidebar, search and the active screen.
 //! - `notes` is the reader; [`syllabus`] tracks topics and coverage.
+//! - `practice` lists the tests, `exam` sits them and `review` shows the
+//!   result; [`mentor`] marks them and chooses their questions.
 
 mod app;
 pub mod content;
+mod exam;
+pub mod mentor;
 mod notes;
+mod practice;
+mod review;
 mod screens;
 mod settings;
 pub mod store;
@@ -40,12 +46,16 @@ gpui_kit::assets::icon_assets!(
         ChevronsLeftRight,
         Circle,
         CircleDot,
+        Flag,
         ListTree,
+        LogOut,
         Newspaper,
         NotebookText,
         PenLine,
         Repeat,
-        SquarePen
+        SquarePen,
+        Strikethrough,
+        Timer
     ]
 );
 
@@ -96,6 +106,13 @@ impl AppState {
         }
         let theme = state.settings.theme;
         apply_theme(theme, cx);
+        cx.refresh_windows();
+    }
+
+    /// Shows a failed save as the banner: from then on the student's work
+    /// may not be kept.
+    pub fn report(cx: &mut App, err: anyhow::Error) {
+        cx.global_mut::<AppState>().store_error = Some(format!("{err:#}"));
         cx.refresh_windows();
     }
 
@@ -166,6 +183,7 @@ pub fn init(mut store: Store, mut store_error: Option<String>, cx: &mut App) {
         store_error,
     });
     app::init(cx);
+    exam::init(cx);
 }
 
 pub fn window_options(cx: &App) -> WindowOptions {

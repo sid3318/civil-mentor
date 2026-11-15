@@ -16,12 +16,15 @@ use gpui_kit::component::{
     ActiveTheme as _, Collapsible as _, Disableable as _, Icon, Sizable as _, StyledExt as _,
     Theme, TitleBar, WindowExt as _, h_flex, v_flex,
 };
-use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
 use crate::AppState;
 use crate::content::Target;
+use crate::exam::ExamScreen;
+use crate::mentor::TestPlan;
 use crate::notes::NotesScreen;
+use crate::practice::PracticeScreen;
+use crate::review::ReviewScreen;
 use crate::screens;
 use crate::settings::SettingsScreen;
 use crate::store::ThemeChoice;
@@ -118,11 +121,20 @@ impl Screen {
     }
 }
 
-/// Where the student is: a section, or a note open in the reader.
+/// Where the student is: a section, a note open in the reader, or one of
+/// the practice places.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Place {
     Screen(Screen),
     Note(usize),
+    /// One question from the bank, by index into the library.
+    Question(usize),
+    /// A past paper, read with its answers.
+    Paper(u16),
+    /// The exam room, with the sitting [`ExamScreen`] holds.
+    Exam,
+    /// The result of a sitting, by its id in the store.
+    Result(i64),
 }
 
 impl Place {
@@ -130,6 +142,9 @@ impl Place {
         match self {
             Place::Screen(screen) => screen,
             Place::Note(_) => Screen::Notes,
+            Place::Question(_) | Place::Paper(_) | Place::Exam | Place::Result(_) => {
+                Screen::Practice
+            }
         }
     }
 }
@@ -261,6 +276,9 @@ pub struct Shell {
     unfold_sidebar: bool,
     palette: Entity<SearchPalette>,
     notes: Entity<NotesScreen>,
+    practice: Entity<PracticeScreen>,
+    exam: Entity<ExamScreen>,
+    review: Entity<ReviewScreen>,
     syllabus: Entity<SyllabusScreen>,
     settings: Entity<SettingsScreen>,
     _appearance: Subscription,
@@ -281,6 +299,9 @@ impl Shell {
             unfold_sidebar: false,
             palette: cx.new(|cx| SearchPalette::new(shell.clone(), window, cx)),
             notes: cx.new(|_| NotesScreen::new(shell.clone())),
+            practice: cx.new(|_| PracticeScreen::new(shell.clone())),
+            exam: cx.new(|cx| ExamScreen::new(shell.clone(), cx)),
+            review: cx.new(|_| ReviewScreen::new(shell.clone())),
             syllabus: cx.new(|_| SyllabusScreen::new(shell)),
             settings: cx.new(|cx| SettingsScreen::new(window, cx)),
             _appearance: appearance,
@@ -296,22 +317,83 @@ impl Shell {
         self.notes.read(cx).note()
     }
 
+    /// True while the exam room is showing. It takes the whole window, and
+    /// nothing navigates away from it except leaving or submitting.
+    pub fn in_exam(&self) -> bool {
+        self.history[self.at] == Place::Exam
+    }
+
+    /// The sitting in the exam room, if any.
+    pub fn exam_attempt(&self, cx: &App) -> Option<crate::store::Attempt> {
+        self.exam.read(cx).attempt().cloned()
+    }
+
+    /// The id of the sitting whose result is showing.
+    pub fn result(&self) -> Option<i64> {
+        match self.history[self.at] {
+            Place::Result(id) => Some(id),
+            _ => None,
+        }
+    }
+
     pub fn go(&mut self, screen: Screen, cx: &mut Context<Self>) {
         self.visit(Place::Screen(screen), cx);
     }
 
-    /// Opens what a link or search result points at. A question or a story
-    /// opens its section until the practice and current-affairs phases.
+    /// Opens what a link or search result points at. A story opens its
+    /// section until the current-affairs phase.
     pub fn open(&mut self, target: Target, cx: &mut Context<Self>) {
         let place = match target {
             Target::Note(ix) => Place::Note(ix),
-            Target::Question(_) => Place::Screen(Screen::Practice),
+            Target::Question(ix) => Place::Question(ix),
             Target::Story { .. } => Place::Screen(Screen::CurrentAffairs),
         };
         self.visit(place, cx);
     }
 
+    pub fn open_paper(&mut self, year: u16, cx: &mut Context<Self>) {
+        self.visit(Place::Paper(year), cx);
+    }
+
+    pub fn open_result(&mut self, id: i64, cx: &mut Context<Self>) {
+        self.visit(Place::Result(id), cx);
+    }
+
+    /// Starts a new test in the exam room.
+    pub fn sit(&mut self, plan: &TestPlan, cx: &mut Context<Self>) {
+        if !self.in_exam() && self.exam.update(cx, |exam, cx| exam.start(plan, cx)) {
+            self.visit(Place::Exam, cx);
+        }
+    }
+
+    /// Reopens an unfinished test in the exam room.
+    pub fn resume(&mut self, id: i64, cx: &mut Context<Self>) {
+        if !self.in_exam() && self.exam.update(cx, |exam, cx| exam.resume(id, cx)) {
+            self.visit(Place::Exam, cx);
+        }
+    }
+
+    /// Called by the exam room when the student leaves a test unfinished.
+    pub(crate) fn leave_exam(&mut self, cx: &mut Context<Self>) {
+        self.replace(Place::Screen(Screen::Practice), cx);
+    }
+
+    /// Called by the exam room when a test is submitted.
+    pub(crate) fn show_result(&mut self, id: i64, cx: &mut Context<Self>) {
+        self.replace(Place::Result(id), cx);
+    }
+
+    /// Puts `place` where the exam room was, so back never returns to it.
+    fn replace(&mut self, place: Place, cx: &mut Context<Self>) {
+        self.history.truncate(self.at + 1);
+        self.history[self.at] = place;
+        self.show(cx);
+    }
+
     fn visit(&mut self, mut place: Place, cx: &mut Context<Self>) {
+        if self.in_exam() {
+            return;
+        }
         // The notes screen is wherever the reader was left, so that going
         // back returns to that note.
         if place == Place::Screen(Screen::Notes)
@@ -328,14 +410,14 @@ impl Shell {
     }
 
     pub fn back(&mut self, cx: &mut Context<Self>) {
-        if self.at > 0 {
+        if self.at > 0 && !self.in_exam() {
             self.at -= 1;
             self.show(cx);
         }
     }
 
     pub fn forward(&mut self, cx: &mut Context<Self>) {
-        if self.at + 1 < self.history.len() {
+        if self.at + 1 < self.history.len() && !self.in_exam() {
             self.at += 1;
             self.show(cx);
         }
@@ -344,8 +426,18 @@ impl Shell {
     /// Brings up the current place.
     fn show(&mut self, cx: &mut Context<Self>) {
         let place = self.history[self.at];
-        if let Place::Note(ix) = place {
-            self.notes.update(cx, |notes, cx| notes.show(ix, cx));
+        match place {
+            Place::Note(ix) => self.notes.update(cx, |notes, cx| notes.show(ix, cx)),
+            Place::Question(ix) => self
+                .review
+                .update(cx, |review, cx| review.show_question(ix, cx)),
+            Place::Paper(year) => self
+                .review
+                .update(cx, |review, cx| review.show_paper(year, cx)),
+            Place::Result(id) => self
+                .review
+                .update(cx, |review, cx| review.show_result(id, cx)),
+            Place::Screen(_) | Place::Exam => {}
         }
         // The sidebar folds to a rail while reading, and unfolds after.
         let reading = place.screen() == Screen::Notes;
@@ -367,7 +459,7 @@ impl Shell {
     }
 
     pub fn open_search(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        if window.has_active_dialog(cx) {
+        if window.has_active_dialog(cx) || self.in_exam() {
             return;
         }
         let palette = self.palette.clone();
@@ -509,29 +601,63 @@ impl Shell {
 impl Render for Shell {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let store_error = AppState::get(cx).store_error.clone();
-        let screen = self.screen();
-        // Notes has panes that scroll on their own; every other screen is one
-        // column that scrolls as a whole.
-        let content = match screen {
-            Screen::Notes => div()
+        let place = self.history[self.at];
+        let banner = store_error.map(|error| {
+            h_flex()
+                .px_4()
+                .py_2()
+                .gap_2()
+                .bg(cx.theme().danger)
+                .text_color(cx.theme().danger_foreground)
+                .text_sm()
+                .child(Icon::new(IconName::TriangleAlert))
+                .child(format!("Your progress is not being saved. {error}"))
+        });
+        // The exam room takes the whole window: no title bar, no sidebar.
+        if place == Place::Exam {
+            return v_flex()
+                .size_full()
+                .bg(cx.theme().background)
+                .text_color(cx.theme().foreground)
+                .children(banner)
+                .child(div().flex_1().min_h_0().child(self.exam.clone()))
+                .into_any_element();
+        }
+        // Notes has panes that scroll on their own; every other place is one
+        // column that scrolls as a whole, with its own scroll position.
+        let content = match place {
+            Place::Note(_) | Place::Screen(Screen::Notes) => div()
                 .flex_1()
                 .min_w_0()
                 .h_full()
                 .child(self.notes.clone())
                 .into_any_element(),
-            screen => {
-                let page = match screen {
-                    Screen::Settings => self.settings.clone().into_any_element(),
-                    Screen::Syllabus => self.syllabus.clone().into_any_element(),
-                    screen => screens::placeholder(screen, cx).into_any_element(),
+            place => {
+                let (page, scroll) = match place {
+                    Place::Screen(Screen::Settings) => {
+                        (self.settings.clone().into_any_element(), 0)
+                    }
+                    Place::Screen(Screen::Syllabus) => {
+                        (self.syllabus.clone().into_any_element(), 1)
+                    }
+                    Place::Screen(Screen::Practice) => {
+                        (self.practice.clone().into_any_element(), 2)
+                    }
+                    Place::Result(_) => (self.review.clone().into_any_element(), 3),
+                    Place::Paper(_) => (self.review.clone().into_any_element(), 4),
+                    Place::Question(_) => (self.review.clone().into_any_element(), 5),
+                    place => {
+                        let screen = place.screen();
+                        let page = screens::placeholder(screen, cx).into_any_element();
+                        (page, 10 + screen as usize)
+                    }
                 };
                 div()
                     .flex_1()
                     .min_w_0()
                     .h_full()
                     .overflow_y_scrollbar()
-                    // One scroll position per screen.
-                    .id(("screen", screen as usize))
+                    .id(("screen", scroll))
                     .child(page)
                     .into_any_element()
             }
@@ -542,19 +668,7 @@ impl Render for Shell {
             .bg(cx.theme().background)
             .text_color(cx.theme().foreground)
             .child(self.title_bar(cx))
-            .when_some(store_error, |this, error| {
-                this.child(
-                    h_flex()
-                        .px_4()
-                        .py_2()
-                        .gap_2()
-                        .bg(cx.theme().danger)
-                        .text_color(cx.theme().danger_foreground)
-                        .text_sm()
-                        .child(Icon::new(IconName::TriangleAlert))
-                        .child(format!("Your progress is not being saved. {error}")),
-                )
-            })
+            .children(banner)
             .child(
                 // Not `h_flex`: that centres its children vertically, and the
                 // sidebar and the screen must fill the height.
@@ -565,6 +679,7 @@ impl Render for Shell {
                     .child(self.sidebar(window, cx))
                     .child(content),
             )
+            .into_any_element()
     }
 }
 

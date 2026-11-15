@@ -47,3 +47,138 @@ options = [
 ]
 answer = "B"
 explanation = "A large language model is a neural network, usually of the transformer type, trained on large text collections to predict the next token. That ability lets it generate and summarise text."
+
+[[question]]
+id = "science-tech-0005"
+topics = ["pre.gs.science-tech.space.orbits-and-satellites"]
+source = "Civil Mentor sample"
+stem = "Remote-sensing satellites are generally placed in a sun-synchronous polar orbit because:"
+options = ["They pass over a given place at the same local solar time on every orbit", "They remain fixed above one point on the equator", "They need to reach the height of 36,000 km to see the whole Earth", "They are required to orbit once every 24 hours"]
+answer = "A"
+explanation = "A sun-synchronous orbit at about 600 to 800 km passes over each place at the same local time, so images taken on different days have the same lighting and can be compared."
+trap = "Remote-sensing satellites are low. The geostationary orbit is for communication and weather satellites, which need to stay over one place."
+note = "gs3-science-tech-space-programme"
+
+[[question]]
+id = "science-tech-0006"
+topics = ["pre.gs.science-tech.space.launch-vehicles"]
+source = "Civil Mentor sample"
+stem = "Which one of the following launch vehicles was used to launch Chandrayaan-3 in July 2023?"
+options = ["PSLV", "GSLV Mk II", "LVM3", "SSLV"]
+answer = "C"
+explanation = "LVM3 is the heaviest launcher of ISRO. It launched Chandrayaan-2 in 2019 and Chandrayaan-3 in 2023, and it is the vehicle chosen for the Gaganyaan crewed mission."
+trap = "PSLV launched Chandrayaan-1 and the Mars Orbiter Mission, which makes it the first guess. Chandrayaan-3 needed the heavier LVM3."
+note = "gs3-science-tech-space-programme"
+
+[[question]]
+id = "science-tech-0007"
+topics = ["pre.gs.science-tech.space.indian-space-missions"]
+source = "Civil Mentor sample"
+stem = "Aditya-L1, India's first space-based solar observatory, is placed in a halo orbit around the Lagrange point L1, which lies about:"
+options = ["36,000 km from the Earth, towards the Sun", "384,000 km from the Earth, near the Moon", "150 million km from the Earth, close to the Sun", "1.5 million km from the Earth, towards the Sun"]
+answer = "D"
+explanation = "The Lagrange point L1 lies on the line between the Earth and the Sun at about 1.5 million km from the Earth. A spacecraft there can watch the Sun without interruption from eclipses."
+trap = "The Earth is 150 million km from the Sun. L1 is only one per cent of that distance away."
+note = "gs3-science-tech-space-programme"
+
+[[question]]
+id = "science-tech-0008"
+topics = ["pre.gs.science-tech.space.indian-space-missions"]
+source = "Civil Mentor sample"
+stem = "The Mars Orbiter Mission of India is notable because India became:"
+options = ["The first Asian country to reach Mars orbit, and the first country in the world to do so on its first attempt", "The first country in the world to land a rover on Mars", "The first country to bring back samples of Martian soil", "The first country to place a satellite in orbit around both the Moon and Mars on a single launch"]
+answer = "A"
+explanation = "The spacecraft was launched on a PSLV in November 2013 and entered Mars orbit in September 2014. India was the first Asian country to reach Mars orbit and the first country anywhere to succeed on its first attempt."
+trap = "The mission was an orbiter. It did not land on Mars."
+note = "gs3-science-tech-space-programme"
+
+[[question]]
+id = "science-tech-0009"
+topics = ["pre.gs.science-tech.space.navigation-systems"]
+source = "Civil Mentor sample"
+stem = "NavIC, India's regional navigation satellite system, covers India and an area extending about how far beyond its borders?"
+options = ["500 km", "1,000 km", "1,500 km", "3,000 km"]
+answer = "C"
+explanation = "NavIC, or the Navigation with Indian Constellation, provides positioning over India and a region about 1,500 km around it, using satellites in geostationary and geosynchronous orbits."
+trap = "NavIC is a regional system. GPS works worldwide from medium Earth orbit satellites."
+note = "gs3-science-tech-space-programme"
+
+[[question]]
+id = "science-tech-0010"
+topics = ["pre.gs.science-tech.nuclear.indias-three-stage-nuclear-programme"]
+source = "Civil Mentor sample"
+stem = "The third stage of India's three-stage nuclear power programme is based on:"
+options = ["Natural uranium in pressurised heavy water reactors", "Plutonium-fuelled fast breeder reactors", "Enriched uranium in light water reactors", "Thorium and uranium-233"]
+answer = "D"
+explanation = "Homi Bhabha's plan uses natural uranium in pressurised heavy water reactors in the first stage, plutonium in fast breeder reactors in the second, and thorium with uranium-233 in the third. India has large thorium reserves but limited uranium."
+trap = "The plan runs from uranium to plutonium to thorium. Each stage prepares the fuel for the next."
+
+[[question]]
+id = "science-tech-0011"
+topics = ["pre.gs.science-tech.biotech.gm-crops"]
+source = "Civil Mentor sample"
+stem = "Which one of the following is the only genetically modified crop approved for commercial cultivation in India?"
+options = ["Bt brinjal", "Bt cotton", "Genetically modified mustard", "Golden rice"]
+answer = "B"
+explanation = "Bt cotton was approved in 2002 and carries a gene from the soil bacterium Bacillus thuringiensis for resistance to the bollworm. Bt brinjal was cleared by the regulator but put under a moratorium in 2010, and genetically modified mustard has not been cleared for commercial cultivation."
+trap = "Several genetically modified crops have been field-tested or cleared by regulators, but only Bt cotton is grown commercially."
+
+[[question]]
+id = "science-tech-0012"
+topics = ["pre.gs.science-tech.biotech.vaccines-and-biopharmaceuticals"]
+source = "Civil Mentor sample"
+stem = "How does an mRNA vaccine work?"
+options = ["It gives cells instructions to make a viral protein, which then triggers an immune response", "It injects a weakened live virus so that the body develops immunity", "It injects antibodies made in another organism", "It permanently rewrites the DNA of the person's cells"]
+answer = "A"
+explanation = "A messenger RNA vaccine delivers a strand of RNA in a lipid coat. Cells read it to make a harmless viral protein, and the immune system learns to recognise it. The RNA is broken down soon after and does not enter the cell's nucleus or change its DNA."
+trap = "The vaccine carries instructions for a protein. It does not carry the virus."
+
+[[question]]
+id = "science-tech-0013"
+topics = ["pre.gs.science-tech.emerging.quantum-technology"]
+source = "Civil Mentor sample"
+stem = "In quantum computing, a qubit differs from a classical bit because a qubit:"
+options = ["Can only be 0 or 1, like a classical bit, but changes faster", "Needs a larger physical size than a classical bit", "Can exist in a superposition of the 0 and 1 states", "Stores data permanently without any power"]
+answer = "C"
+explanation = "A qubit can be in a superposition of 0 and 1, and qubits can also be entangled. These properties allow quantum algorithms to solve some problems much faster than classical ones. Qubits are fragile and need very carefully controlled conditions."
+trap = "A qubit is not simply a faster bit. Its power comes from superposition and entanglement."
+
+[[question]]
+id = "science-tech-0014"
+topics = ["pre.gs.science-tech.defence.missiles-of-india"]
+source = "Civil Mentor sample"
+stem = "BrahMos is a supersonic cruise missile developed through a joint venture between India's Defence Research and Development Organisation and the defence organisation of which one of the following countries?"
+options = ["The United States", "France", "Israel", "Russia"]
+answer = "D"
+explanation = "BrahMos Aerospace is a joint venture of the DRDO and Russia's NPO Mashinostroyeniya. The name comes from the rivers Brahmaputra and Moskva. It can be launched from land, ships, submarines and aircraft."
+trap = "India works with Israel and France on other systems, but BrahMos is an Indo-Russian project."
+
+[[question]]
+id = "science-tech-0015"
+topics = ["pre.gs.science-tech.ipr.geographical-indications"]
+source = "Civil Mentor sample"
+stem = "Which one of the following was the first product in India to be given the Geographical Indication tag?"
+options = ["Darjeeling tea", "Basmati rice", "Kanchipuram silk", "Mysore silk"]
+answer = "A"
+explanation = "Darjeeling tea was registered in 2004-05 under the Geographical Indications of Goods (Registration and Protection) Act, 1999, which came into force in 2003. It was the first Indian product to get the tag."
+trap = "Basmati is among the best known Indian products with a GI tag, but its registration came later."
+
+[[question]]
+id = "science-tech-0016"
+topics = ["pre.gs.science-tech.energy-tech.hydrogen-and-other-clean-energy"]
+source = "Civil Mentor sample"
+stem = "Green hydrogen is produced by:"
+options = ["Steam reforming of natural gas", "Gasification of coal", "Electrolysis of water using electricity from renewable sources", "Steam reforming of natural gas with the carbon dioxide stored underground"]
+answer = "C"
+explanation = "Green hydrogen comes from splitting water into hydrogen and oxygen by electrolysis, using renewable electricity. Hydrogen from natural gas is grey, from coal is black or brown, and from gas with carbon capture is blue."
+trap = "The colour names refer to the way the hydrogen is made. The gas itself looks the same."
+
+[[question]]
+id = "science-tech-0017"
+topics = ["pre.gs.science-tech.ict.cyber-security-basics"]
+source = "Civil Mentor sample"
+stem = "Ransomware is a type of malicious software that:"
+options = ["Steals the passwords typed on a keyboard and sends them to an attacker", "Sends unwanted advertisements to the user's computer", "Spreads by copying itself without harming any files", "Locks or encrypts a user's files and demands payment to restore access"]
+answer = "D"
+explanation = "Ransomware blocks access to a computer system or encrypts its files and then demands a ransom, often in cryptocurrency. Option A describes a keylogger and option B adware."
+trap = "Ransomware does not need to steal anything. Taking the files hostage is its whole purpose."

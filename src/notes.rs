@@ -319,6 +319,14 @@ impl NotesScreen {
         if !questions.is_empty() {
             facts.push(count(questions.len(), "question", "questions"));
         }
+        let years: Vec<String> = library
+            .years_asked(note)
+            .iter()
+            .map(u16::to_string)
+            .collect();
+        if !years.is_empty() {
+            facts.push(format!("asked in {}", years.join(", ")));
+        }
         if let Some(updated) = note.updated {
             facts.push(format!("updated {}", updated.format("%-d %b %Y")));
         }
@@ -492,7 +500,7 @@ impl NotesScreen {
             let question = &library.questions[ix];
             let shown = self.answers.contains(&ix);
             let options = question.options.iter().enumerate().map(|(option, text)| {
-                let right = shown && option == question.answer;
+                let right = shown && Some(option) == question.answer;
                 h_flex()
                     .items_start()
                     .gap_2()

@@ -50,3 +50,151 @@ stem = "The ozone layer that absorbs most of the Sun's ultraviolet radiation lie
 options = ["Troposphere", "Stratosphere", "Mesosphere", "Thermosphere"]
 answer = "B"
 explanation = "Most atmospheric ozone is in the stratosphere, roughly 15 to 35 km above the surface. Temperature rises with height in this layer because ozone absorbs ultraviolet radiation."
+
+[[question]]
+id = "geography-0005"
+topics = ["pre.gs.indian-geography.climate.mechanism-of-the-indian-monsoon"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about the Indian summer monsoon:
+
+1. In July the Inter-Tropical Convergence Zone lies over the Ganga plain and is called the monsoon trough.
+2. The tropical easterly jet stream sets in over the peninsular region during the monsoon.
+3. The subtropical westerly jet stream moves to the south of the Himalaya during the summer.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "The Inter-Tropical Convergence Zone shifts to about 25 degrees north in July, and the tropical easterly jet appears over the peninsula. The westerly jet withdraws to the north of the Himalaya in summer and returns to the south in winter."
+trap = "The westerly jet's movement is the reverse of the monsoon winds. It leaves India in summer."
+note = "gs1-geography-indian-monsoon"
+
+[[question]]
+id = "geography-0006"
+topics = ["pre.gs.indian-geography.climate.mechanism-of-the-indian-monsoon"]
+source = "Civil Mentor sample"
+stem = "The south-west monsoon normally reaches the Kerala coast around:"
+options = ["15 May", "20 May", "1 June", "15 June"]
+answer = "C"
+explanation = "The onset over Kerala is normally around 1 June. The monsoon then splits into the Arabian Sea branch and the Bay of Bengal branch, and covers the whole country by about 8 July."
+trap = "The date varies from year to year, but the IMD treats 1 June as the normal date and not mid-June."
+note = "gs1-geography-indian-monsoon"
+
+[[question]]
+id = "geography-0007"
+topics = ["pre.gs.indian-geography.climate.seasons-and-rainfall-distribution"]
+source = "Civil Mentor sample"
+stem = "A 'break' in the monsoon in July or August is a dry spell of a week or more during which the monsoon trough shifts towards the:"
+options = ["Western Ghats", "Coromandel coast", "Deccan plateau", "Himalayan foothills"]
+answer = "D"
+explanation = "When the trough moves north to the foothills of the Himalaya, rain falls heavily in the foothills and north-east India, while the plains and the peninsula stay dry."
+trap = "A break means dry spells over most of the country, but the Himalayan foothills and the north-east get more rain at that time."
+note = "gs1-geography-indian-monsoon"
+
+[[question]]
+id = "geography-0008"
+topics = ["pre.gs.indian-geography.climate.seasons-and-rainfall-distribution"]
+source = "Civil Mentor sample"
+stem = "The India Meteorological Department describes the south-west monsoon season rainfall as 'normal' when it is between which of the following ranges of the Long Period Average?"
+options = ["96 to 104 per cent", "90 to 110 per cent", "85 to 115 per cent", "98 to 102 per cent"]
+answer = "A"
+explanation = "Rainfall below 90 per cent of the Long Period Average is called deficient, 90 to 95 per cent below normal, 96 to 104 per cent normal, 105 to 110 per cent above normal, and above 110 per cent excess."
+trap = "The band for normal is narrower than ten per cent on each side of the average."
+note = "gs1-geography-indian-monsoon"
+
+[[question]]
+id = "geography-0009"
+topics = ["pre.gs.indian-geography.drainage.himalayan.brahmaputra-system"]
+source = "Civil Mentor sample"
+stem = "The Brahmaputra is known by which one of the following names in Arunachal Pradesh?"
+options = ["Siang or Dihang", "Tsangpo", "Jamuna", "Padma"]
+answer = "A"
+explanation = "The river rises in Tibet as the Tsangpo, enters India in Arunachal Pradesh as the Siang or Dihang, and becomes the Brahmaputra in Assam. In Bangladesh it is the Jamuna, and after joining the Ganga it is the Padma."
+trap = "The Tsangpo is the Tibetan name, and the river only gets that name before it crosses the border."
+
+[[question]]
+id = "geography-0010"
+topics = ["pre.gs.indian-geography.soils.soil-types-of-india"]
+source = "Civil Mentor sample"
+stem = "Which one of the following soils, formed by the weathering of basaltic lava, retains moisture well and is best suited to cotton?"
+options = ["Alluvial soil", "Red soil", "Black soil", "Laterite soil"]
+answer = "C"
+explanation = "Black or regur soil covers much of the Deccan Trap region. Its clay content holds water, and it develops deep cracks in the dry season. It is rich in lime and iron but poor in nitrogen and organic matter."
+trap = "Alluvial soil is the most fertile and widespread, but cotton is the crop of the Deccan black soils."
+
+[[question]]
+id = "geography-0011"
+topics = ["pre.gs.indian-geography.physiography.peninsular-plateau"]
+source = "Civil Mentor sample"
+stem = "Anamudi, the highest peak of peninsular India, lies in which one of the following hill ranges?"
+options = ["Nilgiri Hills", "Cardamom Hills", "Palani Hills", "Anaimalai Hills"]
+answer = "D"
+explanation = "Anamudi rises to about 2,695 metres in the Anaimalai Hills of Kerala, in the Western Ghats. Doddabetta in the Nilgiris is the highest peak of that range."
+trap = "Doddabetta is better known as the high point of the Nilgiris, but it is lower than Anamudi."
+
+[[question]]
+id = "geography-0012"
+topics = ["pre.gs.physical-geography.climatology.tropical-and-temperate-cyclones"]
+source = "Civil Mentor sample"
+stem = "In the Northern Hemisphere, the winds of a tropical cyclone blow:"
+options = ["Anticlockwise and inwards towards a low-pressure centre", "Clockwise and inwards towards a low-pressure centre", "Anticlockwise and outwards from a high-pressure centre", "Clockwise and outwards from a high-pressure centre"]
+answer = "A"
+explanation = "A tropical cyclone has very low pressure at its centre. Air flows towards the centre and is deflected to the right by the Coriolis force in the Northern Hemisphere, so the circulation is anticlockwise. In the Southern Hemisphere it is clockwise."
+trap = "An anticyclone, with a high-pressure centre, circulates in the opposite direction."
+
+[[question]]
+id = "geography-0013"
+topics = ["pre.gs.physical-geography.earth.latitudes-longitudes-and-time-zones"]
+source = "Civil Mentor sample"
+stem = "The Indian Standard Time is based on the longitude of:"
+options = ["75 degrees East", "80 degrees East", "82 degrees 30 minutes East", "90 degrees East"]
+answer = "C"
+explanation = "The standard meridian of India is 82 degrees 30 minutes East, which passes near Mirzapur in Uttar Pradesh. It is 5 hours 30 minutes ahead of Greenwich Mean Time."
+trap = "The meridian is not a round figure. The 82 degrees 30 minutes East chosen runs near the middle of the country."
+
+[[question]]
+id = "geography-0014"
+topics = ["pre.gs.physical-geography.interior.crust-mantle-and-core"]
+source = "Civil Mentor sample"
+stem = "The Gutenberg discontinuity separates which of the following layers of the Earth's interior?"
+options = ["The crust and the mantle", "The outer core and the inner core", "The lithosphere and the asthenosphere", "The mantle and the outer core"]
+answer = "D"
+explanation = "The Mohorovicic discontinuity lies between the crust and the mantle. The Gutenberg discontinuity lies at a depth of about 2,900 km between the mantle and the outer core. The Lehmann discontinuity separates the outer and inner cores."
+trap = "The Mohorovicic discontinuity is the better known one, and it lies between the crust and the mantle."
+
+[[question]]
+id = "geography-0015"
+topics = ["pre.gs.physical-geography.oceanography.waves-tides-and-ocean-currents"]
+source = "Civil Mentor sample"
+stem = "Which one of the following pairs consists of cold ocean currents?"
+options = ["Gulf Stream and Kuroshio", "Humboldt (Peru) and Benguela", "Brazil and Agulhas", "North Atlantic Drift and East Australian"]
+answer = "B"
+explanation = "The Humboldt (Peru) current in the Pacific and the Benguela current in the Atlantic flow towards the equator along the west coasts of South America and Africa and are cold. The other currents named flow polewards from warm seas and are warm."
+trap = "West coasts of continents in the tropics and subtropics usually have cold currents. East coasts have warm ones."
+
+[[question]]
+id = "geography-0016"
+topics = ["pre.gs.world-geography.features.straits-gulfs-seas-and-islands"]
+source = "Civil Mentor sample"
+stem = "The Strait of Hormuz connects which of the following water bodies?"
+options = ["The Red Sea and the Gulf of Aden", "The Mediterranean Sea and the Red Sea", "The Persian Gulf and the Gulf of Oman", "The Black Sea and the Mediterranean Sea"]
+answer = "C"
+explanation = "The strait lies between Iran and Oman and links the Persian Gulf with the Gulf of Oman, which opens into the Arabian Sea. The Bab-el-Mandeb joins the Red Sea and the Gulf of Aden, and the Suez Canal links the Mediterranean and the Red Sea."
+trap = "It connects to the Gulf of Oman first. The Arabian Sea lies beyond that."
+
+[[question]]
+id = "geography-0017"
+topics = ["pre.gs.indian-geography.drainage.lakes"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following pairs:
+
+1. Loktak: Manipur
+2. Sambhar: Rajasthan
+3. Vembanad: Karnataka
+
+How many of the pairs given above are correctly matched?"""
+options = ["Only one", "All three", "None", "Only two"]
+answer = "D"
+explanation = "Loktak is a freshwater lake in Manipur, and Sambhar is a salt lake in Rajasthan. Vembanad is a backwater lagoon in Kerala, and it is the longest lake in India."
+trap = "Vembanad is a famous Ramsar site on the Kerala coast. It has no link to Karnataka."

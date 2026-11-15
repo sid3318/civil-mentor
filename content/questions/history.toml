@@ -51,3 +51,168 @@ stem = "Which Harappan site is best known for a brick structure identified as a 
 options = ["Kalibangan", "Lothal", "Dholavira", "Banawali"]
 answer = "B"
 explanation = "Lothal, in Gujarat, has a large brick basin that most archaeologists identify as a dockyard. Kalibangan is known for a ploughed field and fire altars, and Dholavira for its water reservoirs."
+
+[[question]]
+id = "history-0005"
+topics = ["pre.gs.modern.gandhian.gandhis-early-satyagrahas"]
+source = "Civil Mentor sample"
+stem = "Gandhi used a hunger strike for the first time in India during which one of the following?"
+options = ["The Champaran Satyagraha, 1917", "The Kheda Satyagraha, 1918", "The Ahmedabad mill workers' strike, 1918", "The Dandi March, 1930"]
+answer = "C"
+explanation = "In the Ahmedabad cotton mill dispute of 1918, Gandhi fasted to hold the strikers to their pledge, and this ended in a settlement. Champaran and Kheda were satyagrahas against the indigo planters and for revenue remission, respectively."
+trap = "Champaran came first in 1917, so students credit it with each early first. The fast belongs to Ahmedabad."
+note = "gs1-history-gandhian-phase"
+
+[[question]]
+id = "history-0006"
+topics = ["pre.gs.modern.gandhian.round-table-conferences", "pre.gs.modern.gandhian.purna-swaraj-and-the-civil"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about the Gandhi-Irwin Pact:
+
+1. It was signed in March 1931.
+2. Under it, the Congress suspended the Civil Disobedience Movement and agreed to attend the Second Round Table Conference.
+3. Gandhi attended all three Round Table Conferences in London.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "The pact of March 1931 suspended Civil Disobedience, and Gandhi went to London for the Second Round Table Conference as the sole Congress representative. The Congress did not take part in the first conference, and Gandhi did not attend the third."
+trap = "The pact is linked with the Second Round Table Conference only. The other two went ahead without the Congress."
+note = "gs1-history-gandhian-phase"
+
+[[question]]
+id = "history-0007"
+topics = ["pre.gs.modern.gandhian.khilafat-and-non-cooperation-movements"]
+source = "Civil Mentor sample"
+stem = "Which one of the following was the immediate reason for Gandhi's withdrawal of the Non-Cooperation Movement in February 1922?"
+options = ["The arrests of Congress leaders after the Jallianwala Bagh massacre", "The appointment of the Simon Commission", "The burning of a police station by a crowd at Chauri Chaura", "The announcement of the Communal Award"]
+answer = "C"
+explanation = "A crowd at Chauri Chaura in Uttar Pradesh set fire to a police station and killed policemen, and Gandhi stopped the movement because he felt the country was not ready for non-violent mass action. The Simon Commission and the Communal Award came later."
+trap = "The Jallianwala Bagh massacre of 1919 helped to launch the movement. It did not end it."
+note = "gs1-history-gandhian-phase"
+
+[[question]]
+id = "history-0008"
+topics = ["pre.gs.modern.freedom.quit-india-movement"]
+source = "Civil Mentor sample"
+stem = """
+During the Quit India Movement of 1942, parallel governments were set up at which of the following places?
+
+1. Ballia in Uttar Pradesh
+2. Tamluk in Bengal
+3. Satara in Maharashtra
+
+Select the correct answer using the code given below."""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "D"
+explanation = "With the top leaders in jail from 9 August 1942, local activists ran their own administrations. Ballia, Tamluk and Satara each had a parallel government, and the Satara one lasted the longest."
+trap = "The movement is remembered for the 'Do or die' call and the arrests, but its second phase was underground and local."
+note = "gs1-history-gandhian-phase"
+
+[[question]]
+id = "history-0009"
+topics = ["pre.gs.culture.architecture.temples"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following pairs:
+
+1. Brihadeeswara temple, Thanjavur: Cholas
+2. Sun Temple, Konark: Eastern Gangas
+3. Kandariya Mahadeva temple, Khajuraho: Pallavas
+
+How many of the pairs given above are correctly matched?"""
+options = ["Only one", "All three", "Only two", "None"]
+answer = "C"
+explanation = "Rajaraja I of the Cholas completed the Brihadeeswara temple at Thanjavur around 1010, and the Eastern Gangas built the Konark Sun Temple in the thirteenth century. The Kandariya Mahadeva temple was built by the Chandelas."
+trap = "The Pallavas built Dravida temples at Mamallapuram and Kanchipuram, not the Nagara temples of Khajuraho."
+note = "gs1-art-culture-temple-architecture"
+
+[[question]]
+id = "history-0010"
+topics = ["pre.gs.culture.architecture.temples.dravida-style"]
+source = "Civil Mentor sample"
+stem = "Which one of the following is typical of Dravida temples but not of Nagara temples?"
+options = ["A walled enclosure with tall gateway towers called gopurams", "A curved tower crowned by an amalaka and a kalasha", "A garbhagriha housing the main image", "A raised stone platform on which the temple stands"]
+answer = "A"
+explanation = "Dravida temples stand in a walled courtyard with gopurams at the gates, and the stepped vimana rises over the sanctum. The curved shikhara with an amalaka is Nagara, and the garbhagriha is common to all temple styles."
+trap = "In a later Dravida temple the gopuram is often taller than the vimana, which stands over the sanctum."
+note = "gs1-art-culture-temple-architecture"
+
+[[question]]
+id = "history-0011"
+topics = ["pre.gs.culture.architecture.temples.vesara-style"]
+source = "Civil Mentor sample"
+stem = "Which dynasty built the temples of Belur and Halebidu, which are noted for their star-shaped platforms, soapstone and dense carving?"
+options = ["Chalukyas of Badami", "Rashtrakutas", "Cholas", "Hoysalas"]
+answer = "D"
+explanation = "The Hoysalas of Karnataka built the temples at Belur and Halebidu in the twelfth and thirteenth centuries in soapstone, on star-shaped platforms. They are often grouped under the Vesara tradition."
+trap = "The Chalukyas of Badami experimented with northern and southern forms at Aihole and Pattadakal, but the star-shaped plan is Hoysala."
+note = "gs1-art-culture-temple-architecture"
+
+[[question]]
+id = "history-0012"
+topics = ["pre.gs.ancient.mauryas.ashoka.edicts-and-inscriptions"]
+source = "Civil Mentor sample"
+stem = "Ashoka's rock edicts at Shahbazgarhi and Mansehra in the north-west were inscribed in which one of the following scripts?"
+options = ["Brahmi", "Tamil-Brahmi", "Kharosthi", "Devanagari"]
+answer = "C"
+explanation = "Most of Ashoka's inscriptions are in Brahmi, but the edicts of the north-west frontier were written in Kharosthi, a script read from right to left. Devanagari developed many centuries later."
+trap = "Brahmi is the script of nearly all the edicts, and the north-west is the exception."
+
+[[question]]
+id = "history-0013"
+topics = ["pre.gs.ancient.post-gupta.harsha-and-the-vardhanas"]
+source = "Civil Mentor sample"
+stem = "The Chinese pilgrim Xuanzang (Hiuen Tsang) visited India in the reign of which one of the following rulers?"
+options = ["Chandragupta II", "Ashoka", "Kanishka", "Harshavardhana"]
+answer = "D"
+explanation = "Xuanzang spent more than a decade in India in the seventh century and stayed at the court of Harshavardhana. Fa-Hien came earlier, in the time of Chandragupta II."
+trap = "Fa-Hien and Xuanzang are both Chinese Buddhist pilgrims, but they were two centuries apart."
+
+[[question]]
+id = "history-0014"
+topics = ["pre.gs.medieval.sultanate.tughlaqs"]
+source = "Civil Mentor sample"
+stem = "Which Delhi Sultan issued token currency in copper and brass, to be used with the same value as silver coins?"
+options = ["Alauddin Khalji", "Ghiyasuddin Balban", "Muhammad bin Tughlaq", "Firuz Shah Tughlaq"]
+answer = "C"
+explanation = "Muhammad bin Tughlaq introduced token coins in the 1330s, but forged coins flooded the market and he had to redeem them for silver and gold. Alauddin Khalji is known for his market regulations."
+trap = "Alauddin Khalji's price controls are often confused with the monetary experiments of Muhammad bin Tughlaq."
+
+[[question]]
+id = "history-0015"
+topics = ["pre.gs.medieval.mughals.mansabdari-and-jagirdari-systems"]
+source = "Civil Mentor sample"
+stem = "In the Mughal mansabdari system, the 'sawar' rank of a mansabdar indicated:"
+options = ["His personal status and salary", "The number of horsemen he was required to maintain", "The land revenue of his jagir", "His position in the court hierarchy"]
+answer = "B"
+explanation = "The 'zat' rank fixed a mansabdar's personal status and pay, and the 'sawar' rank fixed the number of cavalrymen he had to keep. The sawar rank could not exceed the zat rank."
+trap = "The zat and sawar ranks were two separate numbers. The first one set the pay of the man himself."
+
+[[question]]
+id = "history-0016"
+topics = ["pre.gs.modern.economy.land-revenue.permanent-settlement"]
+source = "Civil Mentor sample"
+stem = """
+Consider the following statements about the Permanent Settlement:
+
+1. It was introduced by Lord Cornwallis in 1793.
+2. It made the zamindars owners of land and fixed the revenue they paid to the Company permanently.
+3. It was extended to all provinces of British India.
+
+Which of the statements given above are correct?"""
+options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
+answer = "A"
+explanation = "The Permanent Settlement covered Bengal, Bihar and Orissa, and later parts of Madras and Varanasi. The ryotwari system was applied in Madras and Bombay, and the mahalwari system in the north-west provinces."
+trap = "Only about one-fifth of British India was ever under the Permanent Settlement."
+
+[[question]]
+id = "history-0017"
+topics = ["pre.gs.modern.reforms.jyotiba-phule-and-the-satyashodhak"]
+source = "Civil Mentor sample"
+stem = "The Satyashodhak Samaj, founded in 1873, was established by:"
+options = ["Dayananda Saraswati", "Gopal Hari Deshmukh", "Sree Narayana Guru", "Jyotiba Phule"]
+answer = "D"
+explanation = "Jyotiba Phule founded the Satyashodhak Samaj in Pune to challenge Brahmin dominance and to promote education for the lower castes and women. Dayananda founded the Arya Samaj in 1875."
+trap = "The Arya Samaj, founded in 1875, was a reform movement of a different kind, and its founder was Dayananda."
