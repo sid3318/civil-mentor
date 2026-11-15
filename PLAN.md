@@ -86,7 +86,7 @@ deepmentor has about 20 sections, but they are views over a few engines. We buil
 | Revision: decks, condensed notes, cheatsheets | Mistake book and flashcards on spaced repetition. Cheatsheets are notes of kind `cheatsheet` | 5 |
 | My notes: highlights, clips, embeds | Notebook: highlights, clips, bookmarks, own notes | 5 |
 | Mains PYQs with model answers | Same, with a timed answer editor and word count | 6 |
-| AI answer evaluation: 7 scored dimensions, what to fix, points missed | Self-evaluation on the same 7 dimensions against the model answer. AI marking later | 6 |
+| AI answer evaluation: 7 scored dimensions, what to fix, points missed | Self-evaluation on 7 dimensions against the model answer (see Phase 6). AI marking later | 6 |
 | Ask Mentor: AI chat with sources, voice | Later. Needs an LLM API reached through your own server | Later |
 | Optionals, books, concepts, guides, reference tables, essay, interview, government data | Content only: the same reader with a new `kind`. No new engine | When content exists |
 | CSAT lessons and practice | Practice runs on the test engine with CSAT marking. Interactive lessons later | Later |
@@ -348,23 +348,43 @@ Each of these is a plain function with a unit test.
 
 ## 5. Build phases
 
-Each phase ends with an app that runs and can be clicked through.
+Each phase ends with an app that runs and can be clicked through. The first build is Phases 0 to 4: the four pillars and the Today plan. Phases 5 and 6 follow.
 
-| Phase | Scope | Done when |
+| Phase | Goal | Status |
 |---|---|---|
-| 0. Shell (done) | Update Rust. Window, sidebar, title bar, light and dark theme, routing. Content loader with validation. Store and settings. Dummy content. ⌘K search | The app launches, every sidebar item opens its screen, dummy content loads with no validation errors, and `cargo test` passes the loader and store round trip |
-| 1. Notes and syllabus (done) | Notes tree, reader (Read and Distilled, outline, text size and width, at a glance, linked PYQs), mark as read, bookmark. Syllabus tracker | A note can be read in both modes and marked read, and the coverage figure changes |
-| 2. Practice | Practice hub, drill builder, exam room, result and review, PYQ papers by year | A drill can be sat against the clock, quit, resumed, submitted and reviewed. A unit test checks the score against a hand-worked case |
-| 3. Analysis and Today | Analysis dashboard, mentor rules, Today screen, streak, countdown, demo-history loader | With demo history loaded the charts draw, and the plan and insights appear and are covered by tests |
-| 4. Current affairs | Brief by date, Full and Rapid modes, story reader with inline question, editorials, calendar, daily quiz | A brief can be read and its quiz taken, and both show up in Today and Analysis |
-| 5. Revision and notebook | Mistake book, flashcards, review session, highlights, clips, own notes, focus timer | A wrong answer comes back on its due date. A highlight survives a restart |
-| 6. Mains | Mains questions with model answers, timed editor with word count, self-evaluation on 7 dimensions, history | An answer can be written, scored and seen in the history |
+| 0. Shell | Window, navigation, content loader, store and search | Done |
+| 1. Notes and syllabus | Read notes and track the whole syllabus | Done |
+| 2. Practice | Timed tests in an exam room, with results and review | Next |
+| 3. Analysis and Today | Charts, the mentor's rules and the daily plan | To do |
+| 4. Current affairs | Daily briefs, the story reader and the daily quiz | To do |
+| 5. Revision and notebook | Mistake book, flashcards, highlights and own notes | To do |
+| 6. Mains | Answer writing against the clock, with self-evaluation | To do |
 
-The first build is Phases 0 to 4: the four pillars and the Today plan. Phases 5 and 6 follow.
+### How to work through a phase
 
-### Phase 0 as built
+Every phase below has a to-do list, so any agent can pick up the next open task.
 
-All four "done when" conditions are met and checked by `cargo test`. What differs from the plan above:
+- Read sections 1 to 4 first. The tasks refer to the layouts, store tables, content format and mentor rules defined there.
+- Do the tasks in order. A task is done when its code, its sample content and its test are in, and `cargo test`, `cargo fmt --check` and `cargo clippy --all-targets` pass. Then tick its box.
+- A phase is done when `cargo test` checks its "Done when" condition. Then add an "As built" note under the phase saying what differs from the plan, set its status in the table above, and update the status line at the top of this file.
+- Every new table is a new numbered migration in `src/store.rs`. Never change an existing migration.
+- Each new screen gets its own file in `src/` and replaces its stand-in in `src/screens.rs`. `tests/screens.rs` clicks through it and saves screenshots to `target/shots/`.
+- Functions that depend on the date take today's date as an argument, so tests can move the clock.
+- Content is our own, and sample content says so, as the current files do. Never copy notes, questions or text from deepmentor or anyone else. Real past questions come only from UPSC's published papers and answer keys.
+- Commit straight to `main`, with no branches or pull requests, and only when the user asks.
+
+### Phase 0: Shell
+
+- [x] **0.1 Toolchain.** Update Rust to 1.100 and start the crate on `gpui-kit` 0.9.1, with `Cargo.lock` taken from the kit.
+- [x] **0.2 Window shell.** Title bar with the exam countdown and a search box, a sidebar with ten sections that folds to an icon rail, the "Paper" light theme and a dark theme, shortcuts (⌘1 to ⌘5, ⌘, and ⌘\) and menus.
+- [x] **0.3 Content loader.** Load `content/` (syllabus, notes, questions, daily briefs), link everything to the syllabus, and report mistakes in the files instead of dropping them.
+- [x] **0.4 Store and settings.** One SQLite file in the app-data folder with numbered migrations, and a Settings screen for the exam date, daily study time and theme.
+- [x] **0.5 Search.** A ⌘K palette over notes, stories and questions.
+- [x] **0.6 Sample content and tests.** A starter content pack, stand-in screens for the later phases, unit tests for the loader and store, and an offscreen UI test that clicks through the shell and saves screenshots.
+
+**Done when** the app launches, every sidebar item opens its screen, dummy content loads with no validation errors, and `cargo test` passes the loader and store round trip.
+
+**As built.** All four conditions are met and checked by `cargo test`. What differs from the plan:
 
 - **Content is a starter pack**, not the full dummy set: 83 syllabus topics, 4 notes, 30 questions and 2 daily briefs. Each later phase adds the rest of its own dummy data.
 - **Mains questions and flashcards have no loader yet.** They arrive with Phases 6 and 5, when the screens that use them are designed.
@@ -372,9 +392,19 @@ All four "done when" conditions are met and checked by `cargo test`. What differ
 - **The store has one table, `setting`.** The other tables are added by the phase that needs them, as numbered migrations.
 - **The default Prelims date is 23 May 2027.** It is a placeholder for the student to change in Settings.
 
-### Phase 1 as built
+### Phase 1: Notes and syllabus
 
-The "done when" condition is met and checked by `cargo test`: the UI test opens a note, switches it to Distilled, marks it read and watches GS-2 coverage go from 0 to 1 of 18 topics. What differs from the plan above:
+- [x] **1.1 Notes screen.** Notes listed by paper and subject, and a reader with Read and Distilled modes, an outline that jumps to sections, text size and width, and an "at a glance" line.
+- [x] **1.2 Linked PYQs.** The questions on a note sit at its end, each with its answer behind a button.
+- [x] **1.3 Mark as read and bookmark**, saved in the `reading` table.
+- [x] **1.4 Full syllabus.** Prelims and Mains in `content/syllabus.toml`, split into subjects, chapters, topics and subtopics, with UPSC's wording on the matching nodes (see "Content format").
+- [x] **1.5 Syllabus screen.** A folding tree with a status for every topic and coverage for every paper, subject and chapter. Clicking a topic opens its first unread note.
+- [x] **1.6 Navigation.** Search opens the note itself, and back and forward work across screens and notes (also ⌘[ and ⌘]).
+- [x] **1.7 Sample content and tests.** 12 notes (3 per GS paper), questions and stories tagged with the new syllabus ids, and UI test steps for the reader, mark as read, the syllabus tree and back and forward.
+
+**Done when** a note can be read in both modes and marked read, and the coverage figure changes.
+
+**As built.** The condition is met and checked by `cargo test`: the UI test opens a note, switches it to Distilled, marks it read and watches coverage go up for both Mains GS-2 and Prelims GS. What differs from the plan:
 
 - **The notes list** groups notes by paper and subject, in syllabus order, with bookmarked notes on top. Subjects do not fold yet; add that when there are hundreds of notes.
 - **"At a glance" is the line under the title**: reading time, linked questions and the date the note was last updated. "Asked in" years wait for real PYQs, which come with Phase 2's papers.
@@ -388,9 +418,67 @@ The "done when" condition is met and checked by `cargo test`: the UI test opens 
 - **The sidebar folds to an icon rail on the Notes screen** and unfolds when the student leaves, unless they opened or closed it themselves.
 - **Content**: 12 notes, 3 per GS paper. Existing questions and stories link to the new notes, and everything is tagged with the new syllabus ids.
 
-Dummy data for the first build, all original and marked as sample: 12 notes (3 per GS paper), about 100 MCQs across 6 subjects, 7 days of briefs with 5 stories each, 30 flashcards, 10 Mains questions with model answers, and a "load demo history" action that adds 30 days of made-up attempts so Analysis is not empty.
+### Phase 2: Practice
 
-Later, in no fixed order: AI chat and AI answer evaluation, a content sync server, accounts and plans, atlas, optionals, CSAT lessons, Hindi, Windows and Linux builds.
+- [ ] **2.1 Store tables.** Add `attempt` and `answer`, with the fields under "What the store holds", as the next migration. Save each answer the moment it is given. Add store functions to start, answer, finish and resume an attempt.
+- [ ] **2.2 Scoring and question choice.** Start `src/mentor.rs`. `score()` gives +2 for right, minus a third of that for wrong and 0 for blank, reading the marks from the attempt so CSAT marking can be added later. `pick()` chooses the questions for each kind of test, with the personalised mix weighted as under "Mentor rules", and takes a seed so tests are repeatable. Unit-test the score against a hand-worked case.
+- [ ] **2.3 Practice hub.** Replace the stand-in with `src/practice.rs`: micro (10 questions), mini (30), full mock (100), subject drill (20), custom drill (the student picks subjects, count and time), personalised mix, past papers by year, and unfinished tests to resume. Unless the student sets the time, a test allows 72 seconds a question, as Prelims does. Grey out a choice the question bank cannot fill.
+- [ ] **2.4 Exam room.** `src/exam.rs`, taking the whole window as in the sketch under "Layout": one question at a time, a countdown, the question grid with answered, marked and not-visited counts, mark for review, clear, the confidence tag (Sure, 50-50, Guess) and option strike-out. Keys: A to D answer, M marks, the arrow keys move. The test submits itself when time runs out. After quitting or a crash it stays open with its remaining time, and Practice offers to resume it.
+- [ ] **2.5 Result and review.** The net score, right, wrong and blank counts, marks by subject and by confidence level, and time per question. Below that, every question with the chosen and correct answers, the explanation, the trap and a link to its note. `open(Target::Question)` now shows the question itself, so search results for questions land on it.
+- [ ] **2.6 Past papers.** Group questions whose `source` is "UPSC Prelims YYYY" by year. A paper can be read with its answers or sat as a full mock. A note's "at a glance" line gains the years its topics were asked in.
+- [ ] **2.7 Content and tests.** Grow the bank to about 100 original sample questions across the six subject files, tagged with Prelims nodes and linked to notes. Transcribe one real Prelims GS paper from upsc.gov.in with UPSC's answer key and our own explanations, and never put a UPSC label on an invented question. The UI test starts a drill, answers, quits, resumes, submits and reviews it, and saves screenshots.
+
+**Done when** a drill can be sat against the clock, quit, resumed, submitted and reviewed, and a unit test checks the score against a hand-worked case.
+
+### Phase 3: Analysis and Today
+
+- [ ] **3.1 Study time.** Add `session` and `plan_task` as migrations. Record the seconds spent reading and in tests, and add time spent to reading records (deferred from Phase 1). The streak is the number of days in a row, ending today or yesterday, with any study recorded.
+- [ ] **3.2 Mentor rules.** Add `today_plan()` and `insights()` to `src/mentor.rs`, exactly as under "Mentor rules", each with a unit test. The plan is saved to `plan_task` the first time it is made each day and stays frozen. Leave out the tasks whose screens come later (the brief, reviews and Mains answers) until their phase adds them.
+- [ ] **3.3 Today screen.** `src/today.rs`, following the sketch under "Layout": the date, days to the exam date in Settings, the streak, today's plan with tick boxes and tasks that open their target, continue reading, a question of the day, this week's study, and the mentor's insight cards with "Open note" and "Drill" buttons.
+- [ ] **3.4 Analysis screen.** `src/analysis.rs` with the tabs in the sketch: net score over the last 10 tests (line), accuracy by subject (bars), weakest topics with a Drill button, guess analysis (marks won or lost at each confidence level), study time over 12 weeks (heatmap), and syllabus read per paper from `syllabus::coverage`. Use the `gpui-kit` charts.
+- [ ] **3.5 Demo history.** A Settings action that adds 30 days of made-up attempts, answers, reading and study time, so Analysis is not empty, and one that removes them. Demo rows are marked, so removing them never touches real data.
+- [ ] **3.6 First-launch diagnostic.** The first time the app opens, offer a 20-question test across subjects that seeds the weak areas (addition 4 under "Additions I recommend").
+- [ ] **3.7 Tests.** The UI test loads demo history and checks that the charts draw and that the plan and insights appear, with screenshots.
+
+**Done when** with demo history loaded the charts draw, and the plan and insights appear and are covered by tests.
+
+### Phase 4: Current affairs
+
+- [ ] **4.1 Brief format and content.** Give every story a stable `id` so its reading can be recorded, and add editorials to a day's file: our own analysis of an issue in the news, never newspaper text. Grow the sample to 7 days of briefs with 5 stories each, every story with a practice question.
+- [ ] **4.2 Current affairs screen.** `src/current_affairs.rs` with the panes in the sketch: the date with previous, next and a calendar; the stories grouped by subject, then the day's editorials; and the story reader (context, why it matters, key facts, the trap, PYQ pattern, the practice question with its answer inline, the Mains question with its answer frame, and linked notes). Rapid mode shows only each story's title and key facts. `open(Target::Story)` now shows the story itself.
+- [ ] **4.3 Reading and bookmarks.** Stories get `reading` rows and bookmarks the way notes do, and the date bar shows how many of the day's stories are read. Today's plan gains its brief task, ticked once all the day's stories are read.
+- [ ] **4.4 Daily quiz.** "Take today's quiz" sits the day's practice questions in the exam room as their own kind of test, and the result counts in Analysis.
+- [ ] **4.5 Monthly issue.** One page per month with all its stories grouped by subject, and a quiz over that month's questions.
+- [ ] **4.6 Tests.** The UI test reads a brief in both modes, takes its quiz, and checks that Today and Analysis show both, with screenshots.
+
+**Done when** a brief can be read and its quiz taken, and both show up in Today and Analysis.
+
+### Phase 5: Revision and notebook
+
+- [ ] **5.1 Review dates and the mistake book.** Add `review` as a migration. `mentor::review()` moves an item through five boxes with gaps of 1, 3, 7, 16 and 35 days: right moves it up one box, wrong sends it back to box 1, and right in box 5 retires it. Every wrong answer in a test joins the mistake book, due the next day. Unit-test the dates.
+- [ ] **5.2 Flashcards.** A loader for `content/flashcards/` (front, back, topics, linked note), validated like questions, and 30 original sample cards.
+- [ ] **5.3 Review session.** `src/revision.rs`: the mistake book by subject, and a session with today's due items, where mistakes are asked again as questions and flashcards are flipped and marked "Got it" or "Missed". Each answer updates its box. Today's plan gains its review task (15 minutes at most), which opens the session.
+- [ ] **5.4 Highlights and clips.** Select text in the note or story reader to highlight it, with an optional comment, or to save it as a clip. Both go in `mark` (item, text range, comment) and show again when the item is reopened.
+- [ ] **5.5 Notebook screen.** `src/notebook.rs`: highlights, clips and bookmarks, each opening its source, and the student's own notes (`my_note`: a title and a Markdown body), which search also finds.
+- [ ] **5.6 Focus timer.** A 25-minute timer at the foot of the sidebar that records a focus `session` when it finishes.
+- [ ] **5.7 Tests.** The UI test answers a question wrong, moves the date to its due day and finds it in the review session, then makes a highlight, reopens the app on the same store and finds it again.
+
+**Done when** a wrong answer comes back on its due date, and a highlight survives a restart.
+
+### Phase 6: Mains
+
+- [ ] **6.1 Mains questions.** A loader for `content/mains/` (id, paper, topics, source, marks, word limit, the question, a model answer in Markdown, and the points to cover), validated like questions, and 10 original sample questions with model answers.
+- [ ] **6.2 Mains screen.** `src/mains.rs`: questions by paper and topic, filtered by paper and by answered or not. The model answer stays hidden until the student has written an answer or asks to see it.
+- [ ] **6.3 Timed editor.** A countdown set by the marks (7 minutes for 10 marks, 11 for 15) and a live word count against the limit (150 or 250 words). Save the answer to `mains_answer` as the student types, so a crash loses nothing.
+- [ ] **6.4 Self-evaluation.** After submitting, the student sees the model answer and the points to cover beside their own answer, ticks the points they made, and scores themselves from 0 to 5 on seven dimensions: directive (does the answer do what the question asks), introduction, content, dimensions covered, examples and data, conclusion, and presentation. deepmentor's site names only its first and last dimensions, directive and presentation, so the five in between are our choice.
+- [ ] **6.5 History.** Every answer with its date, time taken, word count and scores, and the trend per dimension. Today's plan gains its Mains task on alternate days, which opens an unanswered question.
+- [ ] **6.6 Tests.** The UI test writes an answer, scores it and finds it in the history, with screenshots.
+
+**Done when** an answer can be written, scored and seen in the history.
+
+### Later
+
+In no fixed order: AI chat and AI answer evaluation, a content sync server, accounts and plans, atlas, optionals, CSAT lessons, Hindi, Windows and Linux builds.
 
 ## 6. Risks
 
