@@ -1,6 +1,6 @@
 # Civil Mentor: build plan
 
-Status: Phase 0 (the shell), Phase 1 (notes and the full UPSC syllabus), Phase 2 (practice: tests, the exam room, results and past papers) and Phase 3 (Analysis, the Today plan, study time and demo history) are built and tested. Phases 4 to 6 are not started. Plan written 14 Nov 2026, updated 16 Nov 2026.
+Status: Phase 0 (the shell), Phase 1 (notes and the full UPSC syllabus), Phase 2 (practice: tests, the exam room, results and past papers), Phase 3 (Analysis, the Today plan, study time and demo history) and Phase 4 (current affairs: daily briefs, the story reader, the daily and monthly quizzes) are built and tested, which completes the first build. Phases 5 and 6 are not started. Plan written 14 Nov 2026, updated 16 Nov 2026.
 
 A desktop study companion for UPSC CSE aspirants. It plans the student's day, gives them the notes and current affairs to read, tests them in an exam-like room, and turns the results into the next thing to study.
 
@@ -232,7 +232,7 @@ Current affairs:
 
 ### Project structure
 
-As built in Phases 0 to 3:
+As built in Phases 0 to 4:
 
 ```
 Cargo.toml
@@ -242,7 +242,7 @@ content/                 the content pack (dummy now, ours later)
   notes/gs2/polity/fundamental-rights.md
   questions/polity.toml   sample questions, one file per subject
   questions/upsc-prelims-2025.toml   a real paper with UPSC's answer key
-  current-affairs/2026-11-14.toml
+  current-affairs/2026-11-14.toml   one brief per day, 10 to 16 Nov 2026
 src/
   main.rs                calls run()
   lib.rs                 start-up: app state, theme, icons, window
@@ -254,6 +254,7 @@ src/
   analysis.rs            the Analysis screen: Overview, Subjects, Tests, Time and Coverage tabs
   demo.rs                30 days of made-up history, added and removed from Settings
   notes.rs               the Notes screen: list, reader, outline, linked questions, the reading clock
+  current_affairs.rs     the Current affairs screen: date bar, calendar, stories by subject, editorials, Full and Rapid modes, quizzes, the monthly issue
   practice.rs            the Practice hub: every kind of test, unfinished tests, past papers, results
   exam.rs                the exam room: the clock, the question grid, keys, saving every change
   review.rs              the result and review, one question on its own, a past paper with answers
@@ -330,7 +331,7 @@ note = "gs2-polity-fundamental-rights"
 
 A question from a real paper has `source = "UPSC Prelims YYYY"`, and those questions make up that year's paper. If UPSC dropped a question from its key, it has `dropped = true` and no `answer`: it is shown in its paper but never scored.
 
-A day of current affairs is one TOML file with a list of stories. Each story has: title, GS paper, topics, context, why it matters, key facts, the trap, PYQ pattern, a practice question, a Mains question with an answer frame, and linked notes.
+A day of current affairs is one TOML file, named by its date, with a list of stories and a list of editorials. Each story has: a stable id (the date and a slug, never changed once shipped, because the student's reading is kept under it), title, topics (a Prelims subject first, which the screen groups by), context, why it matters, key facts, the trap, PYQ pattern, a practice question, a Mains question with an answer frame, and linked notes. A story's question takes the id `ca-<story id>` unless it names its own; the first six stories keep their old question ids so that answers given before stories had ids still match. An editorial has an id, title, topics, a Markdown body and linked notes. Story and editorial ids are unique across all briefs, and the loader reports a repeat.
 
 ### What the store holds
 
@@ -366,8 +367,8 @@ Each phase ends with an app that runs and can be clicked through. The first buil
 | 1. Notes and syllabus | Read notes and track the whole syllabus | Done |
 | 2. Practice | Timed tests in an exam room, with results and review | Done |
 | 3. Analysis and Today | Charts, the mentor's rules and the daily plan | Done |
-| 4. Current affairs | Daily briefs, the story reader and the daily quiz | Next |
-| 5. Revision and notebook | Mistake book, flashcards, highlights and own notes | To do |
+| 4. Current affairs | Daily briefs, the story reader and the daily quiz | Done |
+| 5. Revision and notebook | Mistake book, flashcards, highlights and own notes | Next |
 | 6. Mains | Answer writing against the clock, with self-evaluation | To do |
 
 ### How to work through a phase
@@ -480,14 +481,28 @@ Every phase below has a to-do list, so any agent can pick up the next open task.
 
 ### Phase 4: Current affairs
 
-- [ ] **4.1 Brief format and content.** Give every story a stable `id` so its reading can be recorded, and add editorials to a day's file: our own analysis of an issue in the news, never newspaper text. Grow the sample to 7 days of briefs with 5 stories each, every story with a practice question.
-- [ ] **4.2 Current affairs screen.** `src/current_affairs.rs` with the panes in the sketch: the date with previous, next and a calendar; the stories grouped by subject, then the day's editorials; and the story reader (context, why it matters, key facts, the trap, PYQ pattern, the practice question with its answer inline, the Mains question with its answer frame, and linked notes). Rapid mode shows only each story's title and key facts. `open(Target::Story)` now shows the story itself.
-- [ ] **4.3 Reading and bookmarks.** Stories get `reading` rows and bookmarks the way notes do, and the date bar shows how many of the day's stories are read. Today's plan gains its brief task, ticked once all the day's stories are read.
-- [ ] **4.4 Daily quiz.** "Take today's quiz" sits the day's practice questions in the exam room as their own kind of test, and the result counts in Analysis.
-- [ ] **4.5 Monthly issue.** One page per month with all its stories grouped by subject, and a quiz over that month's questions.
-- [ ] **4.6 Tests.** The UI test reads a brief in both modes, takes its quiz, and checks that Today and Analysis show both, with screenshots.
+- [x] **4.1 Brief format and content.** Give every story a stable `id` so its reading can be recorded, and add editorials to a day's file: our own analysis of an issue in the news, never newspaper text. Grow the sample to 7 days of briefs with 5 stories each, every story with a practice question.
+- [x] **4.2 Current affairs screen.** `src/current_affairs.rs` with the panes in the sketch: the date with previous, next and a calendar; the stories grouped by subject, then the day's editorials; and the story reader (context, why it matters, key facts, the trap, PYQ pattern, the practice question with its answer inline, the Mains question with its answer frame, and linked notes). Rapid mode shows only each story's title and key facts. `open(Target::Story)` now shows the story itself.
+- [x] **4.3 Reading and bookmarks.** Stories get `reading` rows and bookmarks the way notes do, and the date bar shows how many of the day's stories are read. Today's plan gains its brief task, ticked once all the day's stories are read.
+- [x] **4.4 Daily quiz.** "Take today's quiz" sits the day's practice questions in the exam room as their own kind of test, and the result counts in Analysis.
+- [x] **4.5 Monthly issue.** One page per month with all its stories grouped by subject, and a quiz over that month's questions.
+- [x] **4.6 Tests.** The UI test reads a brief in both modes, takes its quiz, and checks that Today and Analysis show both, with screenshots.
 
 **Done when** a brief can be read and its quiz taken, and both show up in Today and Analysis.
+
+**As built.** The condition is met and checked by `cargo test`. The UI test follows the brief task from Today to the day's brief, moves a day back and forward and picks a day on the calendar, opens a story (every part shows, it counts as read, 30 seconds of reading count as study time) and bookmarks it, goes back and forward between stories, opens an editorial, marks the day read in Rapid mode, then finds the brief task done, sits the day's quiz to a result, and finds its score on Today, on the brief and in Analysis → Tests, then opens the monthly issue and starts its 35-question quiz. `mentor::tests::the_brief_comes_first_until_every_story_is_read` and `a_quiz_asks_its_briefs_questions_in_order` check the rules. What differs from the plan:
+
+- **Which brief is today's.** The newest brief dated on or before today, or the oldest when every brief is later. The sample covers 10 to 16 Nov 2026, so on any later day the 16 Nov brief is "today's" until real briefs arrive, and the plan task then reads "Read the brief for 16 Nov". The date bar opens on it.
+- **Reading is stored in the existing `reading` table**, under the keys `story:<id>` and `editorial:<id>`, so no migration was needed. Opening a story counts it read. Rapid mode does not, but ends with "Mark them all read". Reading time counts as a `session` of kind `story`, so it adds to study time and the streak; the notes reader's clock was moved into a shared `ReadingClock` for this.
+- **The brief task** comes first in the plan, 5 minutes for each unread story (25 for a new brief), and ticks itself once all the brief's stories are read. Its row on Today also has "Take its quiz", and once the quiz is sat it shows the score. When every story is read the plan leaves the brief out, as the mentor rules say.
+- **Two new kinds of test**: `Quiz(date)` asks the brief's 5 practice questions in story order, and `Month(year, month)` asks every practice question of the month, oldest day first, both at 72 seconds a question with Prelims marking. They count in the analysis like any test. **Quiz results show in Analysis → Tests** in their own "Current affairs" panel, with stories read, every quiz with its score, and the share right; they also appear in Recent tests and the charts.
+- **The calendar is plain cells**: each month that has briefs, with those days shaded and clickable. gpui-kit's date picker needs a popover the offscreen test cannot drive reliably.
+- **Stories are read in the list's order**, grouped by subject in syllabus order: the brief's overview, Next, "Read the next story" and Rapid mode all follow it. The day's quiz keeps the file's story order.
+- **The monthly issue** is a view of the Current affairs screen, opened by the "November issue" button in the date bar: the month's stories by subject, each opening its story, and the monthly quiz.
+- **Bookmarks** use the `bookmarked` column of the story's reading row. The Notebook (Phase 5) is where they will be listed; for now a story shows Save or Saved.
+- **Search** finds editorials as well as stories.
+- **Two Phase 3 fixes**: the question of the day renders its stem as Markdown, so a table no longer shows as raw pipes, and the attempts card on Today only advises attempting more when some questions were left blank. When every question was attempted at a positive return, it says attempting pays.
+- **Content**: 7 briefs of 5 stories and 1 editorial each, all original and marked as sample. The stories are illustrative events. Their key facts, traps and practice questions are static facts. Every story's were read against the record, and the ones that are not standard textbook facts were checked by web search. One wrong fact (the Semi-Conductor Laboratory's ministry) was corrected, and three loose ones were tightened: where Kharosthi was used, Chhau's place on the two lists of classical dances, and Bt cotton as the only GM crop grown commercially.
 
 ### Phase 5: Revision and notebook
 

@@ -1,6 +1,7 @@
 # Sample brief. The stories are illustrative, written to show the format. They are not real news.
 
 [[story]]
+id = "2026-11-13-north-east-monsoon"
 title = "North-east monsoon brings heavy rain to the Tamil Nadu coast"
 topics = ["pre.gs.indian-geography.climate.seasons-and-rainfall-distribution", "mains.gs1.geography.india.climate-and-the-monsoon"]
 context = "A low-pressure area over the south-west Bay of Bengal brought very heavy rain to coastal Tamil Nadu and Puducherry, and the weather office issued warnings for several districts."
@@ -14,12 +15,14 @@ trap = "The retreating monsoon and the north-east monsoon describe the same seas
 notes = ["gs1-geography-indian-monsoon"]
 
 [story.question]
+id = "ca-2026-11-13-1"
 stem = "Which region of India receives the larger part of its annual rainfall during October to December?"
 options = ["The Konkan coast", "The Coromandel coast", "The Brahmaputra valley", "The Thar desert"]
 answer = "B"
 explanation = "The Coromandel coast of Tamil Nadu gets most of its rain from the north-east monsoon, when winds blowing over the Bay of Bengal bring moisture onshore."
 
 [[story]]
+id = "2026-11-13-navic-satellite"
 title = "New navigation satellite readied for launch"
 topics = ["pre.gs.science-tech.space.navigation-systems", "mains.gs3.science-tech.awareness.space.space-applications", "pre.gs.current.science.space-missions"]
 context = "The space agency moved the next satellite of its second-generation navigation series to the launch pad. The series replaces older satellites of the regional navigation system."
@@ -34,6 +37,7 @@ trap = "NavIC is a regional system. GPS, GLONASS, Galileo and BeiDou are global.
 notes = ["gs3-science-tech-space-programme"]
 
 [story.question]
+id = "ca-2026-11-13-2"
 stem = "With reference to NavIC, which one of the following statements is correct?"
 options = [
   "It provides positioning services across the whole globe",
@@ -45,6 +49,7 @@ answer = "C"
 explanation = "NavIC is a regional system built by ISRO. Its satellites are in geostationary and geosynchronous orbits and its service area extends about 1,500 km beyond India's boundary."
 
 [[story]]
+id = "2026-11-13-money-bill-debate"
 title = "Debate over the Money Bill route returns to Parliament"
 topics = ["pre.gs.polity.parliament.bills.money-bills", "mains.gs2.polity.legislature.legislative-procedure", "pre.gs.current.national.polity-and-governance-developments"]
 context = "Opposition members objected to the certification of a Bill as a Money Bill, arguing that it contained provisions beyond those listed in Article 110, and asked for it to be sent to the Rajya Sabha as an ordinary Bill."
@@ -66,6 +71,7 @@ frame = [
 notes = ["gs2-polity-parliament"]
 
 [story.question]
+id = "ca-2026-11-13-3"
 stem = "If the Rajya Sabha does not return a Money Bill to the Lok Sabha within fourteen days:"
 options = [
   "The Bill lapses",
@@ -75,3 +81,87 @@ options = [
 ]
 answer = "C"
 explanation = "Under Article 109, a Money Bill not returned within fourteen days is deemed to have been passed by both Houses in the form in which the Lok Sabha passed it. There is no joint sitting on a Money Bill."
+
+[[story]]
+id = "2026-11-13-fundamental-duties"
+title = "Schools plan a campaign on constitutional duties"
+topics = ["pre.gs.polity.rights.fundamental-duties", "mains.gs2.polity.constitution.provisions.fundamental-duties", "pre.gs.current.national.polity-and-governance-developments"]
+context = "An education board announced a month-long programme in schools to teach students about the duties of citizens listed in the Constitution."
+why = "Fundamental Duties are short and fact-heavy, which makes them good Prelims material. Know the source, the count and what makes them different from rights."
+facts = [
+  "Fundamental Duties are in Article 51A, Part IVA of the Constitution.",
+  "They were added by the 42nd Amendment in 1976, on the recommendation of the Swaran Singh Committee.",
+  "There were originally ten duties. The 86th Amendment in 2002 added the eleventh, on the duty of a parent or guardian to provide education to a child aged six to fourteen.",
+  "The duties are not enforceable by courts on their own, and the Constitution lays down no penalty for breach.",
+]
+trap = "Fundamental Duties apply to citizens only. Fundamental Rights such as Article 14 and 21 apply to non-citizens as well."
+pyq = "Prelims often asks which amendment added Fundamental Duties and which of a list is a duty."
+
+[story.question]
+id = "ca-2026-11-13-4"
+stem = "Fundamental Duties were incorporated into the Constitution by which one of the following amendments?"
+options = ["42nd Amendment", "44th Amendment", "52nd Amendment", "86th Amendment"]
+answer = "A"
+explanation = "The 42nd Amendment of 1976 added Part IVA and Article 51A, on the recommendation of the Swaran Singh Committee. The 86th Amendment of 2002 added the eleventh duty."
+
+[[story]]
+id = "2026-11-13-ndb-meeting"
+title = "BRICS finance ministers discuss development bank lending"
+topics = ["pre.gs.economy.international.new-development-bank-and-aiib", "mains.gs2.ir.groupings.global.brics-ibsa-and-g20", "pre.gs.current.international.summits-and-groupings"]
+context = "Finance ministers from the BRICS group met to discuss how the bank set up by the group can lend more in local currencies and attract new members."
+why = "BRICS and its bank are asked as standard institution questions. Know the headquarters, the founding members and how BRICS grew."
+facts = [
+  "BRIC was a term from 2001 for Brazil, Russia, India and China. The group met formally from 2006, and South Africa joined in 2010.",
+  "The New Development Bank was agreed at the 2014 summit at Fortaleza, Brazil, and began in 2015.",
+  "Its headquarters are in Shanghai.",
+  "The group expanded in 2024 to include Egypt, Ethiopia, Iran and the United Arab Emirates.",
+]
+trap = "The New Development Bank and the Asian Infrastructure Investment Bank are two different bodies. The first is from the BRICS group, and the second was proposed by China."
+mains = "Does BRICS give the developing world a stronger voice in global economic governance? Discuss."
+frame = [
+  "Describe BRICS and the bank as an alternative source of development finance.",
+  "Show the gains: more lending options, less conditionality.",
+  "Show the limits: divergent interests, uneven economic weight of members.",
+  "Conclude with India's interest: reform of global bodies without breaking from them.",
+]
+
+[story.question]
+id = "ca-2026-11-13-5"
+stem = "The headquarters of the New Development Bank, established by the BRICS countries, is located in:"
+options = ["New Delhi", "Moscow", "Johannesburg", "Shanghai"]
+answer = "D"
+explanation = "The New Development Bank is headquartered in Shanghai. India, Brazil, Russia, China and South Africa were its founding members."
+
+[[editorial]]
+id = "2026-11-13-editorial-urban-flooding"
+title = "Why our cities flood: drains, plans and permissions"
+topics = ["mains.gs3.disaster.disasters.floods", "mains.gs1.society.urbanisation.urban-problems"]
+body = """
+Every monsoon, and now often in other seasons, a heavy spell of rain turns a busy road into a river. Rain is the trigger, but the damage comes from choices made over decades: where we build, what we cover in concrete and how we manage water. Calling it a natural disaster hides that.
+
+## Why water has nowhere to go
+
+Cities were once dotted with lakes, ponds and floodplains that held water and let it soak away. As cities grew, many were filled, built over or squeezed. Stormwater drains designed for modest rainfall now serve far larger paved areas. Garbage and silt choke the channels. Roads are raised without thinking about where water will flow. Low-lying colonies, often home to poorer residents, take the worst.
+
+## Three arguments
+
+- **The infrastructure view.** Build bigger drains and pumping stations. This gives quick relief, but it can be costly and can simply move flooding downstream.
+- **The nature-based view.** Restore lakes, wetlands and green spaces, and let the ground absorb water. This is cheaper over time and helps in heat and drought too, but it needs land that cities are reluctant to give up.
+- **The governance view.** The root problem is divided responsibility. Drains, roads, lakes and rivers belong to different agencies that rarely plan together. Without one accountable body, every plan stays partial.
+
+None of these is enough alone. Drains with no open space only move the problem. Open space without enforcement gets encroached.
+
+## What a better approach looks like
+
+1. **Map flood risk by neighbourhood** and make the maps public, so that building permissions follow them.
+2. **Protect water bodies by law and in practice.** Notify them, fence them and punish encroachment, including by powerful builders.
+3. **Make space for water.** Permeable pavements, rain gardens and retention ponds in new projects.
+4. **Maintain what exists.** Desilting before the rains should be treated as a basic duty with public reporting.
+5. **Give one agency a lead role** in urban drainage, with the funds and powers to match.
+6. **Warn and prepare.** Local early-warning systems and clear evacuation plans save lives.
+7. **Protect the poor.** Resettlement and housing should keep low-income families out of the path of water.
+
+## Conclusion
+
+Urban floods are as much a planning failure as a weather event. Climate change may bring heavier bursts of rain, but cities that keep their water bodies, plan drainage as a system and listen to local knowledge will cope better. The aim should be a city that lives with water, not one that fights it.
+"""

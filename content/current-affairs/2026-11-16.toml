@@ -1,0 +1,182 @@
+# Sample brief. The stories are illustrative, written to show the format. They are not real news.
+
+[[story]]
+id = "2026-11-16-gram-sabha-meetings"
+title = "State pushes for regular Gram Sabha meetings on local planning"
+topics = ["pre.gs.polity.local.73rd-amendment", "mains.gs2.polity.federalism.devolution.73rd-and-74th-amendments", "pre.gs.current.national.polity-and-governance-developments"]
+context = "A state panchayati raj department directed village councils to hold regular Gram Sabha meetings and to discuss the village development plan in them, with attendance records to be made public."
+why = "Panchayati raj is a staple of both papers. Know the constitutional provisions and the gap between the law and practice."
+facts = [
+  "The 73rd Amendment, passed in 1992 and in force from April 1993, added Part IX and the Eleventh Schedule to the Constitution.",
+  "The Eleventh Schedule lists 29 subjects for panchayats.",
+  "Article 243D reserves not less than one-third of the seats for women, and seats for Scheduled Castes and Scheduled Tribes in proportion to their population.",
+  "Article 243K provides for a State Election Commission to conduct panchayat elections.",
+]
+trap = "The Gram Sabha is all registered voters of a village. The gram panchayat is its elected executive body."
+notes = ["gs2-polity-panchayati-raj"]
+
+[story.question]
+id = "ca-2026-11-16-1"
+stem = "The Eleventh Schedule of the Constitution, added by the 73rd Amendment, contains:"
+options = [
+  "18 subjects for municipalities",
+  "29 subjects for panchayats",
+  "29 subjects for municipalities",
+  "18 subjects for panchayats",
+]
+answer = "B"
+explanation = "The Eleventh Schedule lists 29 subjects for panchayats. The Twelfth Schedule, added by the 74th Amendment, lists 18 subjects for municipalities."
+
+[[story]]
+id = "2026-11-16-sebi-appeal"
+title = "Securities appellate body hears a challenge to a market regulator order"
+topics = ["pre.gs.economy.markets.sebi-and-market-regulation", "mains.gs2.polity.statutory-bodies.regulators", "pre.gs.current.national.constitutional-and-statutory-bodies"]
+context = "A market participant appealed an order of the securities regulator to the specialised appellate tribunal, arguing that the penalty was not in proportion to the lapse."
+why = "Regulators and their appellate bodies appear in Prelims as institution questions. Know which are statutory and which are constitutional."
+facts = [
+  "The Securities and Exchange Board of India was set up in 1988 as a non-statutory body and given statutory status through the SEBI Act, 1992.",
+  "The Securities Appellate Tribunal hears appeals against SEBI's orders.",
+  "SEBI's main aims are to protect investors, to develop the securities market and to regulate it.",
+  "SEBI is a statutory body. It is not mentioned in the Constitution.",
+]
+trap = "SEBI regulates the securities market. The Reserve Bank regulates banks and the money market, and IRDAI regulates insurance."
+pyq = "Prelims often asks about regulators and the statutes that created them."
+
+[story.question]
+id = "ca-2026-11-16-2"
+stem = "Which one of the following statements about the Securities and Exchange Board of India is correct?"
+options = [
+  "It is a constitutional body under Article 324",
+  "It was given statutory status through an Act of Parliament in 1992",
+  "It regulates banking and the money market",
+  "Appeals against its orders lie directly to the Supreme Court in all cases",
+]
+answer = "B"
+explanation = "SEBI began as a non-statutory body in 1988 and became statutory through the SEBI Act, 1992. Appeals against its orders go first to the Securities Appellate Tribunal."
+
+[[story]]
+id = "2026-11-16-red-sea-routes"
+title = "Shipping lines reroute vessels around Africa after Red Sea disruption"
+topics = ["pre.gs.world-geography.features.straits-gulfs-seas-and-islands", "mains.gs2.ir.other-countries.global-conflicts-and-their-impact", "pre.gs.current.places.places-in-the-world"]
+context = "Several shipping lines said they would send vessels around southern Africa instead of through the Red Sea, citing safety concerns, which lengthens voyages and raises costs for importers."
+why = "Chokepoints are common in Prelims map questions and in Mains questions on trade and energy security."
+facts = [
+  "The Suez Canal, opened in 1869, links the Mediterranean Sea with the Red Sea.",
+  "The Bab-el-Mandeb strait connects the Red Sea with the Gulf of Aden and lies between Yemen and Djibouti.",
+  "The alternative route around the Cape of Good Hope adds many days to a voyage between Asia and Europe.",
+  "Djibouti hosts foreign naval bases because it sits beside this chokepoint.",
+]
+trap = "The Suez Canal is an artificial waterway. The Bab-el-Mandeb and the Strait of Hormuz are natural straits."
+mains = "Maritime chokepoints are a vulnerability for India's trade and energy security. Discuss."
+frame = [
+  "List the chokepoints that matter for India: Hormuz, Bab-el-Mandeb, Malacca, Suez.",
+  "Show the effect of disruption: costs, delays, insurance, fuel prices.",
+  "Describe India's responses: naval presence, diversified routes and suppliers.",
+  "Suggest cooperation with partners and strategic reserves.",
+]
+
+[story.question]
+id = "ca-2026-11-16-3"
+stem = "The Bab-el-Mandeb strait connects the Red Sea with the:"
+options = ["Persian Gulf", "Gulf of Oman", "Gulf of Aden", "Mediterranean Sea"]
+answer = "C"
+explanation = "The Bab-el-Mandeb lies between Yemen and Djibouti and links the Red Sea with the Gulf of Aden. The Suez Canal links the Red Sea with the Mediterranean."
+
+[[story]]
+id = "2026-11-16-gm-crops-review"
+title = "Regulator reviews an application on a genetically modified crop"
+topics = ["pre.gs.science-tech.biotech.gm-crops", "mains.gs3.science-tech.awareness.biotechnology.gm-crops-and-their-regulation", "pre.gs.current.science.new-technologies"]
+context = "The national regulator for genetically engineered organisms took up a developer's application for field trials of a modified crop, and farmer groups asked for open public consultation."
+why = "GM crops combine science, agriculture and ethics. Prelims asks which crop is approved and which body regulates."
+facts = [
+  "Bt cotton, approved in 2002, is the only genetically modified crop grown commercially in India.",
+  "The Genetic Engineering Appraisal Committee, under the Ministry of Environment, Forest and Climate Change, appraises proposals for the release of genetically engineered organisms.",
+  "The Committee works under the Rules of 1989 framed under the Environment (Protection) Act, 1986.",
+  "Bt cotton carries a gene from the soil bacterium Bacillus thuringiensis that makes the plant produce a protein toxic to certain pests such as the bollworm.",
+]
+trap = "Bt cotton is not a hybrid made by cross-breeding. A gene from another organism is placed in the plant using genetic engineering."
+mains = "Should India permit more genetically modified crops? Discuss both sides."
+frame = [
+  "Explain GM crops and the regulatory process.",
+  "Give the case for: yields, reduced pesticide use, tolerance to stress.",
+  "Give the case against: biosafety, seed control by firms, loss of varieties.",
+  "Suggest case-by-case approval, independent testing and public data.",
+]
+
+[story.question]
+id = "ca-2026-11-16-4"
+stem = "Which one of the following bodies appraises proposals for the release of genetically engineered organisms into the environment in India?"
+options = [
+  "Indian Council of Agricultural Research",
+  "Food Safety and Standards Authority of India",
+  "National Biodiversity Authority",
+  "Genetic Engineering Appraisal Committee",
+]
+answer = "D"
+explanation = "The Genetic Engineering Appraisal Committee, under the Environment Ministry, appraises such proposals under rules made under the Environment (Protection) Act, 1986."
+
+[[story]]
+id = "2026-11-16-rte-admissions"
+title = "Admissions under the Right to Education quota begin in private schools"
+topics = ["pre.gs.polity.policy.human-rights-rti-and-rte", "mains.gs2.social-justice.social-sector.education.school-education", "pre.gs.current.national.polity-and-governance-developments"]
+context = "State education officials opened the admission window for children from disadvantaged families to take up seats reserved for them in private unaided schools."
+why = "Right to Education links Part III, Part IV and social justice. Prelims asks about Article 21A, the Act and its provisions."
+facts = [
+  "Article 21A, inserted by the 86th Amendment in 2002, makes free and compulsory education a Fundamental Right for children aged six to fourteen.",
+  "The Right of Children to Free and Compulsory Education Act, 2009 came into force on 1 April 2010.",
+  "Section 12(1)(c) of the Act requires private unaided schools to reserve 25 per cent of seats in the entry class for children from weaker and disadvantaged sections.",
+  "The Act is the legal framework for neighbourhood schooling and does not cover children below six or above fourteen.",
+]
+trap = "Article 45 in the Directive Principles now deals with early childhood care and education for children below six. Article 21A covers ages six to fourteen."
+mains = "The Right to Education Act has widened access but quality remains a worry. Discuss."
+frame = [
+  "State what the Act guarantees.",
+  "Show access gains: enrolment, school infrastructure, the 25 per cent provision.",
+  "Show quality gaps: learning outcomes, teacher vacancies, enforcement.",
+  "Suggest a shift of focus to learning outcomes and early years.",
+]
+notes = ["gs2-polity-fundamental-rights"]
+
+[story.question]
+id = "ca-2026-11-16-5"
+stem = "Article 21A of the Constitution provides for free and compulsory education for children in the age group of:"
+options = ["Six to fourteen years", "Three to six years", "Six to eighteen years", "Fourteen to eighteen years"]
+answer = "A"
+explanation = "Article 21A, inserted by the 86th Amendment in 2002, covers children aged six to fourteen. The Right to Education Act of 2009 gives effect to it."
+
+[[editorial]]
+id = "2026-11-16-editorial-gig-work"
+title = "Gig workers and the promise of social security"
+topics = ["mains.gs3.economy.planning.employment.labour-codes-and-reforms", "mains.gs3.economy.planning.employment.informal-sector"]
+body = """
+Delivery riders, ride-hailing drivers and freelance service workers are a fast-growing part of the urban workforce. They are neither traditional employees with fixed wages and benefits nor fully independent business owners. This in-between status raises a hard question: who is responsible for their safety, income and old age?
+
+## Why platform work is attractive
+
+Gig work offers flexibility and a quick way in, especially for young people and those without formal qualifications. Workers can choose hours, and some use it to supplement other incomes. Platforms argue that this flexibility is the reason people choose the work, and that treating them as employees would mean fewer jobs.
+
+## Why it worries many
+
+Flexibility has a cost. Income is irregular and set by algorithms that workers cannot see. A worker who falls ill or has an accident may lose income at once, and has no pension, no paid leave and often limited insurance. Ratings or app rules can lead to being locked out of work without a hearing. Many work long hours to reach a decent income, which raises safety risks.
+
+## Three positions
+
+- **Treat them as employees.** This gives full protection, but may lead platforms to reduce hiring and raise prices.
+- **Keep them independent, with a safety net.** A contribution-based social security fund, with payments from platforms and the state, gives protection without changing status.
+- **Create a third category.** A separate legal status with some rights, such as minimum earnings, notice before deactivation and insurance.
+
+Recent labour law reforms in India have begun to recognise gig and platform workers and to promise social security schemes, but the scale and detail of funding are still being worked out.
+
+## A workable way forward
+
+1. **Register workers** so that benefits reach them, linked to portable identity and bank accounts.
+2. **Pool contributions** from platforms in proportion to what they pay workers, with state support for the poorest.
+3. **Make benefits portable.** A worker who uses several apps should have one account that follows them.
+4. **Set basic standards**: accident and health cover, grievance redress, and notice with reasons before an account is closed.
+5. **Make algorithms more transparent.** Workers should know how pay and tasks are decided.
+6. **Support skills.** Training for better jobs helps workers move up and not remain stuck.
+
+## Conclusion
+
+Gig work is likely to grow, so the choice is not between flexibility and security but how to combine them. A modest, funded and portable safety net, with basic fairness in how platforms treat workers, can protect people without killing the model. The test of success is that a rider who is hurt on the job does not fall into poverty.
+"""

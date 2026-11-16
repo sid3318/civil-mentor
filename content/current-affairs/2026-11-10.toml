@@ -1,0 +1,168 @@
+# Sample brief. The stories are illustrative, written to show the format. They are not real news.
+
+[[story]]
+id = "2026-11-10-defection-petitions"
+title = "Delay in deciding disqualification petitions draws criticism"
+topics = ["pre.gs.polity.parliament.anti-defection-law", "mains.gs2.polity.legislature.anti-defection-law", "pre.gs.current.national.polity-and-governance-developments"]
+context = "Members of a state assembly complained that petitions seeking the disqualification of legislators who changed sides had stayed with the Speaker for a long time, and asked for a fixed timeline."
+why = "The Tenth Schedule is a favourite for both papers. Know who decides, what the grounds are and how far courts can review the decision."
+facts = [
+  "The Tenth Schedule was added by the 52nd Amendment in 1985.",
+  "The presiding officer of the House decides disqualification petitions.",
+  "In Kihoto Hollohan (1992) the Supreme Court held that the presiding officer's decision is open to judicial review.",
+  "The 91st Amendment in 2003 removed the exception for a split in a party and capped the council of ministers at 15 per cent of the strength of the House.",
+]
+trap = "A merger needs two-thirds of the legislature party. A one-third split no longer protects anyone since 2003."
+pyq = "Prelims often asks which amendment added the Tenth Schedule and who decides disqualification. Mains asks whether the presiding officer is the right authority."
+mains = "The presiding officer is not the best authority to decide defection cases. Discuss."
+frame = [
+  "State the law: Tenth Schedule, grounds of disqualification, exceptions.",
+  "Give the problem: the officer belongs to a party, and delay can defeat the law.",
+  "Note the judicial check in Kihoto Hollohan and calls for time-bound decisions.",
+  "Suggest reform: an independent tribunal or the Election Commission, with a fixed deadline.",
+]
+notes = ["gs2-polity-parliament"]
+
+[story.question]
+id = "ca-2026-11-10-1"
+stem = "Which one of the following added the Tenth Schedule (anti-defection law) to the Constitution?"
+options = ["The 42nd Amendment, 1976", "The 52nd Amendment, 1985", "The 73rd Amendment, 1992", "The 91st Amendment, 2003"]
+answer = "B"
+explanation = "The 52nd Amendment of 1985 added the Tenth Schedule. The 91st Amendment of 2003 later tightened it by removing the one-third split exception."
+
+[[story]]
+id = "2026-11-10-gst-council-meeting"
+title = "GST Council takes up a rate rationalisation proposal"
+topics = ["pre.gs.economy.fiscal.taxation.goods-and-services-tax", "mains.gs2.polity.constitutional-bodies.gst-council", "pre.gs.current.economy.union-budget-and-economic-survey"]
+context = "The GST Council met to discuss a proposal to reduce the number of rate slabs. Some states asked for assurance on their revenue before agreeing to any change."
+why = "The Council is a standing example of cooperative federalism. Prelims asks about its composition and voting rules, and Mains about the Centre-state balance."
+facts = [
+  "Article 279A, inserted by the 101st Amendment in 2016, creates the GST Council.",
+  "The Union Finance Minister chairs it. Members include the Union Minister of State for Revenue and the finance or tax ministers of every state.",
+  "A decision needs three-fourths of the weighted votes cast.",
+  "The Centre holds one-third of the weight and all states together hold two-thirds.",
+]
+trap = "The Centre cannot pass a decision alone, and the states cannot pass one without the Centre's vote. Both sides hold an effective veto."
+mains = "The GST Council shows both the promise and the limits of cooperative federalism. Comment."
+frame = [
+  "Describe the Council and its voting weights.",
+  "Show the gains: one tax, shared decisions, fewer disputes.",
+  "Show the strains: loss of state fiscal autonomy, compensation worries.",
+  "Suggest a way forward: predictable compensation and a standing dispute mechanism.",
+]
+
+[story.question]
+id = "ca-2026-11-10-2"
+stem = "In the GST Council, a decision requires the support of:"
+options = [
+  "A simple majority of the members present",
+  "Two-thirds of the weighted votes of the states alone",
+  "Three-fourths of the weighted votes of the members present and voting",
+  "A unanimous vote of the Centre and all states",
+]
+answer = "C"
+explanation = "Decisions need a majority of not less than three-fourths of the weighted votes cast. The Centre carries one-third of the weight and the states two-thirds."
+
+[[story]]
+id = "2026-11-10-hfc-phasedown"
+title = "Parties review the phase-down of hydrofluorocarbons"
+topics = ["pre.gs.environment.conventions.vienna-convention-montreal-protocol", "mains.gs3.environment.conservation.international-conventions", "pre.gs.current.environment.climate-summits-and-negotiations"]
+context = "Countries that are party to the Montreal Protocol met to review how well the phase-down of hydrofluorocarbons, used in cooling equipment, was going and what help developing countries still need."
+why = "The ozone treaties are a clean example of a successful global environmental agreement. Prelims tests which gas, which treaty and which year."
+facts = [
+  "The Vienna Convention for the Protection of the Ozone Layer was adopted in 1985 and the Montreal Protocol in 1987.",
+  "The Kigali Amendment of 2016 added hydrofluorocarbons (HFCs) to the Protocol.",
+  "HFCs do not harm the ozone layer but are strong greenhouse gases.",
+  "India ratified the Kigali Amendment in 2021.",
+]
+trap = "The Kigali Amendment is about climate warming, not ozone depletion. HFCs replaced ozone-depleting substances."
+pyq = "Prelims often asks which protocol deals with ozone-depleting substances and which gases are covered."
+
+[story.question]
+id = "ca-2026-11-10-3"
+stem = "The Kigali Amendment to the Montreal Protocol seeks to phase down the use of:"
+options = ["Chlorofluorocarbons", "Halons", "Persistent organic pollutants", "Hydrofluorocarbons"]
+answer = "D"
+explanation = "The Kigali Amendment of 2016 targets hydrofluorocarbons. These replaced chlorofluorocarbons and do not deplete ozone, but they trap heat and add to global warming."
+
+[[story]]
+id = "2026-11-10-edict-site-survey"
+title = "Survey body documents a rock edict site"
+topics = ["pre.gs.ancient.mauryas.ashoka.edicts-and-inscriptions", "mains.gs1.culture.heritage.institutions-and-policies-for-conservation"]
+context = "The national archaeological survey said it had completed a fresh documentation of a hill site carrying a rock edict of Ashoka, with a plan to protect it from weathering."
+why = "Ashoka's inscriptions are the main source for his reign. Prelims asks about scripts, languages, the king's titles and who deciphered them."
+facts = [
+  "James Prinsep deciphered the Brahmi script in 1837, which opened the Ashokan edicts for reading.",
+  "Most edicts are in Prakrit written in Brahmi. Those at Shahbazgarhi and Mansehra in the north-west use Kharosthi, and those near Kandahar use Greek and Aramaic.",
+  "The edicts call the king Devanampiya Piyadasi, which means beloved of the gods.",
+  "The Archaeological Survey of India was founded in 1861 with Alexander Cunningham as its first Director General.",
+]
+trap = "Ashoka's name appears in only a few edicts. Most use his titles, which is why the identification with Ashoka took time."
+notes = ["gs1-art-culture-temple-architecture"]
+
+[story.question]
+id = "ca-2026-11-10-4"
+stem = "The Ashokan inscriptions in the north-western part of the subcontinent were mainly written in which script?"
+options = ["Kharosthi", "Brahmi", "Grantha", "Devanagari"]
+answer = "A"
+explanation = "Edicts in the north-west, such as those at Shahbazgarhi and Mansehra, use Kharosthi, which runs right to left. Most other edicts use Brahmi."
+
+[[story]]
+id = "2026-11-10-solar-alliance"
+title = "International Solar Alliance members meet on financing"
+topics = ["pre.gs.environment.energy.solar-wind-and-hydro-energy", "mains.gs2.ir.institutions.other-institutions-and-fora", "pre.gs.current.international.summits-and-groupings"]
+context = "Member countries of the International Solar Alliance held a meeting to discuss lowering the cost of finance for solar projects in sunny developing countries."
+why = "The Alliance is an Indian-led treaty body, so it shows up under both energy and foreign policy. Know its origin, headquarters and purpose."
+facts = [
+  "The International Solar Alliance was launched by India and France at the Paris climate conference in 2015.",
+  "Its headquarters are in Gurugram, India.",
+  "It focuses on countries lying fully or partly between the Tropics of Cancer and Capricorn.",
+  "Its Framework Agreement entered into force in December 2017, and it later opened membership to all UN member states.",
+]
+trap = "The Alliance is a treaty-based international organisation. It is not a UN agency."
+mains = "India's leadership of the International Solar Alliance combines climate action with strategic aims. Discuss."
+frame = [
+  "Explain the Alliance's origin and mandate.",
+  "Show the climate and energy-access gains for tropical countries.",
+  "Show the strategic gain: leadership among developing countries.",
+  "Note the challenge: finance, funding gaps and grid readiness.",
+]
+
+[story.question]
+id = "ca-2026-11-10-5"
+stem = "The International Solar Alliance has its headquarters at:"
+options = ["Paris", "Gurugram", "Abu Dhabi", "Geneva"]
+answer = "B"
+explanation = "The Alliance, launched by India and France in 2015, is headquartered in Gurugram, India."
+
+[[editorial]]
+id = "2026-11-10-editorial-energy-transition"
+title = "Coal today, solar tomorrow: sequencing India's energy transition"
+topics = ["mains.gs3.economy.infrastructure.energy.energy-security-and-transition", "mains.gs3.environment.pollution.climate-change"]
+body = """
+India wants to add large amounts of clean power and, at the same time, keep the lights on for a growing economy. The argument is no longer whether to move to renewable energy but how fast, and what to do with coal in the meantime.
+
+## The case for moving fast
+
+Solar and wind are now among the cheapest sources of new electricity. Every unit they supply reduces fuel imports, local air pollution and exposure to price shocks. Falling costs also mean that a country which builds early gets the manufacturing jobs and learns the skills before others do. For a country with long coastlines and many sunny days, waiting looks like a lost opportunity.
+
+## The case for caution
+
+Electricity is not only about energy. It is also about being there at six in the evening when the sun has set and demand peaks. Coal plants still supply a large share of round-the-clock power, and many states depend on coal for jobs and revenue. A fast exit could strand plants, hurt coal-bearing regions and raise costs if storage and grids are not ready. Grid upgrades, transmission lines and storage take years, not months.
+
+## What the two views share
+
+Both sides accept three facts. First, renewable energy is poorly matched to demand without storage and flexible back-up. Second, the grid is the bottleneck: power must travel from sunny and windy regions to the cities. Third, distribution companies must be financially healthy enough to buy and pay for clean power. Weak finances at the distribution level slow every transition plan.
+
+## A sensible sequence
+
+- **Build the grid first.** Transmission and storage should be planned before the generation that depends on them.
+- **Use coal for balancing, not baseload.** Older plants can be run more flexibly while new clean capacity comes in. New coal capacity should be limited to what the plan truly needs.
+- **Plan a just transition.** Coal-dependent districts need new industry, retraining and a share of local revenue, announced years ahead.
+- **Fix distribution finances.** Timely payments and honest tariffs make long-term clean power contracts bankable.
+- **Grow domestic manufacturing.** Supply chains for panels, batteries and electrolysers reduce the risk of replacing a fuel import with an equipment import.
+
+## Conclusion
+
+The transition is a question of order, not of choice. Grids, storage and finances need to move before coal is retired, and workers need a plan before plants close. Done in that order, India can protect energy security and meet its climate goals together. Done out of order, it can end up with higher bills, stranded assets and unhappy regions.
+"""

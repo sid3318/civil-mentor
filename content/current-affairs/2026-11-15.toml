@@ -1,0 +1,184 @@
+# Sample brief. The stories are illustrative, written to show the format. They are not real news.
+
+[[story]]
+id = "2026-11-15-election-advisory"
+title = "Election Commission issues an advisory ahead of state polls"
+topics = ["pre.gs.polity.constitutional-bodies.election-commission", "mains.gs2.polity.constitutional-bodies.election-commission-of-india", "pre.gs.current.national.elections-and-electoral-reforms"]
+context = "Before the next round of state elections, the Commission issued a reminder to parties and candidates about the model code of conduct, with a focus on campaign language and the use of official resources."
+why = "The Commission and the model code are standard Prelims fare. Know the constitutional basis and the legal status of the code."
+facts = [
+  "Article 324 vests superintendence, direction and control of elections to Parliament, state legislatures and the offices of President and Vice-President in the Election Commission.",
+  "The Commission has been a multi-member body since 1993.",
+  "The Chief Election Commissioner can be removed only in the way a Supreme Court judge is removed.",
+  "The model code of conduct is not a statute. It rests on consensus among political parties and the Commission's powers under Article 324.",
+]
+trap = "Elections to panchayats and municipalities are conducted by State Election Commissions, not by the Election Commission of India."
+pyq = "Prelims often asks about the constitutional provisions on the Commission, and which elections it conducts."
+
+[story.question]
+id = "ca-2026-11-15-1"
+stem = "Which one of the following elections is NOT conducted by the Election Commission of India?"
+options = [
+  "Election to the Rajya Sabha",
+  "Election to the office of the President",
+  "Election to the Municipal Corporations",
+  "Election to the State Legislative Assemblies",
+]
+answer = "C"
+explanation = "Municipal elections are conducted by State Election Commissions under Article 243ZA. The Election Commission of India conducts elections to Parliament, state legislatures and the offices of President and Vice-President."
+
+[[story]]
+id = "2026-11-15-fiscal-deficit"
+title = "Fiscal deficit tracking: first half of the year reviewed"
+topics = ["pre.gs.economy.fiscal.deficits", "mains.gs3.economy.budgeting.deficits-and-fiscal-policy", "pre.gs.current.economy.union-budget-and-economic-survey"]
+context = "Analysts reviewed the government's fiscal position for the first half of the year, discussing how spending on capital projects and tax receipts affect the path of the fiscal deficit."
+why = "Deficit terms are tested directly in Prelims, and fiscal consolidation is a regular Mains theme."
+facts = [
+  "The Fiscal Responsibility and Budget Management Act was passed in 2003 to set rules for deficit reduction.",
+  "Fiscal deficit is total expenditure minus total receipts excluding borrowings. It equals the government's borrowing need.",
+  "Revenue deficit is revenue expenditure minus revenue receipts.",
+  "A review committee headed by N. K. Singh reported in 2017 and recommended using the debt-to-GDP ratio as the key target.",
+]
+trap = "A primary deficit is the fiscal deficit minus interest payments. A high interest bill can keep the fiscal deficit large even when the primary deficit is small."
+mains = "Fiscal consolidation should not be at the cost of public capital spending. Discuss."
+frame = [
+  "Explain the idea of the deficit and the FRBM rules.",
+  "Show how capital spending raises future growth and revenue.",
+  "Warn about the interest burden and crowding out of private borrowing.",
+  "Suggest quality of spending, rule-based glide path and escape clauses.",
+]
+
+[story.question]
+id = "ca-2026-11-15-2"
+stem = "In the Union Budget, the fiscal deficit is equal to:"
+options = [
+  "Total revenue expenditure minus total revenue receipts",
+  "Total expenditure minus total receipts including borrowings",
+  "Total expenditure minus total receipts excluding borrowings",
+  "Fiscal deficit minus interest payments",
+]
+answer = "C"
+explanation = "Fiscal deficit is the gap between total expenditure and total receipts excluding borrowings, and so shows how much the government must borrow. Option A is the revenue deficit and option D is the primary deficit."
+
+[[story]]
+id = "2026-11-15-mangrove-restoration"
+title = "Mangrove planting drive begins along the eastern coast"
+topics = ["pre.gs.environment.ecosystems.mangroves", "mains.gs3.environment.conservation.biodiversity-and-its-importance", "pre.gs.current.environment.protected-areas-and-ramsar-sites"]
+context = "Coastal communities and forest officials started a mangrove planting drive in a delta region, with the aim of protecting villages from storm surges and bringing back fish nurseries."
+why = "Mangroves link ecology, disasters and livelihoods. Prelims likes features of mangroves, and Mains asks about coastal protection."
+facts = [
+  "The Sundarbans is the delta of the Ganga, Brahmaputra and Meghna, shared by India and Bangladesh.",
+  "The Sundarbans National Park in India was inscribed as a UNESCO World Heritage Site in 1987.",
+  "Mangroves have special roots that rise above the mud, called pneumatophores, which help them breathe in waterlogged soil.",
+  "They act as a buffer against storm surges and as a nursery for fish and prawns.",
+]
+trap = "Mangroves are found in saltwater and brackish tidal areas. They are not freshwater swamp forests."
+mains = "Mangroves are a low-cost defence against coastal hazards. Examine."
+frame = [
+  "Describe mangrove features and distribution in India.",
+  "Show their role in storm protection, carbon storage and fisheries.",
+  "List the threats: aquaculture, reclamation, pollution, upstream dams.",
+  "Suggest community-led restoration and strict coastal regulation.",
+]
+notes = ["gs3-environment-biodiversity-conservation"]
+
+[story.question]
+id = "ca-2026-11-15-3"
+stem = "Pneumatophores, the breathing roots that stand above the mud, are a characteristic feature of:"
+options = [
+  "Mangrove vegetation",
+  "Tropical evergreen forests",
+  "Alpine meadows",
+  "Thorn forests",
+]
+answer = "A"
+explanation = "Mangroves grow in waterlogged, salty soil that lacks oxygen. Roots that rise above the mud, called pneumatophores, allow gas exchange."
+
+[[story]]
+id = "2026-11-15-chip-packaging"
+title = "Chip assembly and testing plant moves towards production"
+topics = ["pre.gs.science-tech.ict.supercomputers-and-semiconductors", "mains.gs3.science-tech.awareness.it.semiconductors-and-supercomputing", "pre.gs.current.science.new-technologies"]
+context = "A company building a plant to assemble, test and package semiconductor chips said work was on schedule, and that local suppliers were being trained for the next phase."
+why = "Semiconductors combine technology, industrial policy and strategic supply chains. Prelims asks for the stages of chip making and the materials involved."
+facts = [
+  "A semiconductor is a material whose conductivity lies between that of a conductor and an insulator. Silicon is the most widely used.",
+  "A fabrication plant, or fab, makes the chips on wafers. An assembly, testing, marking and packaging unit cuts, tests and packs them.",
+  "The Semi-Conductor Laboratory at Mohali, a government chip design and fabrication centre, moved from the Department of Space to the Ministry of Electronics and Information Technology in 2022.",
+  "India approved a national programme to support semiconductor and display manufacturing in 2021.",
+]
+trap = "A chip design company and a chip fab are different things. A country can design chips without making them."
+mains = "Semiconductors are a strategic sector. Examine India's prospects of building a domestic ecosystem."
+frame = [
+  "Explain why chips matter: electronics, defence, vehicles, communication.",
+  "State India's strengths: design talent, large market, policy support.",
+  "State the challenges: capital cost, water, power, skills and technology partners.",
+  "Suggest a phased approach: start with packaging and mature nodes, build suppliers.",
+]
+
+[story.question]
+id = "ca-2026-11-15-4"
+stem = "Which one of the following is the most widely used material for making semiconductor chips?"
+options = ["Copper", "Germanium", "Aluminium", "Silicon"]
+answer = "D"
+explanation = "Silicon is the most widely used semiconductor material for chips because it is abundant, its oxide forms a good insulating layer and it can be purified to a very high degree."
+
+[[story]]
+id = "2026-11-15-chola-temples"
+title = "Conservation work begins at a Chola-era temple complex"
+topics = ["pre.gs.culture.architecture.temples.dravida-style", "mains.gs1.culture.architecture.temples.dravida-style", "pre.gs.current.places.places-in-india"]
+context = "The state archaeology department started structural repairs and drainage works at a temple complex of the Chola period, saying the work follows conservation norms."
+why = "Temple architecture and World Heritage listings are repeat Prelims topics. Know the features of the Dravida style and the sites."
+facts = [
+  "The Brihadisvara Temple at Thanjavur was built by Rajaraja I and completed around 1010 CE.",
+  "The Great Living Chola Temples World Heritage Site includes the Brihadisvara at Thanjavur, the Gangaikondacholapuram temple and the Airavatesvara temple at Darasuram.",
+  "A Dravida temple has a pyramidal tower over the sanctum called the vimana, and a gateway tower called the gopura.",
+  "In the Chola period the vimana was the tallest part. In later centuries the gopuras grew taller than the vimana.",
+]
+trap = "Vimana and gopura are not the same. The vimana sits over the main shrine, and the gopura stands over the entrance gateway."
+pyq = "Prelims has often asked about temple styles, the features of Dravida and Nagara towers and the temples on the World Heritage list."
+notes = ["gs1-art-culture-temple-architecture"]
+
+[story.question]
+id = "ca-2026-11-15-5"
+stem = "Which one of the following temples is part of the Great Living Chola Temples World Heritage Site?"
+options = [
+  "Sun Temple, Konark",
+  "Airavatesvara Temple, Darasuram",
+  "Kandariya Mahadeva Temple, Khajuraho",
+  "Virupaksha Temple, Pattadakal",
+]
+answer = "B"
+explanation = "The Chola site includes the Brihadisvara temples at Thanjavur and Gangaikondacholapuram and the Airavatesvara temple at Darasuram. The other temples are World Heritage Sites in their own right."
+
+[[editorial]]
+id = "2026-11-15-editorial-winter-air"
+title = "Every winter, the same smog: breaking the cycle"
+topics = ["mains.gs3.environment.pollution.types-of-pollution", "mains.gs3.environment.pollution.pollution-control-laws-and-institutions"]
+body = """
+As temperatures fall in north India, the air above many cities thickens and children begin to cough. Each year brings the same pattern of alarm, emergency orders, blame and a slow return to normal. A problem that returns on schedule is a problem of design, not of surprise.
+
+## Why winter makes it worse
+
+Pollution does not rise only in winter; the weather traps it. Cooler air near the ground and light winds stop pollutants from dispersing. Sources add up: vehicle exhaust, construction dust, industry, burning of solid fuels and waste, and in some seasons the burning of crop residue in nearby fields. Because the air is shared across city and state boundaries, no single local government can solve it alone.
+
+## Different readings of the problem
+
+- **The farm-fire view.** Stubble burning is the visible spike and attracts the loudest blame. But farmers burn because the time between crops is short and clearing the field by other means is costly.
+- **The urban view.** Vehicles, dust and waste burning are present all year. Focusing only on the farm fires lets city sources off the hook.
+- **The enforcement view.** The rules already exist. The weakness lies in monitoring, penalties that are rarely applied and many agencies with unclear duties.
+
+All three readings are partly right. The pollution that reaches a city is a mix and the mix changes day by day.
+
+## What would work better
+
+1. **Plan on an airshed basis.** A single body with authority across states in the region can set shared targets, as the statutory commission for the national capital region was meant to do.
+2. **Pay for the alternatives.** If farmers are asked to stop burning, machines, residue markets and fair payment for straw must be available on time and nearby.
+3. **Cut city sources steadily.** Public transport, clean cooking fuels, dust control at construction sites and proper waste collection reduce pollution all year.
+4. **Monitor and publish.** More sensors, open data and health advisories help people protect themselves and keep authorities honest.
+5. **Replace emergency measures with prevention.** Closing schools or traffic restrictions at the peak are a last resort and cost the poor most.
+6. **Link to health.** Treat clean air as a public health goal with targets, not only as an environmental matter.
+
+## Conclusion
+
+The smog will not end with one winter policy. It needs a sustained plan: regional coordination, funded alternatives for farmers, steady cuts in urban sources, and honest data. The seasonal alarm should give way to a year-round routine of prevention.
+"""

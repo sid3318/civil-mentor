@@ -522,6 +522,7 @@ fn main() {
     // throwaway store, and says so on every screen.
     practice();
     today_and_analysis();
+    current_affairs();
 
     let mut unsaved = Harness::new(
         Store::in_memory(),
@@ -873,8 +874,8 @@ fn today_and_analysis() {
         .store(|s| s.plan(today).unwrap())
         .expect("today's plan is saved");
     let kinds: Vec<&str> = plan.iter().map(|t| t.kind.as_str()).collect();
-    assert_eq!(kinds, ["note", "drill"], "{plan:?}");
-    assert!(app.shows(("task", 0usize)) && app.shows(("task", 1usize)));
+    assert_eq!(kinds, ["brief", "note", "drill"], "{plan:?}");
+    assert!(app.shows(("task", 1usize)) && app.shows(("task", 2usize)));
     for ix in 0..3usize {
         assert!(app.shows(("insight", ix)), "insight card {ix}");
     }
@@ -883,19 +884,25 @@ fn today_and_analysis() {
         "the weakest topic has a Drill button"
     );
     assert!(app.shows("continue-reading"));
+    let today_page: Vec<ElementId> = ["plan", "mentor", "this-week", "question-of-the-day"]
+        .into_iter()
+        .map(ElementId::from)
+        .collect();
+    app.reveal("qotd-answer", &today_page);
     app.click("qotd-answer");
     app.shot("today-question");
+    app.reveal(("task-done", 1usize), &today_page);
 
     // Ticking a task saves it; the plan stays frozen for the day.
-    app.click(("task-done", 0usize));
-    assert!(app.store(|s| s.plan(today).unwrap().unwrap()[0].done));
+    app.click(("task-done", 1usize));
+    assert!(app.store(|s| s.plan(today).unwrap().unwrap()[1].done));
     // The note task opens its note, the drill task its drill.
-    app.click(("task", 0usize));
+    app.click(("task", 1usize));
     assert_eq!(app.screen(), Screen::Notes);
     app.press("secondary-1");
-    app.click(("task", 1usize));
+    app.click(("task", 2usize));
     assert!(app.in_exam(), "the drill task opens the exam room");
-    assert_eq!(app.exam().kind, format!("topic:{}", plan[1].target));
+    assert_eq!(app.exam().kind, format!("topic:{}", plan[2].target));
     app.click("leave");
     let after = app.store(|s| s.plan(today).unwrap().unwrap());
     assert_eq!(
@@ -997,6 +1004,215 @@ fn today_and_analysis() {
     );
     assert_eq!(finished, own.2, "no demo result is left");
     assert_eq!(app.store(|s| s.study_days().unwrap())[&today], 5 * 60 + 30);
+
+    drop(app);
+    std::fs::remove_dir_all(&dir).unwrap();
+}
+
+/// Current affairs: today's brief from the plan, the date bar and the
+/// calendar, a story and an editorial read in Full mode, Rapid mode, the
+/// day's quiz, the monthly issue, and both showing in Today and Analysis.
+fn current_affairs() {
+    let today = chrono::Local::now().date_naive();
+    let dir = std::env::temp_dir().join(format!("civil-mentor-ca-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let db = dir.join("civil-mentor.db");
+    let mut app = Harness::new(Store::open(&db).expect("the data file opens"), None);
+    app.click("decline-diagnostic");
+
+    // The plan starts with the latest brief, on any day after the sample's.
+    let (brief, date, stories, keys, briefs) = app.cx.update(|cx| {
+        let library = &AppState::get(cx).library;
+        let brief = library.todays_brief(today).expect("there are briefs");
+        let day = &library.briefs[brief];
+        let keys: Vec<String> = day.stories.iter().map(|s| s.reading_key()).collect();
+        (
+            brief,
+            day.date,
+            day.stories.len(),
+            keys,
+            library.briefs.len(),
+        )
+    });
+    assert_eq!(stories, 5);
+    let plan = app
+        .store(|s| s.plan(today).unwrap())
+        .expect("today's plan is saved");
+    assert_eq!(plan[0].kind, "brief", "{plan:?}");
+    assert_eq!(plan[0].target, date.to_string());
+    assert_eq!(plan[0].minutes, 25, "five stories at five minutes");
+    assert!(
+        app.shows(("brief-quiz", 0usize)),
+        "the brief's quiz is offered"
+    );
+    app.shot("today-brief");
+
+    // The task opens the day at a glance.
+    app.click(("task", 0usize));
+    assert_eq!(app.screen(), Screen::CurrentAffairs);
+    let shell = app.shell.clone();
+    assert_eq!(app.cx.update(|cx| shell.read(cx).brief(cx)), Some(brief));
+    assert!(app.shows("brief-day") && app.shows("brief-count"));
+    let bar_fits = app.act(|window, _| {
+        let count = window.find("brief-count");
+        count.visible() && f32::from(count.bounds().origin.x + count.bounds().size.width) <= 1280.
+    });
+    assert!(bar_fits, "the date bar fits the window");
+    app.shot("ca-day");
+
+    // The date bar moves a day back and forward; the calendar picks a day.
+    app.click("older-brief");
+    assert_eq!(
+        app.cx.update(|cx| shell.read(cx).brief(cx)),
+        Some(brief + 1)
+    );
+    app.click("newer-brief");
+    assert_eq!(app.cx.update(|cx| shell.read(cx).brief(cx)), Some(brief));
+    app.click("calendar");
+    assert!(app.shows("brief-calendar"));
+    app.shot("ca-calendar");
+    let oldest = app.cx.update(|cx| {
+        use chrono::Datelike as _;
+        let library = &AppState::get(cx).library;
+        library.briefs[briefs - 1].date.num_days_from_ce() as u64
+    });
+    app.click(("calendar-day", oldest));
+    assert_eq!(
+        app.cx.update(|cx| shell.read(cx).brief(cx)),
+        Some(briefs - 1)
+    );
+    assert!(
+        !app.shows("brief-calendar"),
+        "the calendar closes on a pick"
+    );
+    app.click("calendar");
+    {
+        use chrono::Datelike as _;
+        app.click(("calendar-day", date.num_days_from_ce() as u64));
+    }
+    assert_eq!(app.cx.update(|cx| shell.read(cx).brief(cx)), Some(brief));
+
+    // Full mode: a story opens with every part, and opening it reads it.
+    app.click(("story", 0usize));
+    let first = Target::Story { brief, story: 0 };
+    assert_eq!(app.cx.update(|cx| shell.read(cx).story(cx)), Some(first));
+    assert!(app.shows("key-facts") && app.shows("practice-question"));
+    assert!(
+        app.reading(&keys[0]).unwrap().done == Some(today),
+        "read once opened"
+    );
+    let reader: Vec<ElementId> = vec![ElementId::from("ca-reader")];
+    app.reveal("story-answer", &reader);
+    app.click("story-answer");
+    app.shot("ca-story");
+    // Reading a story counts as study time while the student is active.
+    app.wait(30);
+    assert_eq!(app.reading(&keys[0]).unwrap().seconds, 30);
+    assert_eq!(app.store(|s| s.study_days().unwrap())[&today], 30);
+    app.reveal("ca-bookmark", &reader);
+    app.click("ca-bookmark");
+    assert!(app.reading(&keys[0]).unwrap().bookmarked, "saved");
+    app.shot("ca-story-end");
+    // Next follows the list, which groups by subject: the day's other Polity story.
+    app.click("next-story");
+    assert_eq!(
+        app.cx.update(|cx| shell.read(cx).story(cx)),
+        Some(Target::Story { brief, story: 4 })
+    );
+    // Back returns to the first story; leaving and returning keeps the place.
+    app.press("secondary-[");
+    assert_eq!(app.cx.update(|cx| shell.read(cx).story(cx)), Some(first));
+    app.press("secondary-1");
+    app.press("secondary-4");
+    assert_eq!(app.cx.update(|cx| shell.read(cx).story(cx)), Some(first));
+
+    // An editorial reads as Markdown.
+    app.click(("editorial", 0usize));
+    assert!(app.shows("editorial"));
+    app.shot("ca-editorial");
+
+    // Rapid mode shows every title and its key facts, and can mark them read.
+    app.click("rapid-mode");
+    assert!(app.cx.update(|cx| shell.read(cx).rapid(cx)));
+    assert!(app.shows("rapid") && app.shows(("rapid-story", 4usize)));
+    app.shot("ca-rapid");
+    app.reveal("rapid-mark-read", &reader);
+    app.click("rapid-mark-read");
+    for key in &keys {
+        assert!(app.reading(key).unwrap().done.is_some(), "{key} is read");
+    }
+    app.click("full-mode");
+    assert!(!app.cx.update(|cx| shell.read(cx).rapid(cx)));
+
+    // The brief task is ticked by itself now every story is read.
+    app.press("secondary-1");
+    let done = app.cx.update(|cx| {
+        let state = AppState::get(cx);
+        let plan = state.store.plan(today).unwrap().unwrap();
+        mentor::task_done(&state.library, &plan[0], today, &state.reading, &[])
+    });
+    assert!(done, "all five stories are read");
+    app.shot("today-brief-read");
+
+    // The day's quiz: its five questions in the exam room, as their own kind.
+    app.press("secondary-4");
+    app.click("take-quiz");
+    assert!(app.in_exam(), "the quiz opens the exam room");
+    let quiz = app.exam();
+    assert_eq!(quiz.kind, format!("quiz:{date}"));
+    assert_eq!(quiz.answers.len(), 5);
+    assert_eq!(quiz.seconds_allowed, 5 * 72);
+    for _ in 0..5 {
+        app.press("b");
+        app.press("right");
+    }
+    app.click("submit");
+    if app.shows("submit-anyway") {
+        app.click("submit-anyway");
+    }
+    assert_eq!(app.result(), Some(quiz.id), "the result shows");
+    assert!(app.saved(quiz.id).finished.is_some());
+    app.shot("ca-quiz-result");
+
+    // Today and Analysis both show the quiz.
+    app.press("secondary-1");
+    assert!(
+        app.shows(("brief-quiz-score", 0usize)),
+        "Today shows the score"
+    );
+    app.shot("today-brief-quiz");
+    app.press("secondary-4");
+    assert!(app.shows("quiz-last"), "the brief shows its last score");
+    app.click("0-0-4");
+    app.analysis_tab(2);
+    app.reveal(
+        ("ca-quiz", quiz.id as u64),
+        &["score-chart", "current-affairs"]
+            .into_iter()
+            .map(ElementId::from)
+            .collect::<Vec<_>>(),
+    );
+    assert!(app.shows("current-affairs"));
+    app.shot("analysis-current-affairs");
+    app.analysis_tab(0);
+
+    // The monthly issue lists the month's stories and sits its quiz.
+    app.press("secondary-4");
+    app.click("monthly-issue");
+    assert!(app.shows("monthly"));
+    app.shot("ca-monthly");
+    app.click("monthly-quiz");
+    assert!(app.in_exam());
+    let monthly = app.exam();
+    {
+        use chrono::Datelike as _;
+        assert_eq!(
+            monthly.kind,
+            format!("month:{}-{:02}", date.year(), date.month())
+        );
+    }
+    assert_eq!(monthly.answers.len(), 35, "seven briefs of five questions");
+    app.click("leave");
 
     drop(app);
     std::fs::remove_dir_all(&dir).unwrap();

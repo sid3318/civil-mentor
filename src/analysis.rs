@@ -92,6 +92,10 @@ fn panel(title: impl Into<SharedString>, note: impl Into<SharedString>, cx: &App
         )
 }
 
+fn empty_note(text: &'static str, cx: &App) -> Div {
+    empty(text, cx).py_2()
+}
+
 fn empty(text: &'static str, cx: &App) -> Div {
     div()
         .py_6()
@@ -495,6 +499,7 @@ impl AnalysisScreen {
     }
 
     fn tests_tab(&self, record: &Record, cx: &mut Context<Self>) -> Div {
+        let current_affairs = self.current_affairs(cx);
         let insights = &record.insights;
         let overall = &insights.overall;
         let attempts = match insights.marks_per_attempt() {
@@ -561,6 +566,92 @@ impl AnalysisScreen {
                 panel("Recent tests", "Attempted, right, wrong, net score and time per question. Open one to review it.", cx)
                     .children(rows)
             })
+            .child(current_affairs)
+    }
+
+    /// The briefs: how many stories are read, and every daily and monthly
+    /// quiz sat, newest first.
+    fn current_affairs(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
+        let state = AppState::get(cx);
+        let stories: Vec<_> = state
+            .library
+            .briefs
+            .iter()
+            .flat_map(|brief| &brief.stories)
+            .collect();
+        let read = stories
+            .iter()
+            .filter(|story| mentor::story_read(&state.reading, story))
+            .count();
+        let mut quizzes = state.store.finished_kind("quiz:*").unwrap_or_default();
+        quizzes.extend(state.store.finished_kind("month:*").unwrap_or_default());
+        quizzes.sort_by_key(|test| std::cmp::Reverse((test.finished, test.id)));
+        let right: usize = quizzes.iter().map(|test| mentor::score(test).right).sum();
+        let asked: usize = quizzes.iter().map(|test| test.answers.len()).sum();
+        let mut summary = format!(
+            "You have read {read} of the {} in the briefs.",
+            crate::screens::count(stories.len(), "story", "stories")
+        );
+        if !quizzes.is_empty() {
+            summary.push_str(&format!(
+                " In {} you got {right} of {asked} questions right ({}%).",
+                crate::screens::count(quizzes.len(), "quiz", "quizzes"),
+                percent(right, asked)
+            ));
+        }
+        let rows: Vec<_> = quizzes
+            .iter()
+            .map(|test| {
+                let id = test.id;
+                let score = mentor::score(test);
+                row(cx)
+                    .id(("ca-quiz", id as u64))
+                    .test_support()
+                    .cursor_pointer()
+                    .hover(|this| this.bg(cx.theme().accent))
+                    .child(
+                        div().w(px(56.)).child(
+                            test.finished
+                                .unwrap_or(test.started)
+                                .format("%-d %b")
+                                .to_string(),
+                        ),
+                    )
+                    .child(
+                        div()
+                            .flex_1()
+                            .min_w_0()
+                            .truncate()
+                            .child(test.title.clone()),
+                    )
+                    .child(cell(
+                        96.,
+                        format!("{} of {} right", score.right, test.answers.len()),
+                    ))
+                    .child(cell(
+                        96.,
+                        format!(
+                            "{} of {}",
+                            marks(score.marks),
+                            marks(mentor::full_marks(test))
+                        ),
+                    ))
+                    .on_click(cx.listener(move |this, _, _, cx| {
+                        let _ = this.shell.update(cx, |shell, cx| shell.open_result(id, cx));
+                    }))
+            })
+            .collect();
+        let empty = rows.is_empty();
+        panel("Current affairs", summary, cx)
+            .id("current-affairs")
+            .test_support()
+            .when(empty, |this| {
+                this.child(empty_note(
+                    "No quiz taken yet. Every brief has one, and so does each month.",
+                    cx,
+                ))
+            })
+            .children(rows)
     }
 
     fn time(&self, record: &Record, cx: &App) -> Div {

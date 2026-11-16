@@ -6,12 +6,14 @@
 //! - `notes` is the reader; [`syllabus`] tracks topics and coverage.
 //! - `practice` lists the tests, `exam` sits them and `review` shows the
 //!   result; [`mentor`] marks them and chooses their questions.
+//! - `current_affairs` is the daily brief, its reader and its quiz.
 //! - `today` is the daily plan and `analysis` the charts; [`mentor`] makes
 //!   the plan and the insights, and [`demo`] makes up history to show them.
 
 mod analysis;
 mod app;
 pub mod content;
+mod current_affairs;
 pub mod demo;
 mod exam;
 pub mod mentor;
@@ -47,6 +49,7 @@ gpui_kit::assets::icon_assets!(
         AArrowUp,
         Bookmark,
         BookmarkCheck,
+        Calendar,
         ChartColumn,
         ChevronsLeftRight,
         Circle,
@@ -164,10 +167,16 @@ impl AppState {
         }
     }
 
-    /// Adds time spent reading a note to its record and to the day's study.
-    /// Nothing on screen shows it live, so this does not redraw.
-    pub fn add_reading_time(cx: &mut App, note: &str, block: &mut Option<i64>, seconds: u32) {
-        AppState::record_study(cx, Study::Reading, note, block, seconds);
+    /// Adds time spent reading a note or story to its record and to the
+    /// day's study. Nothing on screen shows it live, so this does not redraw.
+    pub fn add_reading_time(
+        cx: &mut App,
+        kind: Study,
+        note: &str,
+        block: &mut Option<i64>,
+        seconds: u32,
+    ) {
+        AppState::record_study(cx, kind, note, block, seconds);
         let today = Local::now().date_naive();
         let state = cx.global_mut::<AppState>();
         let reading = state

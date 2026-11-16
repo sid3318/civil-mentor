@@ -77,10 +77,13 @@ impl Question {
 pub struct Brief {
     pub date: NaiveDate,
     pub stories: Vec<Story>,
+    pub editorials: Vec<Editorial>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Story {
+    /// Stable across edits to the file, so the student's reading of it is kept.
+    pub id: String,
     pub title: String,
     pub topics: Vec<String>,
     pub context: String,
@@ -97,12 +100,38 @@ pub struct Story {
     search: String,
 }
 
+impl Story {
+    /// The key of the story's record in the store's `reading` table, which
+    /// it shares with notes.
+    pub fn reading_key(&self) -> String {
+        format!("story:{}", self.id)
+    }
+}
+
+/// Our own analysis of an issue in the news. Markdown.
+#[derive(Debug, Clone)]
+pub struct Editorial {
+    pub id: String,
+    pub title: String,
+    pub topics: Vec<String>,
+    pub body: String,
+    pub notes: Vec<String>,
+    search: String,
+}
+
+impl Editorial {
+    pub fn reading_key(&self) -> String {
+        format!("editorial:{}", self.id)
+    }
+}
+
 /// Something search can open. The numbers index into the [`Library`] lists.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Target {
     Note(usize),
     Question(usize),
     Story { brief: usize, story: usize },
+    Editorial { brief: usize, editorial: usize },
 }
 
 #[derive(Debug, Clone)]
@@ -125,6 +154,8 @@ pub struct Library {
     topic_index: HashMap<String, usize>,
     note_index: HashMap<String, usize>,
     question_index: HashMap<String, usize>,
+    /// Story and editorial ids, which must be unique across every brief.
+    item_ids: std::collections::HashSet<String>,
 }
 
 // ---- file formats ---------------------------------------------------------
@@ -185,11 +216,25 @@ struct RawQuestion {
 #[serde(deny_unknown_fields)]
 struct BriefFile {
     story: Vec<RawStory>,
+    #[serde(default)]
+    editorial: Vec<RawEditorial>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawEditorial {
+    id: String,
+    title: String,
+    topics: Vec<String>,
+    body: String,
+    #[serde(default)]
+    notes: Vec<String>,
 }
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RawStory {
+    id: String,
     title: String,
     topics: Vec<String>,
     context: String,
@@ -442,9 +487,19 @@ impl Library {
             Err(err) => return self.problem(path, toml_error(text, &err)),
         };
         let mut stories = Vec::new();
-        for (ix, raw) in file.story.into_iter().enumerate() {
+        for raw in file.story {
+            if !self.item_ids.insert(raw.id.clone()) || raw.id.is_empty() {
+                self.problem(
+                    path,
+                    format!("story id `{}` is empty or already used", raw.id),
+                );
+                continue;
+            }
             let question = raw.question.and_then(|mut question| {
-                question.id = format!("ca-{date}-{}", ix + 1);
+                // An explicit id keeps the answers given before stories had ids.
+                if question.id.is_empty() {
+                    question.id = format!("ca-{}", raw.id);
+                }
                 question.topics = raw.topics.clone();
                 question.source.get_or_insert_with(|| {
                     format!("Current affairs, {}", date.format("%-d %b %Y"))
@@ -454,6 +509,7 @@ impl Library {
             stories.push(Story {
                 search: format!("{}\n{}\n{}", raw.title, raw.context, raw.facts.join("\n"))
                     .to_lowercase(),
+                id: raw.id,
                 title: raw.title,
                 topics: raw.topics,
                 context: raw.context,
@@ -467,7 +523,29 @@ impl Library {
                 question,
             });
         }
-        self.briefs.push(Brief { date, stories });
+        let mut editorials = Vec::new();
+        for raw in file.editorial {
+            if !self.item_ids.insert(raw.id.clone()) || raw.id.is_empty() {
+                self.problem(
+                    path,
+                    format!("editorial id `{}` is empty or already used", raw.id),
+                );
+                continue;
+            }
+            editorials.push(Editorial {
+                search: format!("{}\n{}", raw.title, raw.body).to_lowercase(),
+                id: raw.id,
+                title: raw.title,
+                topics: raw.topics,
+                body: raw.body.trim().to_string(),
+                notes: raw.notes,
+            });
+        }
+        self.briefs.push(Brief {
+            date,
+            stories,
+            editorials,
+        });
     }
 
     /// Reports every reference to a topic or note that does not exist. The
@@ -497,14 +575,24 @@ impl Library {
             }
         }
         for brief in &self.briefs {
-            for story in &brief.stories {
-                let label = format!("story `{}` ({})", story.title, brief.date);
-                for topic in &story.topics {
+            let items = brief
+                .stories
+                .iter()
+                .map(|s| ("story", &s.id, &s.topics, &s.notes))
+                .chain(
+                    brief
+                        .editorials
+                        .iter()
+                        .map(|e| ("editorial", &e.id, &e.topics, &e.notes)),
+                );
+            for (kind, id, topics, notes) in items {
+                let label = format!("{kind} `{id}` ({})", brief.date);
+                for topic in topics {
                     if !self.topic_index.contains_key(topic) {
                         found.push(format!("{label}: unknown topic `{topic}`"));
                     }
                 }
-                for note in &story.notes {
+                for note in notes {
                     if !self.note_index.contains_key(note) {
                         found.push(format!("{label}: unknown note `{note}`"));
                     }
@@ -577,6 +665,39 @@ impl Library {
         years
     }
 
+    /// The brief a student reads on `today`: the newest dated on or before
+    /// it, or the oldest when every brief is dated later. By index into
+    /// [`Library::briefs`].
+    pub fn todays_brief(&self, today: NaiveDate) -> Option<usize> {
+        self.briefs
+            .iter()
+            .position(|brief| brief.date <= today)
+            .or_else(|| self.briefs.len().checked_sub(1))
+    }
+
+    pub fn brief_on(&self, date: NaiveDate) -> Option<usize> {
+        self.briefs.iter().position(|brief| brief.date == date)
+    }
+
+    /// The practice questions of a brief, in story order.
+    pub fn brief_questions(&self, brief: &Brief) -> Vec<usize> {
+        brief
+            .stories
+            .iter()
+            .filter_map(|story| self.question_ix(story.question.as_deref()?))
+            .collect()
+    }
+
+    /// Every story dated in a month, oldest day first, as `(brief, story)`.
+    pub fn month_stories(&self, year: i32, month: u32) -> Vec<(usize, usize)> {
+        use chrono::Datelike as _;
+        (0..self.briefs.len())
+            .rev()
+            .filter(|&b| self.briefs[b].date.year() == year && self.briefs[b].date.month() == month)
+            .flat_map(|b| (0..self.briefs[b].stories.len()).map(move |s| (b, s)))
+            .collect()
+    }
+
     /// "GS-2 · Polity" for `mains.gs2.polity.rights`: the paper and the
     /// subject, the two levels under the stage, which is how the app groups
     /// things for the student.
@@ -643,6 +764,22 @@ impl Library {
                         },
                         title: story.title.clone(),
                         detail: brief.date.format("%-d %b %Y").to_string(),
+                    };
+                    hits.push((score, hit));
+                }
+            }
+        }
+        for (brief_ix, brief) in self.briefs.iter().enumerate() {
+            for (editorial_ix, editorial) in brief.editorials.iter().enumerate() {
+                let score = score(&editorial.title, &editorial.search);
+                if score > 0 {
+                    let hit = Hit {
+                        target: Target::Editorial {
+                            brief: brief_ix,
+                            editorial: editorial_ix,
+                        },
+                        title: editorial.title.clone(),
+                        detail: format!("Editorial, {}", brief.date.format("%-d %b %Y")),
                     };
                     hits.push((score, hit));
                 }
@@ -837,11 +974,30 @@ note = "rights"
         for (year, questions) in &papers {
             assert_eq!(questions.len(), 100, "the {year} paper is complete");
         }
-        assert!(library.briefs.len() >= 2, "briefs loaded");
+        assert!(library.briefs.len() >= 7, "a week of briefs");
         assert!(
             library.briefs[0].date > library.briefs[1].date,
             "newest brief first"
         );
+        for brief in &library.briefs {
+            assert_eq!(brief.stories.len(), 5, "{} has five stories", brief.date);
+            assert!(
+                !brief.editorials.is_empty(),
+                "{} has an editorial",
+                brief.date
+            );
+            for story in &brief.stories {
+                assert!(story.question.is_some(), "{} has a question", story.id);
+                assert!(
+                    story
+                        .topics
+                        .first()
+                        .is_some_and(|t| t.starts_with("pre.gs.")),
+                    "{} is grouped by a Prelims subject",
+                    story.id
+                );
+            }
+        }
         for note in &library.notes {
             assert!(
                 !note.distilled.is_empty(),
@@ -1073,6 +1229,7 @@ explanation = "."
                 "current-affairs/2026-11-14.toml",
                 r#"
 [[story]]
+id = "2026-11-14-privacy"
 title = "Court hears a privacy case"
 topics = ["mains.gs2.polity.rights"]
 context = "A bench began hearing the case."
@@ -1084,15 +1241,63 @@ stem = "Privacy is part of which Article?"
 options = ["14", "19", "21", "32"]
 answer = "C"
 explanation = "Article 21."
+
+[[story]]
+id = "2026-11-14-old"
+title = "A story from before stories had ids"
+topics = ["mains.gs2.polity.rights"]
+context = "."
+why = "."
+facts = ["."]
+
+[story.question]
+id = "ca-2026-11-14-2"
+stem = "?"
+options = ["1", "2", "3", "4"]
+answer = "A"
+explanation = "."
+
+[[story]]
+id = "2026-11-14-privacy"
+title = "The same id again"
+topics = ["mains.gs2.polity.rights"]
+context = "."
+why = "."
+facts = ["."]
+
+[[editorial]]
+id = "2026-11-14-editorial-privacy"
+title = "Privacy needs an oversight body"
+topics = ["mains.gs2.polity.rights", "mains.gs9"]
+body = """
+## The issue
+Our own view.
+"""
 "#,
             ),
         ]));
-        assert_eq!(library.problems, Vec::<String>::new());
-        let story = &library.briefs[0].stories[0];
+        assert_eq!(
+            library.problems,
+            [
+                "current-affairs/2026-11-14.toml: story id `2026-11-14-privacy` is empty or already used",
+                "editorial `2026-11-14-editorial-privacy` (2026-11-14): unknown topic `mains.gs9`",
+            ]
+        );
+        let brief = &library.briefs[0];
+        assert_eq!(brief.stories.len(), 2, "the duplicate is left out");
+        assert_eq!(brief.editorials[0].body, "## The issue\nOur own view.");
+        assert_eq!(brief.stories[0].reading_key(), "story:2026-11-14-privacy");
+        assert_eq!(
+            brief.stories[1].question.as_deref(),
+            Some("ca-2026-11-14-2"),
+            "an explicit question id is kept"
+        );
+        assert_eq!(library.brief_questions(brief).len(), 2);
+        let story = &brief.stories[0];
         let question = library
             .question(story.question.as_deref().unwrap())
             .unwrap();
-        assert_eq!(question.id, "ca-2026-11-14-1");
+        assert_eq!(question.id, "ca-2026-11-14-privacy");
         assert_eq!(question.topics, ["mains.gs2.polity.rights"]);
         assert_eq!(question.source, "Current affairs, 14 Nov 2026");
         assert_eq!(question.answer, Some(2));

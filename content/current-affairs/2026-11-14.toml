@@ -5,6 +5,7 @@
 # Optional: trap, pyq, mains, frame, notes, and one practice [story.question].
 
 [[story]]
+id = "2026-11-14-repo-rate-held"
 title = "Monetary Policy Committee holds the repo rate"
 topics = ["pre.gs.economy.inflation.inflation-targeting-and-the-monetary", "mains.gs3.economy.planning.inflation.monetary-policy-framework-and-inflation", "pre.gs.current.economy.monetary-policy-decisions"]
 context = "The Monetary Policy Committee kept the policy repo rate unchanged at its bi-monthly review and retained its stance, saying retail inflation was within the tolerance band while food prices remained a risk."
@@ -27,6 +28,7 @@ frame = [
 notes = ["gs3-economy-inflation"]
 
 [story.question]
+id = "ca-2026-11-14-1"
 stem = "Who sets the inflation target that the Reserve Bank of India is required to meet?"
 options = [
   "The Monetary Policy Committee",
@@ -38,6 +40,7 @@ answer = "C"
 explanation = "Under the RBI Act the central government sets the target, in consultation with the RBI, once every five years. The committee then sets the repo rate needed to meet it."
 
 [[story]]
+id = "2026-11-14-surveillance-privacy"
 title = "Court tests a surveillance rule against the right to privacy"
 topics = ["pre.gs.polity.rights.fundamental-rights.right-to-freedom", "mains.gs2.polity.constitution.provisions.fundamental-rights", "pre.gs.current.national.landmark-judgments"]
 context = "A constitution bench began hearing challenges to rules that allow the bulk collection of communication data, with petitioners arguing that the rules fail the proportionality test."
@@ -58,6 +61,7 @@ frame = [
 notes = ["gs2-polity-fundamental-rights"]
 
 [story.question]
+id = "ca-2026-11-14-2"
 stem = "In K.S. Puttaswamy v. Union of India (2017), the Supreme Court held that the right to privacy is:"
 options = [
   "A statutory right created by the Information Technology Act",
@@ -69,6 +73,7 @@ answer = "B"
 explanation = "A nine-judge bench held unanimously that privacy is intrinsic to life and personal liberty under Article 21 and to the freedoms in Part III."
 
 [[story]]
+id = "2026-11-14-ramsar-sites"
 title = "More wetlands added to the Ramsar list"
 topics = ["pre.gs.environment.conventions.ramsar-convention-cites-and-cms", "pre.gs.environment.ecosystems.wetlands", "pre.gs.current.environment.protected-areas-and-ramsar-sites"]
 context = "India designated additional wetlands as sites of international importance under the Ramsar Convention, ahead of the next meeting of the contracting parties."
@@ -84,6 +89,7 @@ pyq = "Prelims has repeatedly asked to match Ramsar sites with their states, and
 notes = ["gs3-environment-biodiversity-conservation"]
 
 [story.question]
+id = "ca-2026-11-14-3"
 stem = "The Montreux Record is a register of:"
 options = [
   "Biosphere reserves recognised by UNESCO",
@@ -93,3 +99,106 @@ options = [
 ]
 answer = "B"
 explanation = "The Montreux Record is kept under the Ramsar Convention. It lists wetlands of international importance where changes in ecological character have occurred, are occurring or are likely to occur because of human interference."
+
+[[story]]
+id = "2026-11-14-indus-waters"
+title = "Water-sharing arrangements on the Indus system come up again"
+topics = ["pre.gs.indian-geography.drainage.himalayan.indus-system", "mains.gs2.ir.neighbourhood.pakistan", "pre.gs.current.international.conflicts-and-geopolitical-crises"]
+context = "Officials discussed technical questions on projects in the Indus basin and how they fit the treaty that governs the sharing of the rivers between India and Pakistan."
+why = "River-sharing treaties link geography with foreign policy. Prelims asks which rivers belong to which country under the treaty."
+facts = [
+  "The Indus Waters Treaty was signed in 1960 between India and Pakistan, with the World Bank also a signatory.",
+  "The three eastern rivers, the Ravi, Beas and Sutlej, were allotted to India.",
+  "The three western rivers, the Indus, Jhelum and Chenab, were allotted largely to Pakistan, with India allowed limited uses such as run-of-the-river hydropower.",
+  "The Indus rises near Lake Mansarovar in Tibet and flows through Ladakh before entering Pakistan.",
+]
+trap = "The Sutlej and Beas flow to India under the treaty, but the Indus, Jhelum and Chenab do not. Remember the eastern three as Ravi, Beas and Sutlej."
+mains = "Transboundary rivers are a test of India's neighbourhood diplomacy. Discuss with examples."
+frame = [
+  "Explain the Indus Waters Treaty as a model of river sharing.",
+  "Mention other river issues such as the Ganga and Teesta with Bangladesh.",
+  "Show how upstream and downstream positions create friction.",
+  "Suggest ways forward: data sharing, joint commissions, basin-wide planning.",
+]
+
+[story.question]
+id = "ca-2026-11-14-4"
+stem = "Under the Indus Waters Treaty, 1960, which of the following rivers were allotted to India for its exclusive use?"
+options = [
+  "Indus, Jhelum and Chenab",
+  "Ravi, Beas and Sutlej",
+  "Ravi, Chenab and Sutlej",
+  "Indus, Beas and Jhelum",
+]
+answer = "B"
+explanation = "The Ravi, Beas and Sutlej, known as the eastern rivers, were allotted to India. The Indus, Jhelum and Chenab went mainly to Pakistan."
+
+[[story]]
+id = "2026-11-14-women-reservation"
+title = "Debate on timing of reservation for women in legislatures"
+topics = ["pre.gs.polity.elections.electoral-system-and-the-representation", "mains.gs2.social-justice.welfare.women", "pre.gs.current.national.new-laws-bills-and-ordinances"]
+context = "Women's groups and some political parties asked for clarity on when reservation for women in Parliament and state assemblies will begin, given that it depends on steps that have not yet been completed."
+why = "Women's representation links polity and social justice. Prelims asks about the amendment and its conditions, and Mains about its effects."
+facts = [
+  "The Constitution (106th Amendment) Act, known as the Nari Shakti Vandan Adhiniyam, provides one-third reservation for women in the Lok Sabha and state legislative assemblies.",
+  "It was passed in 2023.",
+  "It will take effect only after a Census is held and a delimitation exercise is carried out.",
+  "The 73rd and 74th Amendments, in 1992, already reserved one-third of seats for women in panchayats and municipalities.",
+]
+trap = "The new reservation covers the Lok Sabha and state assemblies. It does not cover the Rajya Sabha or state legislative councils."
+mains = "Reservation for women in legislatures is necessary but not sufficient for empowerment. Discuss."
+frame = [
+  "State the provision and its link to delimitation.",
+  "Show gains: voice in policy, role models, evidence from panchayats.",
+  "Warn about proxy candidates and the lack of party tickets.",
+  "Suggest complements: party reforms, training, safe campaigning.",
+]
+
+[story.question]
+id = "ca-2026-11-14-5"
+stem = "The Constitution (106th Amendment) Act, 2023 provides for:"
+options = [
+  "Reservation of one-third of seats for women in panchayats",
+  "Reservation of seats for Other Backward Classes in the Lok Sabha",
+  "Reservation of one-third of seats for women in the Lok Sabha and state legislative assemblies",
+  "Reservation of seats for women in the Rajya Sabha",
+]
+answer = "C"
+explanation = "The 106th Amendment provides one-third reservation for women in the Lok Sabha and state legislative assemblies. Panchayat reservation came earlier, through the 73rd Amendment of 1992."
+
+[[editorial]]
+id = "2026-11-14-editorial-simultaneous-polls"
+title = "One nation, one election: the federal question"
+topics = ["mains.gs2.polity.constitutional-bodies.election-commission-of-india", "mains.gs2.polity.federalism.challenges.nature-of-indian-federalism"]
+body = """
+The idea of holding Lok Sabha and state assembly elections together returns to public debate every few years. It sounds simple. In practice it touches the structure of the Constitution, the working of federalism and the way voters hold governments to account.
+
+## The case for
+
+Supporters point to cost and disruption. Elections are held somewhere almost every year, and each one brings the model code of conduct, which slows new announcements. Security forces and officials are repeatedly pulled away from regular work. A common cycle, they say, would give governments a longer stretch to focus on governing, and may raise voter participation by combining local and national contests.
+
+## The case against
+
+Critics raise four concerns.
+
+- **Federal balance.** State elections have their own issues. If voters choose at one time for both levels, national issues may overshadow local ones.
+- **Cutting short terms.** Aligning dates would mean ending some assemblies early or extending others. That sits uneasily with the idea that a government answers to voters for a full term.
+- **What if a government falls?** Parliamentary systems allow governments to lose a majority mid-term. Rules for such cases may bring either fresh elections for a short remaining period or prolonged rule by others.
+- **Logistics.** Machines, staff and security would be needed in one big wave, which strains capacity.
+
+## Points both sides accept
+
+Few deny that the frequency of elections has costs. Few deny either that any change must protect the right of voters to remove a government. The disagreement is on whether the saving is worth the constitutional price.
+
+## A possible way forward
+
+1. **Open a wide consultation** with states, parties, constitutional experts and the Election Commission before any amendment.
+2. **Look at partial steps.** Grouping elections in two phases a few years apart, or aligning the dates of states whose terms are close, may bring some savings with less disruption.
+3. **Decide the fall-of-government rules first.** Provisions such as constructive votes of no confidence, used in some other democracies, need study before adoption.
+4. **Strengthen the Commission's capacity.** More trained staff and secure voting machines reduce costs under any model.
+5. **Keep an eye on the basic structure.** Any proposal must respect federalism and free and fair elections, both treated as basic features by the Supreme Court.
+
+## Conclusion
+
+Holding all elections together is mainly a trade-off between efficiency and accountability. The right answer is not obvious, and the weight of the Constitution lies on the side of care. A sound reform would aim at fewer disruptions without making state governments less answerable to their own voters.
+"""

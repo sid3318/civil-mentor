@@ -21,6 +21,7 @@ use gpui_kit::*;
 use crate::AppState;
 use crate::analysis::AnalysisScreen;
 use crate::content::Target;
+use crate::current_affairs::CurrentAffairsScreen;
 use crate::exam::ExamScreen;
 use crate::mentor::TestPlan;
 use crate::notes::NotesScreen;
@@ -137,6 +138,8 @@ enum Place {
     Exam,
     /// The result of a sitting, by its id in the store.
     Result(i64),
+    /// A story or editorial in the current-affairs reader.
+    Story(Target),
 }
 
 impl Place {
@@ -144,6 +147,7 @@ impl Place {
         match self {
             Place::Screen(screen) => screen,
             Place::Note(_) => Screen::Notes,
+            Place::Story(_) => Screen::CurrentAffairs,
             Place::Question(_) | Place::Paper(_) | Place::Exam | Place::Result(_) => {
                 Screen::Practice
             }
@@ -290,6 +294,7 @@ pub struct Shell {
     today: Entity<TodayScreen>,
     analysis: Entity<AnalysisScreen>,
     notes: Entity<NotesScreen>,
+    current_affairs: Entity<CurrentAffairsScreen>,
     practice: Entity<PracticeScreen>,
     exam: Entity<ExamScreen>,
     review: Entity<ReviewScreen>,
@@ -315,6 +320,7 @@ impl Shell {
             today: cx.new(|_| TodayScreen::new(shell.clone())),
             analysis: cx.new(|_| AnalysisScreen::new(shell.clone())),
             notes: cx.new(|_| NotesScreen::new(shell.clone())),
+            current_affairs: cx.new(|cx| CurrentAffairsScreen::new(shell.clone(), cx)),
             practice: cx.new(|_| PracticeScreen::new(shell.clone())),
             exam: cx.new(|cx| ExamScreen::new(shell.clone(), cx)),
             review: cx.new(|_| ReviewScreen::new(shell.clone())),
@@ -331,6 +337,21 @@ impl Shell {
     /// The note open in the reader, if any.
     pub fn note(&self, cx: &App) -> Option<usize> {
         self.notes.read(cx).note()
+    }
+
+    /// The brief on the Current affairs screen, by index into the library.
+    pub fn brief(&self, cx: &App) -> Option<usize> {
+        self.current_affairs.read(cx).brief()
+    }
+
+    /// The story or editorial open in the current-affairs reader.
+    pub fn story(&self, cx: &App) -> Option<Target> {
+        self.current_affairs.read(cx).selected()
+    }
+
+    /// Whether the current-affairs reader is in Rapid mode.
+    pub fn rapid(&self, cx: &App) -> bool {
+        self.current_affairs.read(cx).rapid()
     }
 
     /// True while the exam room is showing. It takes the whole window, and
@@ -361,15 +382,21 @@ impl Shell {
         self.visit(Place::Screen(screen), cx);
     }
 
-    /// Opens what a link or search result points at. A story opens its
-    /// section until the current-affairs phase.
+    /// Opens what a link or search result points at.
     pub fn open(&mut self, target: Target, cx: &mut Context<Self>) {
         let place = match target {
             Target::Note(ix) => Place::Note(ix),
             Target::Question(ix) => Place::Question(ix),
-            Target::Story { .. } => Place::Screen(Screen::CurrentAffairs),
+            Target::Story { .. } | Target::Editorial { .. } => Place::Story(target),
         };
         self.visit(place, cx);
+    }
+
+    /// Opens Current affairs at a day's brief, by index into the library.
+    pub fn open_brief(&mut self, brief: usize, cx: &mut Context<Self>) {
+        self.current_affairs
+            .update(cx, |screen, cx| screen.set_brief(brief, cx));
+        self.go(Screen::CurrentAffairs, cx);
     }
 
     pub fn open_paper(&mut self, year: u16, cx: &mut Context<Self>) {
@@ -422,6 +449,11 @@ impl Shell {
         {
             place = Place::Note(ix);
         }
+        if place == Place::Screen(Screen::CurrentAffairs)
+            && let Some(target) = self.story(cx)
+        {
+            place = Place::Story(target);
+        }
         if self.history[self.at] != place {
             self.history.truncate(self.at + 1);
             self.history.push(place);
@@ -450,8 +482,18 @@ impl Shell {
         if !matches!(place, Place::Note(_)) {
             self.notes.update(cx, |notes, cx| notes.stop_clock(cx));
         }
+        if !matches!(place, Place::Story(_)) {
+            self.current_affairs
+                .update(cx, |screen, cx| screen.stop_clock(cx));
+        }
         match place {
             Place::Note(ix) => self.notes.update(cx, |notes, cx| notes.show(ix, cx)),
+            Place::Story(target) => self
+                .current_affairs
+                .update(cx, |screen, cx| screen.show(target, cx)),
+            Place::Screen(Screen::CurrentAffairs) => self
+                .current_affairs
+                .update(cx, |screen, cx| screen.show_day(cx)),
             Place::Question(ix) => self
                 .review
                 .update(cx, |review, cx| review.show_question(ix, cx)),
@@ -649,14 +691,21 @@ impl Render for Shell {
                 .child(div().flex_1().min_h_0().child(self.exam.clone()))
                 .into_any_element();
         }
-        // Notes has panes that scroll on their own; every other place is one
-        // column that scrolls as a whole, with its own scroll position.
+        // Notes and Current affairs have panes that scroll on their own;
+        // every other place is one column that scrolls as a whole, with its
+        // own scroll position.
         let content = match place {
             Place::Note(_) | Place::Screen(Screen::Notes) => div()
                 .flex_1()
                 .min_w_0()
                 .h_full()
                 .child(self.notes.clone())
+                .into_any_element(),
+            Place::Story(_) | Place::Screen(Screen::CurrentAffairs) => div()
+                .flex_1()
+                .min_w_0()
+                .h_full()
+                .child(self.current_affairs.clone())
                 .into_any_element(),
             place => {
                 let (page, scroll) = match place {
@@ -776,7 +825,9 @@ fn results(query: &str, cx: &App) -> Vec<(&'static str, Vec<Entry>)> {
     for hit in AppState::get(cx).library.search(&needle, 30) {
         let (group, screen) = match hit.target {
             Target::Note(_) => (&mut notes, Screen::Notes),
-            Target::Story { .. } => (&mut stories, Screen::CurrentAffairs),
+            Target::Story { .. } | Target::Editorial { .. } => {
+                (&mut stories, Screen::CurrentAffairs)
+            }
             Target::Question(_) => (&mut questions, Screen::Practice),
         };
         group.push(Entry {

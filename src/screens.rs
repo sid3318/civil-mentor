@@ -2,12 +2,10 @@
 //! section and says which phase builds the real thing. They are replaced one
 //! by one as the phases land.
 
-use gpui_kit::component::{ActiveTheme as _, StyledExt as _, h_flex, v_flex};
+use gpui_kit::component::{ActiveTheme as _, StyledExt as _, v_flex};
 use gpui_kit::*;
 
-use crate::AppState;
 use crate::app::Screen;
-use crate::content::{Library, Story};
 
 /// A centred column with a title and a one-line summary. Screens add to it.
 pub(crate) fn page(title: &'static str, summary: impl Into<SharedString>, cx: &App) -> Div {
@@ -29,37 +27,6 @@ pub(crate) fn page(title: &'static str, summary: impl Into<SharedString>, cx: &A
         )
 }
 
-/// A titled list of rows.
-fn section(title: impl Into<SharedString>, rows: Vec<Div>, cx: &App) -> Div {
-    v_flex()
-        .child(
-            div()
-                .pb_1()
-                .text_sm()
-                .font_medium()
-                .text_color(cx.theme().muted_foreground)
-                .child(title.into()),
-        )
-        .children(rows)
-}
-
-fn row(left: impl IntoElement, right: impl Into<SharedString>, cx: &App) -> Div {
-    h_flex()
-        .justify_between()
-        .gap_4()
-        .py_2()
-        .border_t_1()
-        .border_color(cx.theme().border)
-        .child(div().min_w_0().child(left))
-        .child(
-            div()
-                .flex_shrink_0()
-                .text_sm()
-                .text_color(cx.theme().muted_foreground)
-                .child(right.into()),
-        )
-}
-
 fn coming(phase: u8, what: &'static str, cx: &App) -> Div {
     div()
         .p_4()
@@ -74,47 +41,8 @@ pub(crate) fn count(n: usize, one: &str, many: &str) -> String {
     format!("{n} {}", if n == 1 { one } else { many })
 }
 
-fn first_subject(library: &Library, topics: &[String]) -> String {
-    topics
-        .first()
-        .map(|topic| library.subject_label(topic))
-        .unwrap_or_default()
-}
-
-fn story_rows(library: &Library, stories: &[Story], cx: &App) -> Vec<Div> {
-    stories
-        .iter()
-        .map(|story| {
-            row(
-                story.title.clone(),
-                first_subject(library, &story.topics),
-                cx,
-            )
-        })
-        .collect()
-}
-
 pub(crate) fn placeholder(screen: Screen, cx: &App) -> impl IntoElement {
-    let library = &AppState::get(cx).library;
-
     match screen {
-        Screen::CurrentAffairs => page(
-            screen.title(),
-            count(library.briefs.len(), "daily brief", "daily briefs"),
-            cx,
-        )
-        .child(coming(
-            4,
-            "the daily brief reader, editorials and the daily quiz",
-            cx,
-        ))
-        .children(library.briefs.iter().map(|brief| {
-            section(
-                brief.date.format("%A, %-d %B %Y").to_string(),
-                story_rows(library, &brief.stories, cx),
-                cx,
-            )
-        })),
         Screen::Revision => {
             page(screen.title(), "What is due for another look today", cx).child(coming(
                 5,
@@ -131,6 +59,7 @@ pub(crate) fn placeholder(screen: Screen, cx: &App) -> impl IntoElement {
         // The shell renders these itself; this arm only keeps the match total.
         Screen::Today
         | Screen::Notes
+        | Screen::CurrentAffairs
         | Screen::Practice
         | Screen::Analysis
         | Screen::Syllabus

@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use chrono::{Datelike as _, NaiveDate, NaiveDateTime};
 
-use crate::content::{Library, Note, Question, within};
+use crate::content::{Library, Note, Question, Story, within};
 use crate::store::{Answer, Attempt, Confidence, Past, PlanTask, Reading};
 use crate::syllabus::{self, Status};
 
@@ -128,6 +128,10 @@ pub enum TestKind {
     Topic(String),
     /// The first-launch test: questions spread across every subject.
     Diagnostic,
+    /// The practice questions of one day's brief, by its date.
+    Quiz(NaiveDate),
+    /// The practice questions of every brief in a month: the year and month.
+    Month(i32, u32),
 }
 
 impl TestKind {
@@ -143,6 +147,8 @@ impl TestKind {
             TestKind::Paper(year) => format!("paper:{year}"),
             TestKind::Topic(id) => format!("topic:{id}"),
             TestKind::Diagnostic => "diagnostic".into(),
+            TestKind::Quiz(date) => format!("quiz:{date}"),
+            TestKind::Month(year, month) => format!("month:{year}-{month:02}"),
         }
     }
 
@@ -158,17 +164,24 @@ impl TestKind {
                 ("subject", id) => TestKind::Subject(id.to_string()),
                 ("paper", year) => TestKind::Paper(year.parse().ok()?),
                 ("topic", id) => TestKind::Topic(id.to_string()),
+                ("quiz", date) => TestKind::Quiz(date.parse().ok()?),
+                ("month", month) => {
+                    let (year, month) = month.split_once('-')?;
+                    TestKind::Month(year.parse().ok()?, month.parse().ok()?)
+                }
                 _ => return None,
             },
         })
     }
 
-    /// The standard number of questions. A paper asks all of its own.
+    /// The standard number of questions. A paper and a quiz ask all of their own.
     pub fn questions(&self) -> usize {
         match self {
             TestKind::Micro => 10,
             TestKind::Mini => 30,
             TestKind::Mock | TestKind::Paper(_) => 100,
+            TestKind::Quiz(_) => 5,
+            TestKind::Month(..) => 150,
             TestKind::Subject(_) | TestKind::Custom | TestKind::Mix | TestKind::Diagnostic => 20,
             TestKind::Topic(_) => DRILL_QUESTIONS,
         }
@@ -188,6 +201,11 @@ impl TestKind {
             TestKind::Paper(year) => format!("UPSC Prelims {year}, GS Paper I"),
             TestKind::Topic(_) => "Topic drill".into(),
             TestKind::Diagnostic => "Diagnostic test".into(),
+            TestKind::Quiz(date) => format!("Daily quiz: {}", date.format("%-d %b %Y")),
+            TestKind::Month(year, month) => match NaiveDate::from_ymd_opt(*year, *month, 1) {
+                Some(first) => format!("Monthly quiz: {}", first.format("%B %Y")),
+                None => "Monthly quiz".into(),
+            },
         }
     }
 }
@@ -207,7 +225,9 @@ impl TestPlan {
     /// A test of `kind` at its standard size and 72 seconds a question.
     pub fn standard(kind: TestKind, library: &Library) -> TestPlan {
         let count = match &kind {
-            TestKind::Paper(_) => pool(library, &kind, &[]).len(),
+            TestKind::Paper(_) | TestKind::Quiz(_) | TestKind::Month(..) => {
+                pool(library, &kind, &[]).len()
+            }
             TestKind::Topic(_) => pool(library, &kind, &[]).len().min(kind.questions()),
             kind => kind.questions(),
         };
@@ -247,6 +267,17 @@ pub fn pool(library: &Library, kind: &TestKind, subjects: &[String]) -> Vec<usiz
         TestKind::Topic(id) => all
             .filter(scored)
             .filter(|&ix| library.questions[ix].topics.iter().any(|t| within(t, id)))
+            .collect(),
+        TestKind::Quiz(date) => library
+            .brief_on(*date)
+            .map(|b| library.brief_questions(&library.briefs[b]))
+            .unwrap_or_default(),
+        TestKind::Month(year, month) => library
+            .month_stories(*year, *month)
+            .into_iter()
+            .filter_map(|(b, s)| {
+                library.question_ix(library.briefs[b].stories[s].question.as_deref()?)
+            })
             .collect(),
         TestKind::Micro
         | TestKind::Mini
@@ -332,7 +363,7 @@ pub fn weak_topics(history: &[Past]) -> Vec<String> {
 pub fn pick(library: &Library, plan: &TestPlan, history: &[Past], seed: u64) -> Vec<usize> {
     let pool = pool(library, &plan.kind, &plan.subjects);
     match plan.kind {
-        TestKind::Paper(_) => return pool,
+        TestKind::Paper(_) | TestKind::Quiz(_) | TestKind::Month(..) => return pool,
         TestKind::Diagnostic => return spread(library, pool, plan.count, seed),
         _ => {}
     }
@@ -538,12 +569,16 @@ pub const DRILL_QUESTIONS: usize = 10;
 const MIN_DRILL_QUESTIONS: usize = 5;
 /// No task is planned for less time than this.
 const MIN_TASK_MINUTES: u32 = 5;
+/// The time planned for each unread story of the brief.
+pub const STORY_MINUTES: u32 = 5;
 
 /// The kinds of task in a day's plan, in the order the plan fills them.
-/// Today's brief (Phase 4), due reviews (Phase 5) and a Mains answer
-/// (Phase 6) become variants here, each with its step in [`today_plan`].
+/// Due reviews (Phase 5) and a Mains answer (Phase 6) become variants
+/// here, each with its step in [`today_plan`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TaskKind {
+    /// Read the stories of today's brief. The target is the brief's date.
+    Brief,
     /// Continue the note in progress, or start the next unread one.
     Note,
     /// A drill on the weakest topic.
@@ -554,6 +589,7 @@ impl TaskKind {
     /// How the kind is written in the store.
     pub fn key(self) -> &'static str {
         match self {
+            TaskKind::Brief => "brief",
             TaskKind::Note => "note",
             TaskKind::Drill => "drill",
         }
@@ -561,6 +597,7 @@ impl TaskKind {
 
     pub fn parse(key: &str) -> Option<TaskKind> {
         match key {
+            "brief" => Some(TaskKind::Brief),
             "note" => Some(TaskKind::Note),
             "drill" => Some(TaskKind::Drill),
             _ => None,
@@ -582,8 +619,9 @@ impl Plan {
 }
 
 /// The plan for `today`, sized to `daily_minutes`. It fills the time in the
-/// order of "Mentor rules": the note in progress, or else the next unread
-/// note in the least-covered subject; then a drill on the weakest topic
+/// order of "Mentor rules": today's brief if any of its stories is unread
+/// (see [`Library::todays_brief`]); the note in progress, or else the next
+/// unread note in the least-covered subject; then a drill on the weakest topic
 /// with at least [`WEAK_AFTER`] answers. Each task takes what is left of the
 /// day and is shortened to fit, or left out below its least useful size.
 /// The caller saves it, so it stays frozen for the day.
@@ -596,10 +634,11 @@ pub fn today_plan(
 ) -> Plan {
     let mut left = daily_minutes;
     let mut tasks = Vec::new();
-    let steps: [&dyn Fn(u32) -> Option<PlanTask>; 2] =
-        [&|left| note_task(library, reading, left), &|left| {
-            drill_task(library, history, left)
-        }];
+    let steps: [&dyn Fn(u32) -> Option<PlanTask>; 3] = [
+        &|left| brief_task(library, reading, today, left),
+        &|left| note_task(library, reading, left),
+        &|left| drill_task(library, history, left),
+    ];
     for step in steps {
         if let Some(task) = step(left) {
             left -= task.minutes;
@@ -607,6 +646,46 @@ pub fn today_plan(
         }
     }
     Plan { day: today, tasks }
+}
+
+/// Whether the student has read a story: opened it, or marked it read in Rapid mode.
+pub fn story_read(reading: &HashMap<String, Reading>, story: &Story) -> bool {
+    reading
+        .get(&story.reading_key())
+        .is_some_and(|r| r.done.is_some())
+}
+
+fn brief_task(
+    library: &Library,
+    reading: &HashMap<String, Reading>,
+    today: NaiveDate,
+    left: u32,
+) -> Option<PlanTask> {
+    let brief = &library.briefs[library.todays_brief(today)?];
+    let unread = brief
+        .stories
+        .iter()
+        .filter(|story| !story_read(reading, story))
+        .count() as u32;
+    if unread == 0 || left < MIN_TASK_MINUTES {
+        return None;
+    }
+    let stories = crate::screens::count(unread as usize, "story", "stories");
+    let title = if brief.date == today {
+        format!("Read today's brief: {stories}")
+    } else {
+        format!(
+            "Read the brief for {}: {stories}",
+            brief.date.format("%-d %b")
+        )
+    };
+    Some(PlanTask {
+        kind: TaskKind::Brief.key().into(),
+        target: brief.date.to_string(),
+        title,
+        minutes: (unread * STORY_MINUTES).min(left),
+        done: false,
+    })
 }
 
 fn note_task(library: &Library, reading: &HashMap<String, Reading>, left: u32) -> Option<PlanTask> {
@@ -746,8 +825,10 @@ pub fn topic_title(library: &Library, id: &str) -> String {
 
 /// Whether a task in the plan for `day` is done: ticked by the student, or
 /// done another way. A note is done once it is marked read, and a drill
-/// once a drill on its topic is submitted that day. `tests` are finished sittings.
+/// once a drill on its topic is submitted that day, and the brief once
+/// every one of its stories is read. `tests` are finished sittings.
 pub fn task_done(
+    library: &Library,
     task: &PlanTask,
     day: NaiveDate,
     reading: &HashMap<String, Reading>,
@@ -755,6 +836,17 @@ pub fn task_done(
 ) -> bool {
     task.done
         || match TaskKind::parse(&task.kind) {
+            Some(TaskKind::Brief) => task
+                .target
+                .parse()
+                .ok()
+                .and_then(|date| library.brief_on(date))
+                .is_some_and(|b| {
+                    library.briefs[b]
+                        .stories
+                        .iter()
+                        .all(|story| story_read(reading, story))
+                }),
             Some(TaskKind::Note) => reading.get(&task.target).is_some_and(|r| r.done.is_some()),
             Some(TaskKind::Drill) => {
                 let key = TestKind::Topic(task.target.clone()).key();
@@ -970,7 +1062,12 @@ impl Insights {
             let asked = self.overall.answered() + self.overall.blank;
             let attempted = percent(self.overall.answered(), asked);
             let right = percent(self.overall.right, self.overall.answered());
-            cards.push(card(if per_attempt > 0.0 {
+            cards.push(card(if per_attempt > 0.0 && self.overall.blank == 0 {
+                format!(
+                    "You attempt every question and get {right}% of them right, so each attempt earns {} marks. At this accuracy attempting pays, so keep attempting.",
+                    one_decimal(per_attempt)
+                )
+            } else if per_attempt > 0.0 {
                 format!(
                     "You attempt {attempted}% of questions and get {right}% of those right, so each attempt earns {} marks. Attempting more should raise your score.",
                     one_decimal(per_attempt)
@@ -1563,10 +1660,12 @@ topic = [
             minutes: 10,
             done: false,
         };
+        let none = Library::default();
         let note = task(TaskKind::Note, "courts");
         let mut reading = HashMap::from([("courts".to_string(), opened(16, 60, false))]);
-        assert!(!task_done(&note, day(16), &reading, &[]));
+        assert!(!task_done(&none, &note, day(16), &reading, &[]));
         assert!(task_done(
+            &none,
             &PlanTask {
                 done: true,
                 ..note.clone()
@@ -1576,18 +1675,153 @@ topic = [
             &[]
         ));
         reading.insert("courts".into(), opened(16, 60, true));
-        assert!(task_done(&note, day(16), &reading, &[]), "marked read");
+        assert!(
+            task_done(&none, &note, day(16), &reading, &[]),
+            "marked read"
+        );
 
         let drill = task(TaskKind::Drill, "pre.gs.polity.courts");
         let mut sat = attempt(vec![], GS_RIGHT, GS_WRONG);
         sat.kind = "topic:pre.gs.polity.courts".into();
         sat.finished = Some(day(15).and_hms_opt(20, 0, 0).unwrap());
         assert!(
-            !task_done(&drill, day(16), &reading, &[sat.clone()]),
+            !task_done(&none, &drill, day(16), &reading, &[sat.clone()]),
             "sat yesterday"
         );
         sat.finished = Some(day(16).and_hms_opt(20, 0, 0).unwrap());
-        assert!(task_done(&drill, day(16), &reading, &[sat]), "sat today");
+        assert!(
+            task_done(&none, &drill, day(16), &reading, &[sat]),
+            "sat today"
+        );
+    }
+
+    #[test]
+    fn the_brief_comes_first_until_every_story_is_read() {
+        let story = |n: u32| {
+            format!(
+                "[[story]]\nid = \"s{n}\"\ntitle = \"Story {n}\"\ntopics = [\"pre.gs.polity\"]\n\
+                 context = \".\"\nwhy = \".\"\nfacts = [\".\"]\n\n[story.question]\nstem = \"?\"\n\
+                 options = [\"1\", \"2\", \"3\", \"4\"]\nanswer = \"B\"\nexplanation = \".\"\n\n"
+            )
+        };
+        let library = Library::from_files([
+            (
+                "syllabus.toml".to_string(),
+                "topic = [{ id = \"pre\", title = \"Prelims\" }, { id = \"pre.gs\", title = \"GS\" }, \
+                 { id = \"pre.gs.polity\", title = \"Polity\" }]"
+                    .to_string(),
+            ),
+            (
+                "current-affairs/2026-11-14.toml".to_string(),
+                story(1) + &story(2),
+            ),
+            ("current-affairs/2026-10-30.toml".to_string(), story(3)),
+        ]);
+        assert_eq!(library.problems, Vec::<String>::new());
+        let mut reading = HashMap::new();
+
+        // On the 16th there is no brief of its own, so the newest before it is read.
+        let plan = today_plan(&library, &reading, &[], 90, day(16));
+        assert_eq!(
+            titles(&plan),
+            [("Read the brief for 14 Nov: 2 stories".to_string(), 10)]
+        );
+        let brief = plan.tasks[0].clone();
+        assert_eq!(
+            (brief.kind.as_str(), brief.target.as_str()),
+            ("brief", "2026-11-14")
+        );
+        assert_eq!(
+            titles(&today_plan(&library, &reading, &[], 90, day(14))),
+            [("Read today's brief: 2 stories".to_string(), 10)]
+        );
+        assert_eq!(
+            today_plan(&library, &reading, &[], 7, day(16)).tasks[0].minutes,
+            7,
+            "shortened to fit the day"
+        );
+
+        // One story read: one left, and the task is not done yet.
+        reading.insert("story:s1".to_string(), opened(16, 0, true));
+        assert_eq!(
+            titles(&today_plan(&library, &reading, &[], 90, day(16))),
+            [("Read the brief for 14 Nov: 1 story".to_string(), 5)]
+        );
+        assert!(!task_done(&library, &brief, day(16), &reading, &[]));
+        // Opened but not read does not count.
+        reading.insert("story:s2".to_string(), opened(16, 0, false));
+        assert!(!task_done(&library, &brief, day(16), &reading, &[]));
+        reading.insert("story:s2".to_string(), opened(16, 0, true));
+        assert!(
+            task_done(&library, &brief, day(16), &reading, &[]),
+            "all read"
+        );
+        assert_eq!(today_plan(&library, &reading, &[], 90, day(16)).tasks, []);
+
+        // Before the first brief, the oldest one is offered.
+        let early = NaiveDate::from_ymd_opt(2026, 10, 1).unwrap();
+        assert_eq!(library.todays_brief(early), Some(1));
+    }
+
+    #[test]
+    fn a_quiz_asks_its_briefs_questions_in_order() {
+        let story = |n: u32| {
+            format!(
+                "[[story]]\nid = \"s{n}\"\ntitle = \"Story {n}\"\ntopics = [\"pre.gs.polity\"]\n\
+                 context = \".\"\nwhy = \".\"\nfacts = [\".\"]\n\n[story.question]\nstem = \"?\"\n\
+                 options = [\"1\", \"2\", \"3\", \"4\"]\nanswer = \"B\"\nexplanation = \".\"\n\n"
+            )
+        };
+        let library = Library::from_files([
+            (
+                "syllabus.toml".to_string(),
+                "topic = [{ id = \"pre\", title = \"Prelims\" }, { id = \"pre.gs\", title = \"GS\" }, \
+                 { id = \"pre.gs.polity\", title = \"Polity\" }]"
+                    .to_string(),
+            ),
+            ("current-affairs/2026-11-14.toml".to_string(), story(1) + &story(2)),
+            ("current-affairs/2026-11-02.toml".to_string(), story(3)),
+            ("current-affairs/2026-10-30.toml".to_string(), story(4)),
+        ]);
+        assert_eq!(library.problems, Vec::<String>::new());
+        let ids = |plan: &TestPlan| -> Vec<String> {
+            pick(&library, plan, &[], 7)
+                .into_iter()
+                .map(|ix| library.questions[ix].id.clone())
+                .collect()
+        };
+        let daily = TestPlan::standard(TestKind::Quiz(day(14)), &library);
+        assert_eq!((daily.count, daily.seconds), (2, 144));
+        assert_eq!(ids(&daily), ["ca-s1", "ca-s2"]);
+        assert_eq!(
+            new_attempt(
+                &library,
+                &daily,
+                &[0],
+                day(14).and_hms_opt(9, 0, 0).unwrap()
+            )
+            .title,
+            "Daily quiz: 14 Nov 2026"
+        );
+        let monthly = TestPlan::standard(TestKind::Month(2026, 11), &library);
+        assert_eq!(
+            ids(&monthly),
+            ["ca-s3", "ca-s1", "ca-s2"],
+            "oldest day first, October left out"
+        );
+        assert_eq!(
+            TestKind::Month(2026, 11).title(),
+            "Monthly quiz: November 2026"
+        );
+        for kind in [TestKind::Quiz(day(14)), TestKind::Month(2026, 11)] {
+            assert_eq!(TestKind::parse(&kind.key()), Some(kind));
+        }
+        assert_eq!(TestKind::Quiz(day(14)).key(), "quiz:2026-11-14");
+        assert_eq!(TestKind::Month(2026, 1).key(), "month:2026-01");
+        assert!(
+            !TestPlan::standard(TestKind::Quiz(day(15)), &library).fits(&library),
+            "no brief that day"
+        );
     }
 
     /// Two tests, worked by hand.
@@ -1625,6 +1859,39 @@ topic = [
         let mut older = attempt(older, GS_RIGHT, GS_WRONG);
         older.seconds_used = 300;
         vec![newest, older]
+    }
+
+    /// One test of 5, every question attempted: 2 right and 3 wrong
+    /// (4 - 2 = 2 marks), 0.4 an attempt.
+    #[test]
+    fn the_attempts_card_gives_no_advice_to_attempt_more_when_nothing_was_left() {
+        let library = plan_library();
+        let answers = [
+            vec![answer(Some(0), Some(true)); 2],
+            vec![answer(Some(0), Some(false)); 3],
+        ]
+        .concat();
+        let insights = insights(
+            &library,
+            &HashMap::new(),
+            &[],
+            &[attempt(answers, GS_RIGHT, GS_WRONG)],
+            &BTreeMap::new(),
+            60,
+            day(16),
+        );
+        let cards: Vec<String> = insights
+            .cards(&library)
+            .into_iter()
+            .map(|c| c.text)
+            .collect();
+        assert!(
+            cards.contains(
+                &"You attempt every question and get 40% of them right, so each attempt earns 0.4 marks. At this accuracy attempting pays, so keep attempting.".to_string()
+            ),
+            "{cards:?}"
+        );
+        assert!(!cards.iter().any(|c| c.contains("Attempting more")));
     }
 
     #[test]

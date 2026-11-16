@@ -1,0 +1,184 @@
+# Sample brief. The stories are illustrative, written to show the format. They are not real news.
+
+[[story]]
+id = "2026-11-11-governor-assent"
+title = "State asks for time limits on the Governor's assent to Bills"
+topics = ["pre.gs.polity.states.governor", "mains.gs2.polity.federalism.challenges.role-of-the-governor", "pre.gs.current.national.polity-and-governance-developments"]
+context = "A state government said several Bills passed by its legislature had been waiting for assent for a long time and asked for a clear timeline for the Governor's decision."
+why = "Centre-state relations and the Governor's discretion come up every year. Prelims asks about Article 200, and Mains about the Governor's role in a federal system."
+facts = [
+  "Under Article 200, the Governor may give assent, withhold assent, return a Bill (other than a Money Bill) for reconsideration, or reserve it for the President.",
+  "If the legislature passes the Bill again, with or without changes, the Governor must give assent.",
+  "Article 163 says the Governor acts on the aid and advice of the council of ministers, except where the Constitution requires discretion.",
+  "Article 157 sets the minimum age of a Governor at 35 years.",
+]
+trap = "The Governor cannot send a Bill to the Supreme Court for an opinion. That route, under Article 143, belongs to the President."
+mains = "The Governor's power over assent has become a point of Centre-state friction. Examine."
+frame = [
+  "State Article 200 and the four options.",
+  "Show the concern: long delays act like a pocket veto on an elected government.",
+  "Show the defence: the office is a constitutional check, not a rubber stamp.",
+  "Suggest ways ahead: reasonable timelines, written reasons, and following the Sarkaria and Punchhi recommendations.",
+]
+
+[story.question]
+id = "ca-2026-11-11-1"
+stem = "When a Bill other than a Money Bill is presented to the Governor under Article 200, which of the following is NOT an available course of action?"
+options = [
+  "To give assent to the Bill",
+  "To withhold assent to the Bill",
+  "To reserve the Bill for the consideration of the President",
+  "To refer the Bill to the Supreme Court for its opinion",
+]
+answer = "D"
+explanation = "Article 200 lets the Governor assent, withhold assent, return the Bill for reconsideration or reserve it for the President. The power to seek the Supreme Court's opinion under Article 143 belongs to the President."
+
+[[story]]
+id = "2026-11-11-msp-rabi"
+title = "Government announces higher support prices for rabi crops"
+topics = ["pre.gs.economy.agriculture.agricultural-price-policy", "mains.gs3.agriculture.subsidies.minimum-support-prices", "pre.gs.current.schemes.schemes-for-farmers-msmes"]
+context = "Ahead of the rabi sowing season, the government announced an increase in the minimum support prices for wheat and some pulses and oilseeds, saying the rise gave farmers a margin over costs."
+why = "MSP is a perennial topic. Prelims asks which body recommends it and which crops are covered. Mains asks whether MSP should have legal backing."
+facts = [
+  "The Commission for Agricultural Costs and Prices recommends the minimum support prices.",
+  "The Cabinet Committee on Economic Affairs takes the final decision.",
+  "MSPs are announced for 22 mandated crops. Sugarcane has a separate Fair and Remunerative Price.",
+  "The Commission began in 1965 as the Agricultural Prices Commission and took its present name in 1985.",
+]
+trap = "An announced MSP is not a guaranteed purchase price for every crop. Actual procurement is large only for a few crops such as wheat and rice, in some states."
+mains = "Does a legal guarantee of MSP solve the problems of Indian agriculture? Discuss."
+frame = [
+  "Explain what MSP is and how it is fixed.",
+  "Give the case for a guarantee: price risk, income stability.",
+  "Give the case against: fiscal cost, market distortion, crop concentration.",
+  "Suggest a mix: wider procurement, price deficiency payments, better markets.",
+]
+
+[story.question]
+id = "ca-2026-11-11-2"
+stem = "Which body recommends the Minimum Support Prices of agricultural crops to the Government of India?"
+options = [
+  "NITI Aayog",
+  "The Food Corporation of India",
+  "The Commission for Agricultural Costs and Prices",
+  "The Reserve Bank of India",
+]
+answer = "C"
+explanation = "The Commission for Agricultural Costs and Prices recommends the prices and the Cabinet Committee on Economic Affairs decides them. The Food Corporation of India only buys at the announced prices."
+
+[[story]]
+id = "2026-11-11-western-disturbance"
+title = "Western disturbance brings early snow to the Himalaya"
+topics = ["pre.gs.indian-geography.climate.seasons-and-rainfall-distribution", "mains.gs1.geography.india.climate-and-the-monsoon"]
+context = "A western disturbance brought snowfall to higher reaches of the western Himalaya and light rain to parts of the plains in the north-west, according to the weather office."
+why = "Winter rain in the north-west is a regular Prelims target. Know the source, the season and the effect on the rabi crop."
+facts = [
+  "Western disturbances are low-pressure systems that originate over the Mediterranean region.",
+  "They travel eastwards to India with the subtropical westerly jet stream, mainly in the winter months.",
+  "The rain and snow they bring help the wheat crop in the north-west.",
+  "They are the main reason Jammu and Kashmir, Himachal Pradesh and Uttarakhand get winter snowfall.",
+]
+trap = "Western disturbances bring winter rain to the north-west. The north-east monsoon brings winter rain to the south-east coast. They are separate systems."
+notes = ["gs1-geography-indian-monsoon"]
+
+[story.question]
+id = "ca-2026-11-11-3"
+stem = "Western disturbances, which bring winter rain to north-west India, originate in the:"
+options = ["Bay of Bengal", "Arabian Sea", "Indian Ocean near the equator", "Mediterranean region"]
+answer = "D"
+explanation = "These extratropical storms form in the Mediterranean region and are carried east by the westerly jet stream. They are the source of winter rain and snow in the north-west."
+
+[[story]]
+id = "2026-11-11-antibiotic-resistance"
+title = "Health officials call for tighter control of antibiotic use"
+topics = ["pre.gs.general-science.biology.microorganisms", "mains.gs3.science-tech.developments.health-and-medicine", "pre.gs.current.science.health-diseases-and-vaccines"]
+context = "At a health review meeting, officials said that over-the-counter sale of antibiotics and their use in animal farming were speeding up antimicrobial resistance and urged better enforcement of prescription rules."
+why = "Antimicrobial resistance links health, agriculture and the environment. Expect a Prelims statement question on causes and a Mains question on policy."
+facts = [
+  "Antimicrobial resistance develops when microbes survive drugs meant to kill them. Misuse and overuse of antibiotics speed it up.",
+  "Antibiotics act on bacteria and do not work against viruses such as those causing colds and flu.",
+  "India launched its National Action Plan on containment of antimicrobial resistance in 2017.",
+  "Schedule H1 of the Drugs and Cosmetics Rules restricts the sale of certain antibiotics without a prescription.",
+]
+trap = "The resistance is in the microbe, not in the person. A person does not become resistant to antibiotics."
+mains = "Antimicrobial resistance needs a One Health approach. Explain."
+frame = [
+  "Define resistance and the scale of the threat.",
+  "Link human, animal and environmental causes.",
+  "List actions: prescription control, farm use limits, surveillance, new drugs.",
+  "Note the need for public awareness and hospital infection control.",
+]
+
+[story.question]
+id = "ca-2026-11-11-4"
+stem = "Antimicrobial resistance is mainly the result of:"
+options = [
+  "A person's body becoming used to a medicine",
+  "Microbes surviving and multiplying after exposure to drugs meant to kill them",
+  "The use of vaccines against bacteria",
+  "The spread of viruses through contaminated water",
+]
+answer = "B"
+explanation = "Resistance develops in the microbe. Those that survive a drug pass on their resistance, and this is helped by misuse and incomplete courses of antibiotics."
+
+[[story]]
+id = "2026-11-11-census-preparation"
+title = "Preparations for the next Census discussed with states"
+topics = ["pre.gs.indian-geography.population.census", "mains.gs1.society.population.demography-of-india-and-population", "pre.gs.current.national.polity-and-governance-developments"]
+context = "Officials met state representatives to discuss training of enumerators and the use of digital tools for the next Census."
+why = "The Census feeds delimitation, welfare targeting and many exam facts. Know who conducts it, under what law and how often."
+facts = [
+  "The Census Act, 1948 governs the conduct of the Census, and the Registrar General and Census Commissioner works under the Union Home Ministry.",
+  "The Census is a Union subject, entered at item 69 of the Union List.",
+  "India's first synchronous Census was held in 1881 and the first after Independence in 1951.",
+  "The 2011 Census was the fifteenth since 1872 and the seventh since Independence.",
+]
+trap = "The Census is held every ten years, but nothing in the Constitution fixes that gap. The ten-year cycle is a long-standing practice."
+pyq = "Prelims often asks about Census terms such as sex ratio, literacy rate and urban agglomeration, and which body conducts it."
+
+[story.question]
+id = "ca-2026-11-11-5"
+stem = "In India, the Census is conducted under the:"
+options = [
+  "Constitution, under Article 82 alone",
+  "Representation of the People Act, 1951",
+  "Registration of Births and Deaths Act, 1969",
+  "Census Act, 1948",
+]
+answer = "D"
+explanation = "The Census Act of 1948 provides the legal basis. Article 82 only requires readjustment of seats after each Census. The Registrar General and Census Commissioner conducts it for the Home Ministry."
+
+[[editorial]]
+id = "2026-11-11-editorial-speaking-truth"
+title = "Integrity in the file note: why honest advice is a civil servant's duty"
+topics = ["mains.gs4.aptitude.integrity", "mains.gs4.public-ethics.accountability-and-ethical-governance"]
+body = """
+A civil servant works in a system where the final decision rests with the elected government. Yet the quality of that decision depends heavily on the advice that comes before it. If officers learn to write only what ministers want to read, governance suffers quietly. The question is how to keep advice honest without making the officer stubborn.
+
+## What honest advice means
+
+Honest advice is not defiance. It means setting out the facts, the legal position, the likely costs and the risks, even when they are inconvenient. It also means saying clearly when a proposal appears to break a rule. Once the elected leadership has heard the advice and decided, the officer carries the decision out, unless it is plainly illegal. The advice and the loyalty are not rivals. They are two halves of the same duty.
+
+## The pressures against it
+
+- **Career risk.** Officers who disagree can be moved to unimportant posts. The fear of that shapes the next note they write.
+- **Short horizons.** Elected governments need results soon. Long-term costs are easy to downplay.
+- **A culture of pleasing.** In many offices, agreement is rewarded and caution is seen as obstruction.
+- **Unclear boundaries.** Officers are not always sure when a matter is policy, where they should defer, and when it is a legal breach, where they must not.
+
+## Two views
+
+One view says that officers should be more careful about openly challenging elected leaders, because democracy gives the final word to voters. Another says that a permanent civil service exists exactly to give frank advice, so protection for honest officers is a necessity. Both are partly right. The first protects accountability. The second protects quality.
+
+## A way forward
+
+1. **Write it down.** A short, factual note of the advice given and the reasons creates a record. It protects the officer and the decision-maker.
+2. **Fixed tenures.** A predictable posting period reduces the fear of being moved for giving unwelcome advice.
+3. **Clear rules on oral instructions.** Instructions of consequence should be confirmed in writing.
+4. **Training in ethics.** Case discussions on conflicts between loyalty and law prepare officers early.
+5. **Reward good advice.** Promotion and recognition should value frankness along with delivery.
+
+## Conclusion
+
+Integrity in administration is mostly built from small acts: one accurate note, one refusal to backdate a paper, one clear explanation to a minister. A system that protects such acts gets better decisions. A system that punishes them gets agreeable officers and avoidable mistakes.
+"""

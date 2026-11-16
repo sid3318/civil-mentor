@@ -6,6 +6,7 @@
 use chrono::{Datelike as _, Duration, Local, NaiveDate};
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::checkbox::Checkbox;
+use gpui_kit::component::text::TextView;
 use gpui_kit::component::{
     ActiveTheme as _, Disableable as _, Sizable as _, StyledExt as _, h_flex, v_flex,
 };
@@ -16,6 +17,7 @@ use crate::AppState;
 use crate::analysis::heat;
 use crate::app::{Shell, countdown};
 use crate::content::{Target, one_line};
+use crate::current_affairs::{quiz_score, sittings};
 use crate::exam::LETTERS;
 use crate::mentor::{self, DRILL_QUESTIONS, Plan, RECENT_TESTS, TaskKind, TestKind, TestPlan};
 
@@ -154,7 +156,7 @@ impl TodayScreen {
         let done: Vec<bool> = plan
             .tasks
             .iter()
-            .map(|task| mentor::task_done(task, plan.day, &state.reading, &tests))
+            .map(|task| mentor::task_done(library, task, plan.day, &state.reading, &tests))
             .collect();
         let title = format!(
             "Today's plan · {} of {} done · {} min",
@@ -170,6 +172,17 @@ impl TodayScreen {
             let kind = TaskKind::parse(&task.kind);
             let note = library.notes.iter().position(|note| note.id == task.target);
             let drill = mentor::task_drill(library, task);
+            // The brief's day, and the last time its quiz was sat.
+            let brief: Option<NaiveDate> = match kind {
+                Some(TaskKind::Brief) => task.target.parse().ok(),
+                _ => None,
+            };
+            let brief_ix = brief.and_then(|date| library.brief_on(date));
+            let quiz = brief.map(|date| {
+                let kind = TestKind::Quiz(date);
+                let last = sittings(&kind, cx).into_iter().next();
+                (TestPlan::standard(kind, library), last)
+            });
             h_flex()
                 .gap_3()
                 .py_2()
@@ -202,6 +215,12 @@ impl TodayScreen {
                         })
                         .child(task.title.clone())
                         .on_click(cx.listener(move |this, _, _, cx| match kind {
+                            Some(TaskKind::Brief) => {
+                                if let Some(ix) = brief_ix {
+                                    let _ =
+                                        this.shell.update(cx, |shell, cx| shell.open_brief(ix, cx));
+                                }
+                            }
                             Some(TaskKind::Note) => {
                                 if let Some(note) = note {
                                     this.open(Target::Note(note), cx);
@@ -211,6 +230,21 @@ impl TodayScreen {
                             None => {}
                         })),
                 )
+                .when_some(quiz, |this, (plan, last)| {
+                    this.child(match last {
+                        Some(test) => muted(format!("Quiz: {}", quiz_score(&test)), cx)
+                            .id(("brief-quiz-score", ix))
+                            .test_support()
+                            .into_any_element(),
+                        None => Button::new(("brief-quiz", ix))
+                            .outline()
+                            .xsmall()
+                            .label("Take its quiz")
+                            .disabled(!plan.fits(library))
+                            .on_click(cx.listener(move |this, _, _, cx| this.sit(plan.clone(), cx)))
+                            .into_any_element(),
+                    })
+                })
                 .child(muted(format!("{} min", task.minutes), cx))
         });
         card(title, cx)
@@ -219,7 +253,7 @@ impl TodayScreen {
             .flex_1()
             .children(rows)
             .when(plan.tasks.is_empty(), |this| {
-                this.child(muted("Nothing to plan: every note is read and no topic has enough answers for a drill yet.", cx))
+                this.child(muted("Nothing to plan: the brief and every note are read, and no topic has enough answers for a drill yet.", cx))
             })
             .child(muted(
                 "Made the first time you open the app each day, from what you have read and how your tests went.",
@@ -268,57 +302,61 @@ impl TodayScreen {
         let question = &library.questions[ix];
         let shown = self.answer_shown == Some(today);
         let theme = cx.theme();
-        card.child(div().text_sm().child(question.stem.clone()))
-            .children(question.options.iter().enumerate().map(|(option, text)| {
-                let right = shown && question.answer == Some(option);
-                h_flex()
-                    .gap_2()
-                    .text_sm()
-                    .px_1()
-                    .rounded(theme.radius)
-                    .when(right, |this| {
-                        this.bg(theme.success.opacity(0.12))
-                            .text_color(theme.success)
-                            .font_medium()
-                    })
-                    .child(
-                        div()
-                            .w(px(24.))
-                            .flex_shrink_0()
-                            .child(format!("({})", LETTERS[option])),
-                    )
-                    .child(div().flex_1().min_w_0().child(text.clone()))
-            }))
-            .when(shown, |this| {
-                this.child(muted(one_line(&question.explanation, 240), cx))
-            })
-            .child(
-                h_flex()
-                    .gap_2()
-                    .child(
-                        Button::new("qotd-answer")
-                            .outline()
-                            .small()
-                            .label(if shown {
-                                "Hide the answer"
-                            } else {
-                                "Show the answer"
-                            })
-                            .on_click(cx.listener(move |this, _, _, cx| {
-                                this.answer_shown = if shown { None } else { Some(today) };
-                                cx.notify();
-                            })),
-                    )
-                    .child(
-                        Button::new("qotd-open")
-                            .ghost()
-                            .small()
-                            .label("Open")
-                            .on_click(cx.listener(move |this, _, _, cx| {
-                                this.open(Target::Question(ix), cx)
-                            })),
-                    ),
-            )
+        card.child(
+            div()
+                .text_sm()
+                .child(TextView::markdown("qotd-stem", question.stem.clone())),
+        )
+        .children(question.options.iter().enumerate().map(|(option, text)| {
+            let right = shown && question.answer == Some(option);
+            h_flex()
+                .gap_2()
+                .text_sm()
+                .px_1()
+                .rounded(theme.radius)
+                .when(right, |this| {
+                    this.bg(theme.success.opacity(0.12))
+                        .text_color(theme.success)
+                        .font_medium()
+                })
+                .child(
+                    div()
+                        .w(px(24.))
+                        .flex_shrink_0()
+                        .child(format!("({})", LETTERS[option])),
+                )
+                .child(div().flex_1().min_w_0().child(text.clone()))
+        }))
+        .when(shown, |this| {
+            this.child(muted(one_line(&question.explanation, 240), cx))
+        })
+        .child(
+            h_flex()
+                .gap_2()
+                .child(
+                    Button::new("qotd-answer")
+                        .outline()
+                        .small()
+                        .label(if shown {
+                            "Hide the answer"
+                        } else {
+                            "Show the answer"
+                        })
+                        .on_click(cx.listener(move |this, _, _, cx| {
+                            this.answer_shown = if shown { None } else { Some(today) };
+                            cx.notify();
+                        })),
+                )
+                .child(
+                    Button::new("qotd-open")
+                        .ghost()
+                        .small()
+                        .label("Open")
+                        .on_click(
+                            cx.listener(move |this, _, _, cx| this.open(Target::Question(ix), cx)),
+                        ),
+                ),
+        )
     }
 
     fn mentor(&self, today: NaiveDate, cx: &mut Context<Self>) -> impl IntoElement + use<> {

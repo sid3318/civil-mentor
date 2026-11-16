@@ -1,0 +1,187 @@
+# Sample brief. The stories are illustrative, written to show the format. They are not real news.
+
+[[story]]
+id = "2026-11-12-collegium-vacancies"
+title = "Vacancies in the higher judiciary revive the appointments debate"
+topics = ["pre.gs.polity.judiciary.supreme-court.composition-and-appointment-of-judges", "mains.gs2.polity.executive-judiciary.judiciary.appointment-of-judges", "pre.gs.current.national.landmark-judgments"]
+context = "A parliamentary committee noted that many posts of High Court judges were vacant and asked the executive and the judiciary to speed up the process of recommendations and clearances."
+why = "Judicial appointments mix polity, case law and reform. Prelims asks which case created the collegium, and Mains asks whether the system needs change."
+facts = [
+  "Articles 124 and 217 provide for appointment of judges of the Supreme Court and High Courts by the President.",
+  "The Second Judges case (1993) created the collegium system, giving primacy to the Chief Justice of India's opinion formed with senior judges.",
+  "The 99th Amendment and the National Judicial Appointments Commission Act of 2014 tried to replace the collegium.",
+  "In 2015 the Supreme Court struck down both as violating the basic structure, including judicial independence.",
+]
+trap = "The word collegium appears nowhere in the Constitution. It is a creation of Supreme Court judgments."
+pyq = "Prelims has asked about the process of appointing judges and the case law behind it. Mains has asked how to make appointments both independent and accountable."
+mains = "The collegium system protects independence but lacks transparency. Suggest reforms."
+frame = [
+  "Trace the constitutional text and the Judges cases.",
+  "Credit the system: insulation from executive pressure.",
+  "Criticise it: opacity, no published criteria, no secretariat.",
+  "Suggest reform: published criteria, a permanent secretariat and timelines for both branches.",
+]
+
+[story.question]
+id = "ca-2026-11-12-1"
+stem = "The National Judicial Appointments Commission Act, 2014 was struck down by the Supreme Court in 2015 on the ground that it:"
+options = [
+  "Violated the federal structure of the Constitution",
+  "Interfered with the independence of the judiciary, a part of the basic structure",
+  "Had not been passed by the Rajya Sabha",
+  "Gave too much power to the Chief Justice of India",
+]
+answer = "B"
+explanation = "The Court held that the Commission would weaken judicial independence, which forms part of the basic structure, and so struck down the amendment and the Act."
+
+[[story]]
+id = "2026-11-12-upi-expansion"
+title = "Unified Payments Interface adds new use cases"
+topics = ["pre.gs.economy.money.payment-systems-and-digital-payments", "mains.gs3.science-tech.awareness.it.digital-public-infrastructure", "pre.gs.current.science.new-technologies"]
+context = "The payments network said a new feature would let users make small-value payments through voice and assisted channels, aimed at people with limited digital skills."
+why = "Digital public infrastructure appears in Prelims as a fact-based question on institutions and in Mains as a governance success story with limits."
+facts = [
+  "The Payment and Settlement Systems Act, 2007 gives the Reserve Bank of India the power to regulate payment systems.",
+  "The National Payments Corporation of India began in 2008 as an umbrella body for retail payments.",
+  "The Unified Payments Interface was launched in 2016 and lets users send money instantly between bank accounts.",
+  "It is an open, interoperable system, so many apps can use the same network.",
+]
+trap = "UPI is a payment network run by the NPCI. It is not a bank, and the money moves between bank accounts, not wallets alone."
+mains = "India's digital public infrastructure has widened access to finance, but gaps remain. Discuss."
+frame = [
+  "Name the building blocks: identity, payments and data sharing.",
+  "Show the gains: lower costs, inclusion, small-merchant reach.",
+  "Show the gaps: digital literacy, connectivity, fraud, concentration among a few apps.",
+  "Suggest steps: grievance redress, digital literacy, competition safeguards.",
+]
+
+[story.question]
+id = "ca-2026-11-12-2"
+stem = "Which one of the following bodies was set up as an umbrella organisation for retail payment and settlement systems in India?"
+options = [
+  "Securities and Exchange Board of India",
+  "National Payments Corporation of India",
+  "Insurance Regulatory and Development Authority of India",
+  "Clearing Corporation of India Limited",
+]
+answer = "B"
+explanation = "The National Payments Corporation of India, formed in 2008 with the support of the RBI and the Indian Banks' Association, runs UPI, RuPay and other retail payment systems."
+
+[[story]]
+id = "2026-11-12-tiger-dispersal"
+title = "A young tiger covers long distances between reserves"
+topics = ["pre.gs.environment.conservation.species-projects", "mains.gs3.environment.conservation.in-situ-and-ex-situ", "pre.gs.current.environment.species-in-the-news"]
+context = "Forest staff tracked a young tiger that had moved across district and state boundaries in search of territory, and officials spoke of the need to protect the corridors it used."
+why = "Corridors and tiger conservation are standard Prelims and Mains material. Know the legal body, the project and the threats."
+facts = [
+  "Project Tiger was launched in 1973.",
+  "The National Tiger Conservation Authority became a statutory body through a 2006 amendment of the Wildlife (Protection) Act, 1972.",
+  "The Union Environment Minister chairs the Authority.",
+  "The tiger is listed in Schedule I of the Wildlife (Protection) Act, which gives it the highest protection.",
+]
+trap = "Tiger reserves are notified by state governments on the advice of the Authority. They are not national parks, though a reserve can contain one."
+mains = "Wildlife corridors are as important as protected areas. Examine."
+frame = [
+  "Explain why isolated reserves fail: genetic isolation, shrinking habitats.",
+  "Show the role of corridors for dispersal and gene flow.",
+  "Name the threats: roads, rail lines, mining, human settlement.",
+  "Suggest measures: corridor notification, underpasses, community participation.",
+]
+notes = ["gs3-environment-biodiversity-conservation"]
+
+[story.question]
+id = "ca-2026-11-12-3"
+stem = "The National Tiger Conservation Authority is:"
+options = [
+  "A constitutional body",
+  "A non-statutory advisory body",
+  "A statutory body under the Wildlife (Protection) Act, 1972",
+  "A body set up by the Forest (Conservation) Act, 1980",
+]
+answer = "C"
+explanation = "The 2006 amendment to the Wildlife (Protection) Act, 1972 gave the Authority statutory status. It works under the Ministry of Environment, Forest and Climate Change."
+
+[[story]]
+id = "2026-11-12-dance-festival"
+title = "Classical dance festival draws artists from across the country"
+topics = ["pre.gs.culture.dance.classical-dances-recognised", "mains.gs1.culture.performing-arts.classical-dances", "pre.gs.current.places.places-in-india"]
+context = "A week-long festival of classical dance opened with performances by artists from several states, including a recital of a monastery-based tradition from the north-east."
+why = "Prelims tests the list of classical dances, their states and their recognising body. A match-the-following question is common."
+facts = [
+  "Eight dance forms are recognised as classical by the Sangeet Natak Akademi: Bharatanatyam, Kathak, Kuchipudi, Odissi, Kathakali, Sattriya, Manipuri and Mohiniyattam.",
+  "Sattriya, from Assam, was recognised in 2000. It grew in the Vaishnavite monasteries called sattras, begun by Sankaradeva.",
+  "The Natyashastra, attributed to Bharata, is the early text on dance and drama.",
+  "The Sangeet Natak Akademi was set up in 1953.",
+]
+trap = "Bihu, Garba and Ghoomar are folk forms, not classical dances. Chhau is classical only on the Ministry of Culture's list of nine, not the Akademi's eight."
+pyq = "Prelims often asks about classical dances, their origin states or the first to be recognised."
+
+[story.question]
+id = "ca-2026-11-12-4"
+stem = "Which one of the following classical dances originated in the sattras (Vaishnavite monasteries) of Assam?"
+options = ["Manipuri", "Odissi", "Kuchipudi", "Sattriya"]
+answer = "D"
+explanation = "Sattriya grew in the sattras of Assam, associated with the saint Sankaradeva. The Sangeet Natak Akademi recognised it as a classical dance in 2000."
+
+[[story]]
+id = "2026-11-12-coastal-patrol"
+title = "Coast Guard commissions a new offshore patrol vessel"
+topics = ["pre.gs.science-tech.defence.aircraft-ships-and-submarines", "mains.gs3.security.borders.coastal-and-maritime-security", "pre.gs.current.defence.missiles-ships-and-aircraft"]
+context = "The Coast Guard added a new patrol vessel to its fleet, with a role in surveillance of the exclusive economic zone and in search and rescue."
+why = "Maritime security is a growing topic in GS-3 and in international relations. Know the legal zones and the agencies involved."
+facts = [
+  "The Coast Guard Act, 1978 is the legal basis of the Indian Coast Guard, which works under the Ministry of Defence.",
+  "Its motto is Vayam Rakshamah, meaning We Protect.",
+  "Under the UN Convention on the Law of the Sea, territorial waters extend up to 12 nautical miles from the baseline.",
+  "The exclusive economic zone extends up to 200 nautical miles, where the coastal state has rights over resources.",
+]
+trap = "A coastal state has full sovereignty in territorial waters but only resource rights in the exclusive economic zone. Ships of other states can still pass through the zone."
+mains = "India's coastal security depends on coordination between many agencies. Discuss."
+frame = [
+  "Name the layers: Navy, Coast Guard, marine police, state agencies.",
+  "Recall the lessons of the 2008 sea-borne attack on Mumbai.",
+  "Describe reforms: coastal radar chain, fisher registration, information sharing.",
+  "Point out the remaining gaps: coordination and fisher community involvement.",
+]
+
+[story.question]
+id = "ca-2026-11-12-5"
+stem = "Under the UN Convention on the Law of the Sea, the exclusive economic zone of a coastal state extends up to:"
+options = ["12 nautical miles", "24 nautical miles", "200 nautical miles", "350 nautical miles"]
+answer = "C"
+explanation = "The exclusive economic zone extends up to 200 nautical miles from the baseline. The territorial sea is 12 nautical miles and the contiguous zone up to 24."
+
+[[editorial]]
+id = "2026-11-12-editorial-ai-governance"
+title = "Using artificial intelligence in government: promise and guardrails"
+topics = ["mains.gs3.science-tech.awareness.robotics.artificial-intelligence", "mains.gs2.governance.transparency.e-governance"]
+body = """
+Government offices across the country are trying out tools that read documents, answer citizen queries, flag suspicious claims and predict demand. The appeal is clear: a large state with limited staff needs help. The danger is also clear: an automated mistake can touch lakhs of people before anyone notices.
+
+## What the tools can do well
+
+- **Handle volume.** Sorting grievances, translating notices and summarising long files saves staff time for the cases that need judgement.
+- **Spot patterns.** Tools can flag unusual claims in a benefit scheme or likely areas of disease outbreak.
+- **Widen access.** Voice and local-language interfaces help people who struggle with forms and portals.
+
+## Where the risks lie
+
+Data used for training may reflect old biases, so a tool may treat some groups worse without anyone intending it. A system that decides who gets a benefit can shut out eligible people through a silent error. Officers may start trusting the output simply because it is a machine's output. Citizens may not know that a tool was used, and so cannot challenge it. Finally, systems bought from a single vendor can lock the government in.
+
+## Two schools of thought
+
+One view says the state should move fast, because delay means worse service today. Lower costs and quicker answers matter to the poor most. The other view says that decisions about rights should not be left to systems that cannot explain themselves, and that a slower, safer start is a fair price for public trust.
+
+## A middle path
+
+1. **Start with assistance, not decisions.** Let tools suggest and humans decide for any matter affecting a right or a benefit.
+2. **Tell people.** Citizens should know when a tool was used and how to ask for a human review.
+3. **Test before use.** Check for error rates across groups, languages and regions, and publish the results.
+4. **Keep records.** Logs of what the tool did make audit and appeal possible.
+5. **Build capacity.** Officers need training to question outputs and understand limits.
+6. **Avoid lock-in.** Open standards and the right to move data keep options open.
+
+## Conclusion
+
+Artificial intelligence can make governance faster and more inclusive, but only if it stays under the rule of law. The test for any new tool is simple: can a citizen understand what happened, and can they get it corrected? If the answer is no, the tool is not ready for public service.
+"""

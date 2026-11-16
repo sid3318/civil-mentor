@@ -18,6 +18,7 @@ use crate::AppState;
 use crate::app::Shell;
 use crate::content::{Target, sections};
 use crate::screens::count;
+use crate::store::Study;
 use crate::syllabus::Status;
 
 /// Reader text sizes, in pixels.
@@ -47,8 +48,12 @@ pub struct NotesScreen {
     clock: Option<ReadingClock>,
 }
 
-struct ReadingClock {
-    note: String,
+/// Counts the time something is open in a reader, while the student is
+/// active. The notes and the current-affairs readers each keep one.
+pub(crate) struct ReadingClock {
+    /// The reading key of what is open.
+    pub(crate) item: String,
+    kind: Study,
     /// The block of study time in the store, once any time is saved.
     block: Option<i64>,
     /// Up to when the time has been counted.
@@ -60,6 +65,68 @@ struct ReadingClock {
     /// Counted and not yet saved.
     unsaved: u32,
     _tick: Task<()>,
+}
+
+impl ReadingClock {
+    /// Starts counting `item`, calling `tick` on the view every second.
+    pub(crate) fn start<V: 'static>(
+        item: String,
+        kind: Study,
+        offset: Point<Pixels>,
+        cx: &mut Context<V>,
+        tick: fn(&mut V, &mut Context<V>),
+    ) -> Self {
+        let task = cx.spawn(async move |this, cx| {
+            loop {
+                cx.background_executor().timer(Duration::from_secs(1)).await;
+                if this.update(cx, tick).is_err() {
+                    break;
+                }
+            }
+        });
+        let now = cx.background_executor().now();
+        ReadingClock {
+            item,
+            kind,
+            block: None,
+            counted: now,
+            active: now,
+            offset,
+            unsaved: 0,
+            _tick: task,
+        }
+    }
+
+    pub(crate) fn touch(&mut self, now: Instant) {
+        self.active = now;
+    }
+
+    /// Counts the seconds since the last tick, up to [`IDLE`] after the
+    /// student last scrolled or moved the mouse. Returns true when enough
+    /// is counted to save.
+    pub(crate) fn tick(&mut self, offset: Point<Pixels>, now: Instant) -> bool {
+        if offset != self.offset {
+            self.offset = offset;
+            self.active = now;
+        }
+        let until = now.min(self.active + IDLE);
+        let seconds = until.saturating_duration_since(self.counted).as_secs();
+        self.counted += Duration::from_secs(seconds);
+        if until < now {
+            // The idle stretch is not counted when the student comes back.
+            self.counted = now;
+        }
+        self.unsaved += seconds as u32;
+        self.unsaved >= SAVE_EVERY
+    }
+
+    /// Saves the time counted so far.
+    pub(crate) fn save(&mut self, cx: &mut App) {
+        if self.unsaved > 0 {
+            AppState::add_reading_time(cx, self.kind, &self.item, &mut self.block, self.unsaved);
+            self.unsaved = 0;
+        }
+    }
 }
 
 impl NotesScreen {
@@ -88,26 +155,16 @@ impl NotesScreen {
         }
         let id = AppState::get(cx).library.notes[ix].id.clone();
         AppState::update_reading(cx, &id, |reading, today| reading.last = today);
-        if self.clock.as_ref().is_none_or(|clock| clock.note != id) {
+        if self.clock.as_ref().is_none_or(|clock| clock.item != id) {
             self.stop_clock(cx);
-            let tick = cx.spawn(async move |this, cx| {
-                loop {
-                    cx.background_executor().timer(Duration::from_secs(1)).await;
-                    if this.update(cx, |this, cx| this.tick(cx)).is_err() {
-                        break;
-                    }
-                }
-            });
-            let now = cx.background_executor().now();
-            self.clock = Some(ReadingClock {
-                note: id,
-                block: None,
-                counted: now,
-                active: now,
-                offset: self.scroll.offset(),
-                unsaved: 0,
-                _tick: tick,
-            });
+            let offset = self.scroll.offset();
+            self.clock = Some(ReadingClock::start(
+                id,
+                Study::Reading,
+                offset,
+                cx,
+                Self::tick,
+            ));
         }
         cx.notify();
     }
@@ -119,44 +176,26 @@ impl NotesScreen {
         self.clock = None;
     }
 
-    /// Counts the seconds since the last tick, up to [`IDLE`] after the
-    /// student last scrolled or moved the mouse.
     fn tick(&mut self, cx: &mut Context<Self>) {
         let now = cx.background_executor().now();
         let offset = self.scroll.offset();
-        let Some(clock) = &mut self.clock else {
-            return;
-        };
-        if offset != clock.offset {
-            clock.offset = offset;
-            clock.active = now;
-        }
-        let until = now.min(clock.active + IDLE);
-        let seconds = until.saturating_duration_since(clock.counted).as_secs();
-        clock.counted += Duration::from_secs(seconds);
-        if until < now {
-            // The idle stretch is not counted when the student comes back.
-            clock.counted = now;
-        }
-        clock.unsaved += seconds as u32;
-        if clock.unsaved >= SAVE_EVERY {
-            self.save_time(cx);
+        if let Some(clock) = &mut self.clock
+            && clock.tick(offset, now)
+        {
+            clock.save(cx);
         }
     }
 
     fn save_time(&mut self, cx: &mut Context<Self>) {
-        if let Some(clock) = &mut self.clock
-            && clock.unsaved > 0
-        {
-            AppState::add_reading_time(cx, &clock.note, &mut clock.block, clock.unsaved);
-            clock.unsaved = 0;
+        if let Some(clock) = &mut self.clock {
+            clock.save(cx);
         }
     }
 
     fn touch(&mut self, cx: &mut Context<Self>) {
         let now = cx.background_executor().now();
         if let Some(clock) = &mut self.clock {
-            clock.active = now;
+            clock.touch(now);
         }
     }
 

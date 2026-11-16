@@ -486,6 +486,15 @@ impl Store {
         )
     }
 
+    /// Submitted sittings whose kind matches a GLOB pattern, such as
+    /// `quiz:*` or one exact kind, newest first.
+    pub fn finished_kind(&self, pattern: &str) -> Result<Vec<Attempt>> {
+        self.attempts_where(
+            "finished IS NOT NULL AND kind GLOB ?1 ORDER BY finished DESC, id DESC",
+            params![pattern],
+        )
+    }
+
     fn attempts_where(&self, filter: &str, args: impl rusqlite::Params) -> Result<Vec<Attempt>> {
         let order = if filter.contains("ORDER BY") {
             ""
@@ -591,6 +600,9 @@ pub enum Study {
     Reading,
     /// A test in the exam room. The item is the sitting's id.
     Test,
+    /// A story or editorial open in the current-affairs reader. The item is
+    /// its reading key.
+    Story,
 }
 
 impl Study {
@@ -598,6 +610,7 @@ impl Study {
         match self {
             Study::Reading => "reading",
             Study::Test => "test",
+            Study::Story => "story",
         }
     }
 }
