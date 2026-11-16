@@ -17,8 +17,8 @@ use civil_mentor::{AppAssets, AppState, Screen, Shell};
 use gpui_kit::component::{Theme, WindowExt as _};
 use gpui_kit::test::TestWindowExt as _;
 use gpui_kit::{
-    AnyWindowHandle, App, Bounds, ElementId, Entity, HeadlessAppContext, ScrollDelta, SharedString,
-    Window, WindowBounds, WindowOptions, point, px, size,
+    AnyWindowHandle, App, Bounds, ElementId, Entity, HeadlessAppContext, Pixels, ScrollDelta,
+    SharedString, Window, WindowBounds, WindowOptions, point, px, size,
 };
 
 struct Harness {
@@ -232,6 +232,42 @@ impl Harness {
     fn open(&mut self, target: Target) {
         let shell = self.shell.clone();
         self.act(|_, cx| shell.update(cx, |shell, cx| shell.open(target, cx)));
+    }
+
+    /// Pixels in an element that are clearly coloured, not paper, ink, grey
+    /// or a border: what a chart's line, bars or cells draw. An empty chart
+    /// box has none.
+    fn coloured_pixels(&mut self, id: impl Into<ElementId>) -> usize {
+        let id = id.into();
+        let bounds = self.act(|window, _| window.find(id).bounds());
+        let image = self
+            .cx
+            .capture_screenshot(self.window)
+            .expect("offscreen rendering works");
+        let scale = image.width() as f32 / 1280.;
+        let to = |value: Pixels| (f32::from(value) * scale) as u32;
+        let (left, top) = (to(bounds.origin.x), to(bounds.origin.y));
+        let right = to(bounds.origin.x + bounds.size.width).min(image.width());
+        let bottom = to(bounds.origin.y + bounds.size.height).min(image.height());
+        let mut count = 0;
+        for y in top..bottom {
+            for x in left..right {
+                let [r, g, b, _] = image.get_pixel(x, y).0;
+                let (max, min) = (r.max(g).max(b), r.min(g).min(b));
+                count += usize::from(max - min > 40);
+            }
+        }
+        count
+    }
+
+    fn store<R>(&mut self, read: impl FnOnce(&Store) -> R) -> R {
+        self.cx.update(|cx| read(&AppState::get(cx).store))
+    }
+
+    fn analysis_tab(&mut self, ix: usize) {
+        self.act(|window, cx| window.within("analysis-tabs").click(ix, cx));
+        let shell = self.shell.clone();
+        assert_eq!(self.cx.update(|cx| shell.read(cx).analysis_tab(cx)), ix);
     }
 
     fn dialog_open(&mut self) -> bool {
@@ -485,6 +521,7 @@ fn main() {
     // When the data file cannot be opened the app still starts, on a
     // throwaway store, and says so on every screen.
     practice();
+    today_and_analysis();
 
     let mut unsaved = Harness::new(
         Store::in_memory(),
@@ -718,6 +755,248 @@ fn practice() {
     app.press("secondary-[");
     assert!(app.shows(("answer", question)), "and back");
     app.open(Target::Question(question));
+
+    drop(app);
+    std::fs::remove_dir_all(&dir).unwrap();
+}
+
+/// Phase 3: the diagnostic is offered once and can be declined; reading and
+/// tests count as study time; demo history fills Today and Analysis, whose
+/// charts draw; and removing it leaves the student's own data alone.
+fn today_and_analysis() {
+    let today = chrono::Local::now().date_naive();
+    let dir = std::env::temp_dir().join(format!("civil-mentor-today-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+
+    // A first launch: Today offers the diagnostic, which can be taken.
+    let taken = dir.join("taken.db");
+    let mut app = Harness::new(Store::open(&taken).expect("the data file opens"), None);
+    assert!(app.shows("diagnostic-offer"), "offered on first launch");
+    app.shot("today-diagnostic");
+    app.click("take-diagnostic");
+    assert!(app.in_exam(), "the diagnostic opens in the exam room");
+    let diagnostic = app.exam();
+    assert_eq!(diagnostic.kind, "diagnostic");
+    assert_eq!(diagnostic.answers.len(), 20);
+    let mut subjects: Vec<&str> = diagnostic
+        .answers
+        .iter()
+        .map(|a| a.subject.as_str())
+        .collect();
+    subjects.sort();
+    subjects.dedup();
+    assert!(
+        subjects.len() >= 6,
+        "spread across the subjects: {subjects:?}"
+    );
+    app.shot("diagnostic-exam");
+    app.click("leave");
+    app.press("secondary-1");
+    assert!(
+        !app.shows("diagnostic-offer"),
+        "not offered again once taken"
+    );
+
+    // Or declined, and then never asked again, even after a restart.
+    drop(app);
+    let db = dir.join("civil-mentor.db");
+    let mut app = Harness::new(Store::open(&db).expect("the data file opens"), None);
+    assert!(app.shows("diagnostic-offer"));
+    app.click("decline-diagnostic");
+    assert!(!app.shows("diagnostic-offer"), "declined");
+    assert!(app.store(|store| store.diagnostic_settled()));
+    drop(app);
+    let mut app = Harness::new(Store::open(&db).expect("the data file reopens"), None);
+    assert!(
+        !app.shows("diagnostic-offer"),
+        "not asked again after a restart"
+    );
+    assert!(app.shows("plan") && app.shows("mentor") && app.shows("this-week"));
+
+    // With no record yet, Analysis says so instead of drawing empty charts.
+    app.click("0-0-4");
+    assert_eq!(app.screen(), Screen::Analysis);
+    assert!(!app.shows("score-chart"));
+    app.shot("analysis-empty");
+
+    // Reading counts as study time while the student is active.
+    let note_id = "gs3-economy-inflation";
+    let note = app.note_ix(note_id);
+    app.open(Target::Note(note));
+    app.wait(60);
+    assert_eq!(app.reading(note_id).unwrap().seconds, 60);
+    assert_eq!(app.store(|s| s.study_days().unwrap())[&today], 60);
+    // Left open with no scrolling or mouse movement, it stops after five minutes.
+    app.wait(20 * 60);
+    assert_eq!(app.reading(note_id).unwrap().seconds, 5 * 60);
+    // Leaving the note stops the clock.
+    app.press("secondary-1");
+    app.wait(60);
+    assert_eq!(app.reading(note_id).unwrap().seconds, 5 * 60);
+
+    // Time in the exam room counts too.
+    app.press("secondary-3");
+    app.click("start-micro");
+    app.wait(30);
+    app.click("leave");
+    assert_eq!(app.store(|s| s.study_days().unwrap())[&today], 5 * 60 + 30);
+    let streak = app.store(|s| mentor::streak(&s.study_days().unwrap(), today));
+    assert_eq!(streak, 1, "studied today");
+
+    // Settings adds the demo history.
+    let own = app.store(|s| {
+        (
+            s.readings().unwrap(),
+            s.unfinished().unwrap(),
+            s.finished(100).unwrap(),
+        )
+    });
+    app.press("secondary-,");
+    let settings: Vec<ElementId> = ["more-time", "Dark", "add-demo"]
+        .into_iter()
+        .map(ElementId::from)
+        .collect();
+    app.reveal("add-demo", &settings);
+    app.click("add-demo");
+    assert!(
+        app.store(|s| s.has_demo().unwrap()),
+        "demo history is loaded"
+    );
+    assert!(app.shows("remove-demo"), "and can be removed");
+    app.shot("settings-demo");
+
+    // Today: the plan, remade with the demo record, has a note and a drill,
+    // and the mentor gives advice with Open note and Drill buttons.
+    app.press("secondary-1");
+    app.shot("today-plan");
+    let plan = app
+        .store(|s| s.plan(today).unwrap())
+        .expect("today's plan is saved");
+    let kinds: Vec<&str> = plan.iter().map(|t| t.kind.as_str()).collect();
+    assert_eq!(kinds, ["note", "drill"], "{plan:?}");
+    assert!(app.shows(("task", 0usize)) && app.shows(("task", 1usize)));
+    for ix in 0..3usize {
+        assert!(app.shows(("insight", ix)), "insight card {ix}");
+    }
+    assert!(
+        app.shows(("insight-drill", 0usize)),
+        "the weakest topic has a Drill button"
+    );
+    assert!(app.shows("continue-reading"));
+    app.click("qotd-answer");
+    app.shot("today-question");
+
+    // Ticking a task saves it; the plan stays frozen for the day.
+    app.click(("task-done", 0usize));
+    assert!(app.store(|s| s.plan(today).unwrap().unwrap()[0].done));
+    // The note task opens its note, the drill task its drill.
+    app.click(("task", 0usize));
+    assert_eq!(app.screen(), Screen::Notes);
+    app.press("secondary-1");
+    app.click(("task", 1usize));
+    assert!(app.in_exam(), "the drill task opens the exam room");
+    assert_eq!(app.exam().kind, format!("topic:{}", plan[1].target));
+    app.click("leave");
+    let after = app.store(|s| s.plan(today).unwrap().unwrap());
+    assert_eq!(
+        after
+            .iter()
+            .map(|t| (&t.title, t.minutes))
+            .collect::<Vec<_>>(),
+        plan.iter()
+            .map(|t| (&t.title, t.minutes))
+            .collect::<Vec<_>>(),
+        "frozen for the day"
+    );
+
+    // Analysis: every tab, and the charts draw their data.
+    app.click("0-0-4");
+    assert!(app.shows("demo-banner"));
+    let page: Vec<ElementId> = ["score-chart", "subject-chart", "heatmap"]
+        .into_iter()
+        .map(ElementId::from)
+        .chain([ElementId::from(("drill-topic", 0usize))])
+        .collect();
+    app.shot("analysis-overview");
+    for chart in ["score-chart", "subject-chart"] {
+        let drawn = app.coloured_pixels(chart);
+        assert!(
+            drawn > 300,
+            "{chart} draws its data: {drawn} coloured pixels"
+        );
+    }
+    assert!(
+        app.shows(("drill-topic", 0usize)),
+        "a weak topic with a Drill button"
+    );
+    assert!(app.shows("confidence-Guess"), "guess analysis");
+    app.reveal("heatmap", &page);
+    assert!(
+        app.coloured_pixels("heatmap") > 300,
+        "the study calendar has days in it"
+    );
+    app.shot("analysis-overview-lower");
+    app.click(("drill-topic", 0usize));
+    assert!(app.in_exam(), "Drill sits a drill on the topic");
+    assert!(app.exam().kind.starts_with("topic:"));
+    app.click("leave");
+
+    app.click("0-0-4");
+    app.analysis_tab(1);
+    assert!(app.coloured_pixels("subject-chart") > 300);
+    app.shot("analysis-subjects");
+    app.analysis_tab(2);
+    assert!(app.coloured_pixels("score-chart") > 300);
+    app.shot("analysis-tests");
+    app.analysis_tab(3);
+    assert!(app.coloured_pixels("heatmap") > 300);
+    let time: Vec<ElementId> = ["heatmap", "week-chart"]
+        .into_iter()
+        .map(ElementId::from)
+        .collect();
+    app.reveal("week-chart", &time);
+    assert!(app.coloured_pixels("week-chart") > 300, "hours a week draw");
+    app.shot("analysis-time");
+    app.analysis_tab(4);
+    app.shot("analysis-coverage");
+    app.analysis_tab(0);
+
+    // Removing the demo history leaves every row of the student's own.
+    app.press("secondary-,");
+    app.reveal(
+        "remove-demo",
+        &["more-time", "Dark", "remove-demo"]
+            .into_iter()
+            .map(ElementId::from)
+            .collect::<Vec<_>>(),
+    );
+    app.click("remove-demo");
+    assert!(!app.store(|s| s.has_demo().unwrap()));
+    let (readings, unfinished, finished) = app.store(|s| {
+        (
+            s.readings().unwrap(),
+            s.unfinished().unwrap(),
+            s.finished(100).unwrap(),
+        )
+    });
+    for (id, reading) in &own.0 {
+        assert_eq!(readings.get(id), Some(reading), "{id} is as it was");
+    }
+    assert!(
+        readings.values().all(|r| !r.demo),
+        "no demo reading is left"
+    );
+    assert!(
+        unfinished.len() >= own.1.len(),
+        "every unfinished test of the student's own"
+    );
+    assert!(
+        own.1
+            .iter()
+            .all(|test| unfinished.iter().any(|t| t.id == test.id))
+    );
+    assert_eq!(finished, own.2, "no demo result is left");
+    assert_eq!(app.store(|s| s.study_days().unwrap())[&today], 5 * 60 + 30);
 
     drop(app);
     std::fs::remove_dir_all(&dir).unwrap();

@@ -1,6 +1,7 @@
 //! The Notes screen: the list of notes, the reader, and an outline beside it.
 
 use std::collections::HashSet;
+use std::time::{Duration, Instant};
 
 use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonGroup, ButtonVariants as _};
@@ -26,6 +27,12 @@ const MAX_SIZE: u32 = 24;
 /// characters at the default size; the wide one suits tables.
 const NARROW: f32 = 720.;
 const WIDE: f32 = 960.;
+/// Reading time stops counting after this long with no scrolling or mouse
+/// movement, so a note left open overnight is not a night of study.
+pub(crate) const IDLE: Duration = Duration::from_secs(5 * 60);
+/// Counted reading time is saved in steps of this many seconds, and when
+/// the note is left.
+const SAVE_EVERY: u32 = 15;
 
 pub struct NotesScreen {
     shell: WeakEntity<Shell>,
@@ -36,6 +43,23 @@ pub struct NotesScreen {
     /// The reader's children are the header, one per section, the footer and
     /// the questions, so the outline scrolls to a section by its position.
     scroll: ScrollHandle,
+    /// Counts the time the note on screen is open, while the student is active.
+    clock: Option<ReadingClock>,
+}
+
+struct ReadingClock {
+    note: String,
+    /// The block of study time in the store, once any time is saved.
+    block: Option<i64>,
+    /// Up to when the time has been counted.
+    counted: Instant,
+    /// The last scroll or mouse movement.
+    active: Instant,
+    /// Where the reader was scrolled at the last tick.
+    offset: Point<Pixels>,
+    /// Counted and not yet saved.
+    unsaved: u32,
+    _tick: Task<()>,
 }
 
 impl NotesScreen {
@@ -46,6 +70,7 @@ impl NotesScreen {
             distilled: false,
             answers: HashSet::new(),
             scroll: ScrollHandle::new(),
+            clock: None,
         }
     }
 
@@ -63,7 +88,76 @@ impl NotesScreen {
         }
         let id = AppState::get(cx).library.notes[ix].id.clone();
         AppState::update_reading(cx, &id, |reading, today| reading.last = today);
+        if self.clock.as_ref().is_none_or(|clock| clock.note != id) {
+            self.stop_clock(cx);
+            let tick = cx.spawn(async move |this, cx| {
+                loop {
+                    cx.background_executor().timer(Duration::from_secs(1)).await;
+                    if this.update(cx, |this, cx| this.tick(cx)).is_err() {
+                        break;
+                    }
+                }
+            });
+            let now = cx.background_executor().now();
+            self.clock = Some(ReadingClock {
+                note: id,
+                block: None,
+                counted: now,
+                active: now,
+                offset: self.scroll.offset(),
+                unsaved: 0,
+                _tick: tick,
+            });
+        }
         cx.notify();
+    }
+
+    /// Stops counting reading time and saves what was counted. Called by
+    /// the shell when the reader leaves the screen.
+    pub fn stop_clock(&mut self, cx: &mut Context<Self>) {
+        self.save_time(cx);
+        self.clock = None;
+    }
+
+    /// Counts the seconds since the last tick, up to [`IDLE`] after the
+    /// student last scrolled or moved the mouse.
+    fn tick(&mut self, cx: &mut Context<Self>) {
+        let now = cx.background_executor().now();
+        let offset = self.scroll.offset();
+        let Some(clock) = &mut self.clock else {
+            return;
+        };
+        if offset != clock.offset {
+            clock.offset = offset;
+            clock.active = now;
+        }
+        let until = now.min(clock.active + IDLE);
+        let seconds = until.saturating_duration_since(clock.counted).as_secs();
+        clock.counted += Duration::from_secs(seconds);
+        if until < now {
+            // The idle stretch is not counted when the student comes back.
+            clock.counted = now;
+        }
+        clock.unsaved += seconds as u32;
+        if clock.unsaved >= SAVE_EVERY {
+            self.save_time(cx);
+        }
+    }
+
+    fn save_time(&mut self, cx: &mut Context<Self>) {
+        if let Some(clock) = &mut self.clock
+            && clock.unsaved > 0
+        {
+            AppState::add_reading_time(cx, &clock.note, &mut clock.block, clock.unsaved);
+            clock.unsaved = 0;
+        }
+    }
+
+    fn touch(&mut self, cx: &mut Context<Self>) {
+        let now = cx.background_executor().now();
+        if let Some(clock) = &mut self.clock {
+            clock.active = now;
+        }
     }
 
     fn set_distilled(&mut self, distilled: bool, cx: &mut Context<Self>) {
@@ -579,6 +673,7 @@ impl Render for NotesScreen {
         div()
             .flex()
             .size_full()
+            .on_mouse_move(cx.listener(|this, _, _, cx| this.touch(cx)))
             .child(self.list(cx))
             .child(self.reader(cx))
     }

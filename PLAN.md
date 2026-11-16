@@ -1,6 +1,6 @@
 # Civil Mentor: build plan
 
-Status: Phase 0 (the shell), Phase 1 (notes and the full UPSC syllabus) and Phase 2 (practice: tests, the exam room, results and past papers) are built and tested. Phases 3 to 6 are not started. Plan written 14 Nov 2026, updated 16 Nov 2026.
+Status: Phase 0 (the shell), Phase 1 (notes and the full UPSC syllabus), Phase 2 (practice: tests, the exam room, results and past papers) and Phase 3 (Analysis, the Today plan, study time and demo history) are built and tested. Phases 4 to 6 are not started. Plan written 14 Nov 2026, updated 16 Nov 2026.
 
 A desktop study companion for UPSC CSE aspirants. It plans the student's day, gives them the notes and current affairs to read, tests them in an exam-like room, and turns the results into the next thing to study.
 
@@ -232,7 +232,7 @@ Current affairs:
 
 ### Project structure
 
-As built in Phases 0 to 2:
+As built in Phases 0 to 3:
 
 ```
 Cargo.toml
@@ -248,9 +248,12 @@ src/
   lib.rs                 start-up: app state, theme, icons, window
   app.rs                 shell: title bar, sidebar, shortcuts, search palette, open(target), back and forward
   content.rs             content types, loader, validation, search, note sections
-  store.rs               SQLite schema, migrations, settings, reading records, tests and answers
-  mentor.rs              subjects, scoring and question choice (the plan and insights come in Phase 3)
-  notes.rs               the Notes screen: list, reader, outline, linked questions
+  store.rs               SQLite schema, migrations, settings, reading records, tests and answers, study time, plans, demo rows
+  mentor.rs              subjects, scoring, question choice, today's plan, insights, the streak
+  today.rs               the Today screen: plan, continue reading, question of the day, mentor cards, this week
+  analysis.rs            the Analysis screen: Overview, Subjects, Tests, Time and Coverage tabs
+  demo.rs                30 days of made-up history, added and removed from Settings
+  notes.rs               the Notes screen: list, reader, outline, linked questions, the reading clock
   practice.rs            the Practice hub: every kind of test, unfinished tests, past papers, results
   exam.rs                the exam room: the clock, the question grid, keys, saving every change
   review.rs              the result and review, one question on its own, a past paper with answers
@@ -261,7 +264,7 @@ tests/
   screens.rs             drives the shell offscreen and saves a PNG of every screen
 ```
 
-Still to come, each with its phase: the rest of `mentor.rs` (plan, insights, review dates), one file per real screen, and `content/mains/` and `content/flashcards/`.
+Still to come, each with its phase: review dates in `mentor.rs`, one file per real screen, and `content/mains/` and `content/flashcards/`.
 
 One crate, no workspace. The app is a library plus a three-line `main.rs` so the tests can drive it.
 
@@ -335,12 +338,12 @@ A day of current affairs is one TOML file with a list of stories. Each story has
 |---|---|---|
 | `attempt` | test sitting | kind, start, finish (empty while in progress), time allowed, marks for right and wrong |
 | `answer` | question in a sitting | question ID, subject, topic, chosen option, correct, confidence, marked, time taken |
-| `reading` | note or story opened | first, last and done dates, bookmark. Time spent comes with Phase 3 |
+| `reading` | note or story opened | first, last and done dates, bookmark, seconds spent |
 | `review` | flashcard or mistake | box (1 to 5), due date |
 | `mark` | highlight or clip | item, text range, the student's comment |
 | `my_note` | note the student wrote | title, body |
-| `session` | block of study time | day, kind, seconds |
-| `plan_task` | task in a day's plan | kind, target, minutes, done |
+| `session` | block of study time | day, kind, item, seconds |
+| `plan_task` | task in a day's plan | day, position, kind, target, title, minutes, done |
 | `mains_answer` | written answer | question, text, self-scores |
 | `setting` | setting | exam date, daily minutes, theme |
 
@@ -362,8 +365,8 @@ Each phase ends with an app that runs and can be clicked through. The first buil
 | 0. Shell | Window, navigation, content loader, store and search | Done |
 | 1. Notes and syllabus | Read notes and track the whole syllabus | Done |
 | 2. Practice | Timed tests in an exam room, with results and review | Done |
-| 3. Analysis and Today | Charts, the mentor's rules and the daily plan | Next |
-| 4. Current affairs | Daily briefs, the story reader and the daily quiz | To do |
+| 3. Analysis and Today | Charts, the mentor's rules and the daily plan | Done |
+| 4. Current affairs | Daily briefs, the story reader and the daily quiz | Next |
 | 5. Revision and notebook | Mistake book, flashcards, highlights and own notes | To do |
 | 6. Mains | Answer writing against the clock, with self-evaluation | To do |
 
@@ -454,15 +457,26 @@ Every phase below has a to-do list, so any agent can pick up the next open task.
 
 ### Phase 3: Analysis and Today
 
-- [ ] **3.1 Study time.** Add `session` and `plan_task` as migrations. Record the seconds spent reading and in tests, and add time spent to reading records (deferred from Phase 1). The streak is the number of days in a row, ending today or yesterday, with any study recorded.
-- [ ] **3.2 Mentor rules.** Add `today_plan()` and `insights()` to `src/mentor.rs`, exactly as under "Mentor rules", each with a unit test. The plan is saved to `plan_task` the first time it is made each day and stays frozen. Leave out the tasks whose screens come later (the brief, reviews and Mains answers) until their phase adds them.
-- [ ] **3.3 Today screen.** `src/today.rs`, following the sketch under "Layout": the date, days to the exam date in Settings, the streak, today's plan with tick boxes and tasks that open their target, continue reading, a question of the day, this week's study, and the mentor's insight cards with "Open note" and "Drill" buttons.
-- [ ] **3.4 Analysis screen.** `src/analysis.rs` with the tabs in the sketch: net score over the last 10 tests (line), accuracy by subject (bars), weakest topics with a Drill button, guess analysis (marks won or lost at each confidence level), study time over 12 weeks (heatmap), and syllabus read per paper from `syllabus::coverage`. Use the `gpui-kit` charts.
-- [ ] **3.5 Demo history.** A Settings action that adds 30 days of made-up attempts, answers, reading and study time, so Analysis is not empty, and one that removes them. Demo rows are marked, so removing them never touches real data.
-- [ ] **3.6 First-launch diagnostic.** The first time the app opens, offer a 20-question test across subjects that seeds the weak areas (addition 4 under "Additions I recommend").
-- [ ] **3.7 Tests.** The UI test loads demo history and checks that the charts draw and that the plan and insights appear, with screenshots.
+- [x] **3.1 Study time.** Add `session` and `plan_task` as migrations. Record the seconds spent reading and in tests, and add time spent to reading records (deferred from Phase 1). The streak is the number of days in a row, ending today or yesterday, with any study recorded.
+- [x] **3.2 Mentor rules.** Add `today_plan()` and `insights()` to `src/mentor.rs`, exactly as under "Mentor rules", each with a unit test. The plan is saved to `plan_task` the first time it is made each day and stays frozen. Leave out the tasks whose screens come later (the brief, reviews and Mains answers) until their phase adds them.
+- [x] **3.3 Today screen.** `src/today.rs`, following the sketch under "Layout": the date, days to the exam date in Settings, the streak, today's plan with tick boxes and tasks that open their target, continue reading, a question of the day, this week's study, and the mentor's insight cards with "Open note" and "Drill" buttons.
+- [x] **3.4 Analysis screen.** `src/analysis.rs` with the tabs in the sketch: net score over the last 10 tests (line), accuracy by subject (bars), weakest topics with a Drill button, guess analysis (marks won or lost at each confidence level), study time over 12 weeks (heatmap), and syllabus read per paper from `syllabus::coverage`. Use the `gpui-kit` charts.
+- [x] **3.5 Demo history.** A Settings action that adds 30 days of made-up attempts, answers, reading and study time, so Analysis is not empty, and one that removes them. Demo rows are marked, so removing them never touches real data.
+- [x] **3.6 First-launch diagnostic.** The first time the app opens, offer a 20-question test across subjects that seeds the weak areas (addition 4 under "Additions I recommend").
+- [x] **3.7 Tests.** The UI test loads demo history and checks that the charts draw and that the plan and insights appear, with screenshots.
 
 **Done when** with demo history loaded the charts draw, and the plan and insights appear and are covered by tests.
+
+**As built.** The condition is met and checked by `cargo test`. The UI test takes and declines the diagnostic, reads a note for 60 seconds and then past the idle limit, adds demo history from Settings, checks that every chart and the heatmap draw coloured pixels and that the plan, the insight cards and the guess analysis appear, ticks a task and opens both tasks, sits a drill from Analysis, then removes the demo history and finds every real row as it was. `mentor::tests::insights_match_a_hand_worked_record` and the three plan tests work their numbers by hand, and `store::tests::removing_demo_history_never_touches_a_real_row` checks the store side. What differs from the plan:
+
+- **Weak topics are counted by chapter** (`pre.gs.polity.parliament`), not by the answer's own topic, which is often a subtopic with too few answers to reach 8. The personalised mix from Phase 2 uses the same chapters.
+- **Two new kinds of test**, as variants of `mentor::TestKind`: `Topic` drills one chapter with 10 questions, or the whole pool when the bank has fewer (the plan's drill, the Drill buttons and the mentor cards use it), and `Diagnostic` asks 20 questions spread across the seven subjects in 24 minutes.
+- **Today's plan has two kinds of task for now**: the note in progress or else the next unread note, then a drill on the weakest chapter with at least 8 answers. The brief, reviews and Mains answers are left out until their phases, so the plan does not yet fill the daily minutes. A note task is the note's minutes less the time already spent, at least 5 minutes. A drill fits the time left at 72 seconds a question and needs at least 5 questions, or the whole pool when it is smaller. The plan is saved to `plan_task` the first time Today opens each day. A task ticks itself when its note is marked read or its drill is finished that day, and can be ticked by hand.
+- **Study time** comes from two places. The reader counts a second at a time while a note is on screen, stops counting after 5 minutes with no scrolling or mouse movement, and saves every 15 seconds into `reading.seconds` and a `session` row. The exam room adds the seconds a test uses. The streak counts days with any seconds.
+- **Demo rows are marked by a `demo` column** on `attempt`, `reading` and `session`, added by migration 5; migration 4 adds `session`, `plan_task` and `reading.seconds`. Demo history is 24 finished tests over the 30 days ending yesterday with 6 rest days, plus reading and study time, built from the real content with a fixed seed and weak on Parliament. A note the student opens themselves stops being a demo row. Adding or removing demo history makes today's plan again unless a task in it is already ticked. Analysis shows a banner while demo rows are present.
+- **The diagnostic is offered on Today** until it is taken or declined, and only while the student has no test of their own (demo tests do not count). Either answer is saved as a setting, so it is offered once.
+- **Analysis has more than the sketch.** Overview is the sketch. Subjects adds a table per subject, Tests adds attempts against net score and the recent tests, Time adds hours a week and seconds per question against the 72-second budget, and Coverage adds high-yield unread topics. The line and bar charts are `gpui-kit`'s; the 12-week heatmap is plain cells, as the kit has no heatmap.
+- **Today's mentor shows the first 3 insight cards.** "Open note" appears only when a note covers the card's topic. The title bar shows the countdown and the streak. The question of the day is chosen by the date, with its answer behind a button; it is not recorded as a test.
 
 ### Phase 4: Current affairs
 

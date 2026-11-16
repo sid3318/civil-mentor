@@ -19,6 +19,7 @@ use gpui_kit::component::{
 use gpui_kit::*;
 
 use crate::AppState;
+use crate::analysis::AnalysisScreen;
 use crate::content::Target;
 use crate::exam::ExamScreen;
 use crate::mentor::TestPlan;
@@ -29,6 +30,7 @@ use crate::screens;
 use crate::settings::SettingsScreen;
 use crate::store::ThemeChoice;
 use crate::syllabus::SyllabusScreen;
+use crate::today::{TodayScreen, streak_label};
 
 actions!(
     civil_mentor,
@@ -254,6 +256,16 @@ pub(crate) fn route_actions(window: AnyWindowHandle, shell: &Entity<Shell>, cx: 
     });
 }
 
+/// "191 days to Prelims", "Prelims is tomorrow".
+pub(crate) fn countdown(days: i64) -> String {
+    match days {
+        2.. => format!("{days} days to Prelims"),
+        1 => "Prelims is tomorrow".to_string(),
+        0 => "Prelims is today".to_string(),
+        _ => "Set your exam date".to_string(),
+    }
+}
+
 fn toggle_theme(cx: &mut App) {
     let dark = cx.theme().is_dark();
     AppState::update_settings(cx, |settings| {
@@ -275,6 +287,8 @@ pub struct Shell {
     /// again when the student leaves the notes.
     unfold_sidebar: bool,
     palette: Entity<SearchPalette>,
+    today: Entity<TodayScreen>,
+    analysis: Entity<AnalysisScreen>,
     notes: Entity<NotesScreen>,
     practice: Entity<PracticeScreen>,
     exam: Entity<ExamScreen>,
@@ -298,6 +312,8 @@ impl Shell {
             sidebar_collapsed: false,
             unfold_sidebar: false,
             palette: cx.new(|cx| SearchPalette::new(shell.clone(), window, cx)),
+            today: cx.new(|_| TodayScreen::new(shell.clone())),
+            analysis: cx.new(|_| AnalysisScreen::new(shell.clone())),
             notes: cx.new(|_| NotesScreen::new(shell.clone())),
             practice: cx.new(|_| PracticeScreen::new(shell.clone())),
             exam: cx.new(|cx| ExamScreen::new(shell.clone(), cx)),
@@ -326,6 +342,11 @@ impl Shell {
     /// The sitting in the exam room, if any.
     pub fn exam_attempt(&self, cx: &App) -> Option<crate::store::Attempt> {
         self.exam.read(cx).attempt().cloned()
+    }
+
+    /// The tab open on the Analysis screen.
+    pub fn analysis_tab(&self, cx: &App) -> usize {
+        self.analysis.read(cx).tab()
     }
 
     /// The id of the sitting whose result is showing.
@@ -426,6 +447,9 @@ impl Shell {
     /// Brings up the current place.
     fn show(&mut self, cx: &mut Context<Self>) {
         let place = self.history[self.at];
+        if !matches!(place, Place::Note(_)) {
+            self.notes.update(cx, |notes, cx| notes.stop_clock(cx));
+        }
         match place {
             Place::Note(ix) => self.notes.update(cx, |notes, cx| notes.show(ix, cx)),
             Place::Question(ix) => self
@@ -481,13 +505,15 @@ impl Shell {
     }
 
     fn title_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let days = (AppState::get(cx).settings.exam_date - Local::now().date_naive()).num_days();
-        let countdown = match days {
-            2.. => format!("{days} days to Prelims"),
-            1 => "Prelims is tomorrow".to_string(),
-            0 => "Prelims is today".to_string(),
-            _ => "Set your exam date".to_string(),
-        };
+        let today = Local::now().date_naive();
+        let state = AppState::get(cx);
+        let days = (state.settings.exam_date - today).num_days();
+        let study = state.store.study_days().unwrap_or_default();
+        let countdown = format!(
+            "{} · {}",
+            countdown(days),
+            streak_label(crate::mentor::streak(&study, today))
+        );
         let dark = cx.theme().is_dark();
         let search_keys = Keystroke::parse_with_os(SEARCH_KEYS, cx.platform_info().os)
             .expect("the shortcut is spelled correctly");
@@ -642,6 +668,10 @@ impl Render for Shell {
                     }
                     Place::Screen(Screen::Practice) => {
                         (self.practice.clone().into_any_element(), 2)
+                    }
+                    Place::Screen(Screen::Today) => (self.today.clone().into_any_element(), 6),
+                    Place::Screen(Screen::Analysis) => {
+                        (self.analysis.clone().into_any_element(), 7)
                     }
                     Place::Result(_) => (self.review.clone().into_any_element(), 3),
                     Place::Paper(_) => (self.review.clone().into_any_element(), 4),

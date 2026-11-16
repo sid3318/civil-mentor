@@ -1,6 +1,6 @@
 //! Everything the student does, kept in one SQLite file in the OS app-data folder.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context as _, Result, bail};
@@ -50,6 +50,33 @@ const MIGRATIONS: &[&str] = &[
         seconds INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (attempt, position)
     ) STRICT",
+    // Study time: one row per block of time spent reading a note or in a
+    // test, counted as it goes. The day's plan, made once a day and then
+    // frozen. Time spent on each note.
+    "CREATE TABLE session (
+        id INTEGER PRIMARY KEY,
+        day TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        item TEXT NOT NULL,
+        seconds INTEGER NOT NULL DEFAULT 0
+    ) STRICT;
+    CREATE INDEX session_day ON session (day);
+    CREATE TABLE plan_task (
+        day TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        kind TEXT NOT NULL,
+        target TEXT NOT NULL,
+        title TEXT NOT NULL,
+        minutes INTEGER NOT NULL,
+        done INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (day, position)
+    ) STRICT;
+    ALTER TABLE reading ADD COLUMN seconds INTEGER NOT NULL DEFAULT 0",
+    // Rows made up by the demo history carry this mark, so removing them
+    // never touches the student's own.
+    "ALTER TABLE attempt ADD COLUMN demo INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE reading ADD COLUMN demo INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE session ADD COLUMN demo INTEGER NOT NULL DEFAULT 0",
 ];
 
 const TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
@@ -118,6 +145,11 @@ pub struct Reading {
     /// The day the student marked it read.
     pub done: Option<NaiveDate>,
     pub bookmarked: bool,
+    /// Time spent with the note open, counted while the student is active.
+    pub seconds: u32,
+    /// Made up by the demo history. The student's own use of the note
+    /// replaces it with a real record.
+    pub demo: bool,
 }
 
 impl Reading {
@@ -128,6 +160,8 @@ impl Reading {
             last: today,
             done: None,
             bookmarked: false,
+            seconds: 0,
+            demo: false,
         }
     }
 }
@@ -336,7 +370,7 @@ impl Store {
     pub fn readings(&self) -> Result<HashMap<String, Reading>> {
         let mut query = self
             .conn
-            .prepare("SELECT item, first, last, done, bookmarked FROM reading")?;
+            .prepare("SELECT item, first, last, done, bookmarked, seconds, demo FROM reading")?;
         let rows = query.query_map([], |row| {
             Ok((
                 row.get::<_, String>(0)?,
@@ -344,11 +378,13 @@ impl Store {
                 row.get::<_, String>(2)?,
                 row.get::<_, Option<String>>(3)?,
                 row.get::<_, bool>(4)?,
+                row.get::<_, u32>(5)?,
+                row.get::<_, bool>(6)?,
             ))
         })?;
         let mut readings = HashMap::new();
         for row in rows {
-            let (item, first, last, done, bookmarked) = row?;
+            let (item, first, last, done, bookmarked, seconds, demo) = row?;
             let (Ok(first), Ok(last)) = (first.parse(), last.parse()) else {
                 continue;
             };
@@ -360,6 +396,8 @@ impl Store {
                     last,
                     done,
                     bookmarked,
+                    seconds,
+                    demo,
                 },
             );
         }
@@ -368,15 +406,19 @@ impl Store {
 
     pub fn save_reading(&self, item: &str, reading: &Reading) -> Result<()> {
         self.conn.execute(
-            "INSERT INTO reading (item, first, last, done, bookmarked) VALUES (?1, ?2, ?3, ?4, ?5)
+            "INSERT INTO reading (item, first, last, done, bookmarked, seconds, demo)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
              ON CONFLICT (item) DO UPDATE SET first = excluded.first, last = excluded.last,
-                 done = excluded.done, bookmarked = excluded.bookmarked",
+                 done = excluded.done, bookmarked = excluded.bookmarked,
+                 seconds = excluded.seconds, demo = excluded.demo",
             params![
                 item,
                 reading.first.to_string(),
                 reading.last.to_string(),
                 reading.done.map(|done| done.to_string()),
-                reading.bookmarked
+                reading.bookmarked,
+                reading.seconds,
+                reading.demo
             ],
         )?;
         Ok(())
@@ -389,37 +431,7 @@ impl Store {
     /// Saves a new sitting with all its questions and returns its id.
     pub fn start_attempt(&self, attempt: &Attempt) -> Result<i64> {
         let tx = self.conn.unchecked_transaction()?;
-        tx.execute(
-            "INSERT INTO attempt (kind, title, started, finished, seconds_allowed, seconds_used,
-                 right_marks, wrong_marks, current)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-            params![
-                attempt.kind,
-                attempt.title,
-                attempt.started.format(TIME_FORMAT).to_string(),
-                attempt.finished.map(|t| t.format(TIME_FORMAT).to_string()),
-                attempt.seconds_allowed,
-                attempt.seconds_used,
-                attempt.right_marks,
-                attempt.wrong_marks,
-                attempt.current as i64,
-            ],
-        )?;
-        let id = tx.last_insert_rowid();
-        for (position, answer) in attempt.answers.iter().enumerate() {
-            tx.execute(
-                "INSERT INTO answer (attempt, position, question, subject, topic)
-                 VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![
-                    id,
-                    position as i64,
-                    answer.question,
-                    answer.subject,
-                    answer.topic
-                ],
-            )?;
-            write_answer(&tx, id, position, answer)?;
-        }
+        let id = insert_attempt(&tx, attempt, false)?;
         tx.commit()?;
         Ok(id)
     }
@@ -568,6 +580,255 @@ impl Store {
         })?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
+}
+
+// ---- study time, the day's plan and demo history ------------------------------
+
+/// What a block of study time was spent on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Study {
+    /// A note open in the reader. The item is the note's id.
+    Reading,
+    /// A test in the exam room. The item is the sitting's id.
+    Test,
+}
+
+impl Study {
+    pub fn key(self) -> &'static str {
+        match self {
+            Study::Reading => "reading",
+            Study::Test => "test",
+        }
+    }
+}
+
+/// One task in a day's plan. `kind` is what [`crate::mentor::TaskKind::key`] writes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PlanTask {
+    pub kind: String,
+    /// What the task opens: a note id, or the topic a drill is on.
+    pub target: String,
+    pub title: String,
+    pub minutes: u32,
+    /// Ticked by the student.
+    pub done: bool,
+}
+
+/// Made-up history, so that Analysis and Today have something to show.
+/// Every row it adds carries the demo mark.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Demo {
+    /// Finished sittings with their answers.
+    pub attempts: Vec<Attempt>,
+    pub readings: Vec<(String, Reading)>,
+    /// The day, what the time went on, the item and the seconds.
+    pub sessions: Vec<(NaiveDate, Study, String, u32)>,
+}
+
+impl Store {
+    /// Starts a block of study time on `day` and returns its id.
+    pub fn start_session(&self, day: NaiveDate, kind: Study, item: &str) -> Result<i64> {
+        self.conn.execute(
+            "INSERT INTO session (day, kind, item) VALUES (?1, ?2, ?3)",
+            params![day.to_string(), kind.key(), item],
+        )?;
+        Ok(self.conn.last_insert_rowid())
+    }
+
+    /// Adds time to a block started with [`Store::start_session`].
+    pub fn add_session_seconds(&self, id: i64, seconds: u32) -> Result<()> {
+        self.conn.execute(
+            "UPDATE session SET seconds = seconds + ?2 WHERE id = ?1",
+            params![id, seconds],
+        )?;
+        Ok(())
+    }
+
+    /// The seconds studied on every day with any study recorded.
+    pub fn study_days(&self) -> Result<BTreeMap<NaiveDate, u32>> {
+        let mut query = self.conn.prepare(
+            "SELECT day, SUM(seconds) FROM session GROUP BY day HAVING SUM(seconds) > 0",
+        )?;
+        let rows = query.query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, u32>(1)?))
+        })?;
+        let mut days = BTreeMap::new();
+        for row in rows {
+            let (day, seconds) = row?;
+            if let Ok(day) = day.parse() {
+                days.insert(day, seconds);
+            }
+        }
+        Ok(days)
+    }
+
+    /// The plan saved for `day`, in order, or `None` if none was made.
+    pub fn plan(&self, day: NaiveDate) -> Result<Option<Vec<PlanTask>>> {
+        let mut query = self.conn.prepare(
+            "SELECT kind, target, title, minutes, done FROM plan_task
+             WHERE day = ?1 ORDER BY position",
+        )?;
+        let rows = query.query_map([day.to_string()], |row| {
+            Ok(PlanTask {
+                kind: row.get(0)?,
+                target: row.get(1)?,
+                title: row.get(2)?,
+                minutes: row.get(3)?,
+                done: row.get(4)?,
+            })
+        })?;
+        let tasks: Vec<PlanTask> = rows.collect::<rusqlite::Result<_>>()?;
+        Ok((!tasks.is_empty()).then_some(tasks))
+    }
+
+    /// Saves the plan for `day`, replacing any made before.
+    pub fn save_plan(&self, day: NaiveDate, tasks: &[PlanTask]) -> Result<()> {
+        let tx = self.conn.unchecked_transaction()?;
+        tx.execute("DELETE FROM plan_task WHERE day = ?1", [day.to_string()])?;
+        for (position, task) in tasks.iter().enumerate() {
+            tx.execute(
+                "INSERT INTO plan_task (day, position, kind, target, title, minutes, done)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                params![
+                    day.to_string(),
+                    position as i64,
+                    task.kind,
+                    task.target,
+                    task.title,
+                    task.minutes,
+                    task.done
+                ],
+            )?;
+        }
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn set_task_done(&self, day: NaiveDate, position: usize, done: bool) -> Result<()> {
+        self.conn.execute(
+            "UPDATE plan_task SET done = ?3 WHERE day = ?1 AND position = ?2",
+            params![day.to_string(), position as i64, done],
+        )?;
+        Ok(())
+    }
+
+    /// Forgets the plan for `day`, so the next look at Today makes it afresh.
+    pub fn clear_plan(&self, day: NaiveDate) -> Result<()> {
+        self.conn
+            .execute("DELETE FROM plan_task WHERE day = ?1", [day.to_string()])?;
+        Ok(())
+    }
+
+    /// Saves made-up history with the demo mark. A note the student has a
+    /// reading record for keeps the student's own.
+    pub fn add_demo(&self, demo: &Demo) -> Result<()> {
+        let tx = self.conn.unchecked_transaction()?;
+        for attempt in &demo.attempts {
+            insert_attempt(&tx, attempt, true)?;
+        }
+        for (item, reading) in &demo.readings {
+            tx.execute(
+                "INSERT INTO reading (item, first, last, done, bookmarked, seconds, demo)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, 1)
+                 ON CONFLICT (item) DO NOTHING",
+                params![
+                    item,
+                    reading.first.to_string(),
+                    reading.last.to_string(),
+                    reading.done.map(|done| done.to_string()),
+                    reading.bookmarked,
+                    reading.seconds
+                ],
+            )?;
+        }
+        for (day, kind, item, seconds) in &demo.sessions {
+            tx.execute(
+                "INSERT INTO session (day, kind, item, seconds, demo) VALUES (?1, ?2, ?3, ?4, 1)",
+                params![day.to_string(), kind.key(), item, seconds],
+            )?;
+        }
+        tx.commit()?;
+        Ok(())
+    }
+
+    /// Deletes every row the demo history added, and nothing else.
+    pub fn remove_demo(&self) -> Result<()> {
+        let tx = self.conn.unchecked_transaction()?;
+        tx.execute_batch(
+            "DELETE FROM answer WHERE attempt IN (SELECT id FROM attempt WHERE demo = 1);
+             DELETE FROM attempt WHERE demo = 1;
+             DELETE FROM reading WHERE demo = 1;
+             DELETE FROM session WHERE demo = 1;",
+        )?;
+        tx.commit()?;
+        Ok(())
+    }
+
+    /// Whether demo history is loaded.
+    pub fn has_demo(&self) -> Result<bool> {
+        Ok(self.conn.query_row(
+            "SELECT EXISTS (SELECT 1 FROM attempt WHERE demo = 1)
+                 OR EXISTS (SELECT 1 FROM session WHERE demo = 1)",
+            [],
+            |row| row.get(0),
+        )?)
+    }
+
+    /// Whether the student has started any test of their own.
+    pub fn has_own_tests(&self) -> Result<bool> {
+        Ok(self.conn.query_row(
+            "SELECT EXISTS (SELECT 1 FROM attempt WHERE demo = 0)",
+            [],
+            |row| row.get(0),
+        )?)
+    }
+
+    /// Whether the student has taken or declined the first-launch diagnostic.
+    pub fn diagnostic_settled(&self) -> bool {
+        self.get("diagnostic").ok().flatten().is_some()
+    }
+
+    /// Records that the diagnostic was taken or declined, so it is not offered again.
+    pub fn settle_diagnostic(&self, taken: bool) -> Result<()> {
+        self.set("diagnostic", if taken { "taken" } else { "declined" })
+    }
+}
+
+/// Writes a sitting and all its questions, and returns its id.
+fn insert_attempt(conn: &Connection, attempt: &Attempt, demo: bool) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO attempt (kind, title, started, finished, seconds_allowed, seconds_used,
+             right_marks, wrong_marks, current, demo)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+        params![
+            attempt.kind,
+            attempt.title,
+            attempt.started.format(TIME_FORMAT).to_string(),
+            attempt.finished.map(|t| t.format(TIME_FORMAT).to_string()),
+            attempt.seconds_allowed,
+            attempt.seconds_used,
+            attempt.right_marks,
+            attempt.wrong_marks,
+            attempt.current as i64,
+            demo,
+        ],
+    )?;
+    let id = conn.last_insert_rowid();
+    for (position, answer) in attempt.answers.iter().enumerate() {
+        conn.execute(
+            "INSERT INTO answer (attempt, position, question, subject, topic)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![
+                id,
+                position as i64,
+                answer.question,
+                answer.subject,
+                answer.topic
+            ],
+        )?;
+        write_answer(conn, id, position, answer)?;
+    }
+    Ok(id)
 }
 
 fn write_answer(conn: &Connection, attempt: i64, position: usize, answer: &Answer) -> Result<()> {
@@ -805,6 +1066,178 @@ mod tests {
             .expect("must not open");
         assert!(err.to_string().contains("could not create"), "{err}");
         std::fs::remove_file(&blocker).unwrap();
+    }
+
+    #[test]
+    fn a_phase_2_store_upgrades_without_losing_a_row() {
+        let dir = std::env::temp_dir().join(format!("civil-mentor-upgrade-{}", std::process::id()));
+        let path = dir.join("civil-mentor.db");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        // A file as Phase 2 left it: the first three migrations and a row in every table.
+        let conn = Connection::open(&path).unwrap();
+        for sql in &MIGRATIONS[..3] {
+            conn.execute_batch(sql).unwrap();
+        }
+        conn.pragma_update(None, "user_version", 3).unwrap();
+        conn.execute_batch(
+            "INSERT INTO setting VALUES ('daily_minutes', '120');
+             INSERT INTO reading VALUES ('fr', '2026-11-10', '2026-11-12', '2026-11-12', 1);
+             INSERT INTO attempt (id, kind, title, started, finished, seconds_allowed,
+                 seconds_used, right_marks, wrong_marks, current)
+             VALUES (7, 'micro', 'Micro test', '2026-11-12 09:00:00', '2026-11-12 09:10:00',
+                 720, 600, 2.0, 0.6666666666666666, 1);
+             INSERT INTO answer (attempt, position, question, subject, topic, chosen, correct,
+                 confidence, visited, seconds)
+             VALUES (7, 0, 'polity-0001', 'polity', 'pre.gs.polity.rights', 2, 1, 'sure', 1, 40),
+                    (7, 1, 'polity-0002', 'polity', 'pre.gs.polity.rights', NULL, NULL, NULL, 1, 20);",
+        )
+        .unwrap();
+        drop(conn);
+
+        let store = Store::open(&path).expect("the old file upgrades");
+        let version: u32 = store
+            .conn
+            .pragma_query_value(None, "user_version", |row| row.get(0))
+            .unwrap();
+        assert_eq!(version as usize, MIGRATIONS.len());
+        assert_eq!(store.settings().daily_minutes, 120);
+        let fr = store.readings().unwrap()["fr"];
+        assert_eq!(fr.done, NaiveDate::from_ymd_opt(2026, 11, 12));
+        assert!(fr.bookmarked);
+        assert_eq!((fr.seconds, fr.demo), (0, false), "new columns start empty");
+        let test = store.attempt(7).unwrap().expect("the test is still there");
+        assert_eq!(
+            (test.seconds_used, test.current, test.answers.len()),
+            (600, 1, 2)
+        );
+        assert_eq!(test.answers[0].chosen, Some(2));
+        assert_eq!(test.answers[0].confidence, Some(Confidence::Sure));
+        assert_eq!(store.answered().unwrap().len(), 1);
+        assert!(store.has_own_tests().unwrap());
+        assert!(!store.has_demo().unwrap(), "old rows are the student's own");
+        assert_eq!(store.study_days().unwrap(), BTreeMap::new());
+        drop(store);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn study_time_adds_up_by_day() {
+        let store = Store::in_memory();
+        let day = |d| NaiveDate::from_ymd_opt(2026, 11, d).unwrap();
+        let reading = store.start_session(day(15), Study::Reading, "fr").unwrap();
+        store.add_session_seconds(reading, 15).unwrap();
+        store.add_session_seconds(reading, 45).unwrap();
+        let test = store.start_session(day(15), Study::Test, "7").unwrap();
+        store.add_session_seconds(test, 600).unwrap();
+        let idle = store.start_session(day(14), Study::Reading, "fr").unwrap();
+        let next = store
+            .start_session(day(16), Study::Reading, "dpsp")
+            .unwrap();
+        store.add_session_seconds(next, 30).unwrap();
+        assert_ne!(idle, next);
+        assert_eq!(
+            store.study_days().unwrap(),
+            BTreeMap::from([(day(15), 660), (day(16), 30)]),
+            "a block with no time is no study"
+        );
+    }
+
+    #[test]
+    fn a_plan_is_saved_once_and_ticked() {
+        let store = Store::in_memory();
+        let day = NaiveDate::from_ymd_opt(2026, 11, 16).unwrap();
+        assert_eq!(store.plan(day).unwrap(), None);
+        let task = |kind: &str, minutes| PlanTask {
+            kind: kind.into(),
+            target: format!("{kind}-target"),
+            title: format!("{kind} title"),
+            minutes,
+            done: false,
+        };
+        let tasks = vec![task("note", 20), task("drill", 12)];
+        store.save_plan(day, &tasks).unwrap();
+        assert_eq!(store.plan(day).unwrap(), Some(tasks.clone()));
+        assert_eq!(store.plan(day.succ_opt().unwrap()).unwrap(), None);
+        store.set_task_done(day, 1, true).unwrap();
+        assert!(store.plan(day).unwrap().unwrap()[1].done);
+        store.clear_plan(day).unwrap();
+        assert_eq!(store.plan(day).unwrap(), None);
+    }
+
+    #[test]
+    fn removing_demo_history_never_touches_a_real_row() {
+        let store = Store::in_memory();
+        let day = |d| NaiveDate::from_ymd_opt(2026, 11, d).unwrap();
+
+        // The student's own: a finished test, a note read, and study time.
+        let mut real = sitting(2);
+        real.answers[0].chosen = Some(1);
+        real.answers[0].correct = Some(true);
+        real.id = store.start_attempt(&real).unwrap();
+        real.finished = Some(real.started + chrono::Duration::minutes(2));
+        store.finish_attempt(&real).unwrap();
+        let mut fr = Reading::new(day(10));
+        fr.done = Some(day(12));
+        fr.seconds = 900;
+        store.save_reading("fr", &fr).unwrap();
+        let block = store.start_session(day(12), Study::Reading, "fr").unwrap();
+        store.add_session_seconds(block, 900).unwrap();
+        store.settle_diagnostic(false).unwrap();
+        let before = (
+            store.finished(100).unwrap(),
+            store.readings().unwrap(),
+            store.study_days().unwrap(),
+            store.answered().unwrap(),
+        );
+        assert!(!store.has_demo().unwrap());
+
+        // Demo history that overlaps it: a test, a record for the same note
+        // and for another, and study on the same day.
+        let mut made_up = sitting(3);
+        made_up.title = "Demo".into();
+        made_up.answers[2].chosen = Some(0);
+        made_up.answers[2].correct = Some(false);
+        made_up.finished = Some(made_up.started + chrono::Duration::minutes(3));
+        let mut monsoon = Reading::new(day(8));
+        monsoon.demo = true;
+        let demo = Demo {
+            attempts: vec![made_up],
+            readings: vec![("fr".into(), monsoon), ("monsoon".into(), monsoon)],
+            sessions: vec![(day(12), Study::Test, "demo-1".into(), 300)],
+        };
+        store.add_demo(&demo).unwrap();
+        assert!(store.has_demo().unwrap());
+        assert_eq!(store.finished(100).unwrap().len(), 2);
+        let readings = store.readings().unwrap();
+        assert_eq!(
+            readings["fr"], fr,
+            "the student's own record stays as it was"
+        );
+        assert!(readings["monsoon"].demo);
+        assert_eq!(store.study_days().unwrap()[&day(12)], 1200);
+
+        store.remove_demo().unwrap();
+        let after = (
+            store.finished(100).unwrap(),
+            store.readings().unwrap(),
+            store.study_days().unwrap(),
+            store.answered().unwrap(),
+        );
+        assert_eq!(after, before, "every real row is back exactly");
+        assert!(!store.has_demo().unwrap());
+        assert!(store.has_own_tests().unwrap());
+        assert!(store.diagnostic_settled());
+        let orphans: i64 = store
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM answer WHERE attempt NOT IN (SELECT id FROM attempt)",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(orphans, 0, "the demo test's answers went with it");
     }
 
     #[test]

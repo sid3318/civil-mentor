@@ -6,9 +6,13 @@
 //! - `notes` is the reader; [`syllabus`] tracks topics and coverage.
 //! - `practice` lists the tests, `exam` sits them and `review` shows the
 //!   result; [`mentor`] marks them and chooses their questions.
+//! - `today` is the daily plan and `analysis` the charts; [`mentor`] makes
+//!   the plan and the insights, and [`demo`] makes up history to show them.
 
+mod analysis;
 mod app;
 pub mod content;
+pub mod demo;
 mod exam;
 pub mod mentor;
 mod notes;
@@ -18,6 +22,7 @@ mod screens;
 mod settings;
 pub mod store;
 pub mod syllabus;
+mod today;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -32,7 +37,7 @@ use gpui_kit::{
 
 pub use app::{Screen, Shell};
 use content::Library;
-use store::{Reading, Settings, Store, ThemeChoice};
+use store::{Reading, Settings, Store, Study, ThemeChoice};
 
 // Lucide icons the app uses beyond the set bundled with the components.
 gpui_kit::assets::icon_assets!(
@@ -125,8 +130,82 @@ impl AppState {
             .reading
             .entry(note.to_string())
             .or_insert_with(|| Reading::new(today));
+        // The student's own use of a note replaces a made-up record.
+        if reading.demo {
+            *reading = Reading::new(today);
+        }
         change(reading, today);
         if let Err(err) = state.store.save_reading(note, reading) {
+            state.store_error = Some(format!("{err:#}"));
+        }
+        cx.refresh_windows();
+    }
+
+    /// Adds `seconds` of study to the block in `block`, starting the block
+    /// the first time.
+    pub fn record_study(
+        cx: &mut App,
+        kind: Study,
+        item: &str,
+        block: &mut Option<i64>,
+        seconds: u32,
+    ) {
+        let store = &AppState::get(cx).store;
+        let id = match *block {
+            Some(id) => Ok(id),
+            None => store.start_session(Local::now().date_naive(), kind, item),
+        };
+        let added = id.and_then(|id| {
+            *block = Some(id);
+            store.add_session_seconds(id, seconds)
+        });
+        if let Err(err) = added {
+            AppState::report(cx, err);
+        }
+    }
+
+    /// Adds time spent reading a note to its record and to the day's study.
+    /// Nothing on screen shows it live, so this does not redraw.
+    pub fn add_reading_time(cx: &mut App, note: &str, block: &mut Option<i64>, seconds: u32) {
+        AppState::record_study(cx, Study::Reading, note, block, seconds);
+        let today = Local::now().date_naive();
+        let state = cx.global_mut::<AppState>();
+        let reading = state
+            .reading
+            .entry(note.to_string())
+            .or_insert_with(|| Reading::new(today));
+        if reading.demo {
+            *reading = Reading::new(today);
+        }
+        reading.seconds += seconds;
+        if let Err(err) = state.store.save_reading(note, reading) {
+            state.store_error = Some(format!("{err:#}"));
+        }
+    }
+
+    /// Adds made-up history, or removes it, and redraws. Today's plan is
+    /// made again to match, unless the student has ticked a task in it.
+    pub fn set_demo(cx: &mut App, on: bool) {
+        let today = Local::now().date_naive();
+        let state = cx.global_mut::<AppState>();
+        let changed = if on {
+            state.store.add_demo(&demo::history(&state.library, today))
+        } else {
+            state.store.remove_demo()
+        };
+        let replan = state
+            .store
+            .plan(today)
+            .map(|plan| !plan.unwrap_or_default().iter().any(|task| task.done))
+            .and_then(|untouched| match untouched {
+                true => state.store.clear_plan(today),
+                false => Ok(()),
+            });
+        let reloaded = state
+            .store
+            .readings()
+            .map(|reading| state.reading = reading);
+        if let Err(err) = changed.and(replan).and(reloaded) {
             state.store_error = Some(format!("{err:#}"));
         }
         cx.refresh_windows();

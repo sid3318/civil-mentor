@@ -19,7 +19,7 @@ use gpui_kit::*;
 use crate::AppState;
 use crate::app::Shell;
 use crate::mentor::{self, TestPlan};
-use crate::store::{Attempt, Confidence};
+use crate::store::{Attempt, Confidence, Study};
 
 actions!(
     exam,
@@ -88,6 +88,8 @@ struct Session {
     counted: Instant,
     /// Take the keyboard on the next frame, so the letter keys work at once.
     take_focus: bool,
+    /// The block of study time this visit to the room is counted in.
+    study: Option<i64>,
     _clock: Task<()>,
 }
 
@@ -166,6 +168,7 @@ impl ExamScreen {
             confirm: false,
             counted: cx.background_executor().now(),
             take_focus: true,
+            study: None,
             _clock: clock,
         });
         self.save(cx);
@@ -190,6 +193,10 @@ impl ExamScreen {
         let current = attempt.current;
         if let Some(answer) = attempt.answers.get_mut(current) {
             answer.seconds += spent;
+        }
+        if spent > 0 {
+            let item = attempt.id.to_string();
+            AppState::record_study(cx, Study::Test, &item, &mut session.study, spent);
         }
         let out_of_time = attempt.seconds_left() == 0;
         self.save(cx);

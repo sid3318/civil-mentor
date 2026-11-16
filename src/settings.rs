@@ -93,6 +93,7 @@ impl Render for SettingsScreen {
             library.briefs.len()
         );
         let problems = library.problems.clone();
+        let demo = state.store.has_demo().unwrap_or(false);
         let data_file = match state.store.path() {
             Some(path) => path.display().to_string(),
             None => "Nothing is being saved in this session".to_string(),
@@ -185,6 +186,28 @@ impl Render for SettingsScreen {
                 .title("Library and data")
                 .child(setting("Content", contents, div(), cx))
                 .child(setting("Your progress file", data_file, div(), cx))
+                .child(setting(
+                    "Demo history",
+                    if demo {
+                        "Made-up tests, reading and study time are showing in Today and Analysis. Removing them leaves your own data as it is."
+                    } else {
+                        "Adds 30 days of made-up tests, reading and study time, so Today and Analysis have something to show. Each made-up row is marked, so removing them later leaves your own data as it is."
+                    },
+                    if demo {
+                        Button::new("remove-demo")
+                            .outline()
+                            .small()
+                            .label("Remove demo history")
+                            .on_click(|_, _, cx| AppState::set_demo(cx, false))
+                    } else {
+                        Button::new("add-demo")
+                            .outline()
+                            .small()
+                            .label("Add demo history")
+                            .on_click(|_, _, cx| AppState::set_demo(cx, true))
+                    },
+                    cx,
+                ))
                 .when(!problems.is_empty(), |this| {
                     this.child(
                         v_flex()
