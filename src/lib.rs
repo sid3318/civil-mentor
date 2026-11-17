@@ -9,6 +9,8 @@
 //! - `current_affairs` is the daily brief, its reader and its quiz.
 //! - `today` is the daily plan and `analysis` the charts; [`mentor`] makes
 //!   the plan and the insights, and [`demo`] makes up history to show them.
+//! - `revision` is the mistake book and flashcards, `notebook` the
+//!   student's highlights, clips and own notes, and `mains` answer writing.
 
 mod analysis;
 mod app;
@@ -16,6 +18,7 @@ pub mod content;
 mod current_affairs;
 pub mod demo;
 mod exam;
+mod mains;
 mod marks;
 pub mod mentor;
 mod notebook;
@@ -42,7 +45,9 @@ use gpui_kit::{
 
 pub use app::{Screen, Shell};
 use content::Library;
-use store::{Mark, MyNote, NewMark, Reading, Review, Settings, Store, Study, ThemeChoice};
+use store::{
+    MainsAnswer, Mark, MyNote, NewMark, Reading, Review, Settings, Store, Study, ThemeChoice,
+};
 
 // Lucide icons the app uses beyond the set bundled with the components.
 gpui_kit::assets::icon_assets!(
@@ -105,6 +110,9 @@ pub struct AppState {
     /// The notes the student wrote, newest first. Kept in step with the
     /// store by save_my_note.
     pub my_notes: Vec<MyNote>,
+    /// Every Mains answer, drafts included, oldest first. Kept in step with
+    /// the store by save_mains_answer.
+    pub mains: Vec<MainsAnswer>,
     /// Days added to the system date. Always 0 in the app; the UI test
     /// moves it forward to see a review fall due.
     pub days_ahead: i64,
@@ -176,6 +184,25 @@ impl AppState {
         };
         state.my_notes.retain(|note| note.id != saved.id);
         state.my_notes.insert(0, saved.clone());
+        cx.refresh_windows();
+        Some(saved)
+    }
+
+    /// Saves a Mains answer, and returns it as it was stored.
+    pub fn save_mains_answer(cx: &mut App, answer: MainsAnswer) -> Option<MainsAnswer> {
+        let state = cx.global_mut::<AppState>();
+        let saved = match state.store.save_mains_answer(&answer) {
+            Ok(saved) => saved,
+            Err(err) => {
+                state.store_error = Some(format!("{err:#}"));
+                cx.refresh_windows();
+                return None;
+            }
+        };
+        match state.mains.iter_mut().find(|answer| answer.id == saved.id) {
+            Some(kept) => *kept = saved.clone(),
+            None => state.mains.push(saved.clone()),
+        }
         cx.refresh_windows();
         Some(saved)
     }
@@ -355,13 +382,25 @@ pub fn init(mut store: Store, mut store_error: Option<String>, cx: &mut App) {
     apply_theme(settings.theme, cx);
     // Saving on top of rows that could not be read would overwrite them, so
     // carry on with a throwaway store instead and say so.
-    let loaded = store
-        .readings()
-        .and_then(|reading| Ok((reading, store.reviews()?, store.marks()?, store.my_notes()?)));
-    let (reading, mut reviews, marks, my_notes) = loaded.unwrap_or_else(|err| {
+    let loaded = store.readings().and_then(|reading| {
+        Ok((
+            reading,
+            store.reviews()?,
+            store.marks()?,
+            store.my_notes()?,
+            store.mains_answers()?,
+        ))
+    });
+    let (reading, mut reviews, marks, my_notes, mains) = loaded.unwrap_or_else(|err| {
         store_error = Some(format!("{err:#}"));
         store = Store::in_memory();
-        (HashMap::new(), HashMap::new(), Vec::new(), Vec::new())
+        (
+            HashMap::new(),
+            HashMap::new(),
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+        )
     });
     // Mistakes from tests sat before the reviews existed join them once,
     // spread over the days ahead.
@@ -385,6 +424,7 @@ pub fn init(mut store: Store, mut store_error: Option<String>, cx: &mut App) {
         reviews,
         marks: by_item(marks),
         my_notes,
+        mains,
         days_ahead: 0,
         store_error,
     });

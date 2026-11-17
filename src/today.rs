@@ -43,6 +43,7 @@ pub(crate) fn todays_plan(cx: &mut App, today: NaiveDate) -> Plan {
                 &state.reading,
                 &history,
                 &state.reviews,
+                &state.mains,
                 state.settings.daily_minutes,
                 today,
             );
@@ -165,6 +166,7 @@ impl TodayScreen {
                     &state.reading,
                     &tests,
                     &state.reviews,
+                    &state.mains,
                 )
             })
             .collect();
@@ -181,6 +183,7 @@ impl TodayScreen {
             let earned = finished && !task.done;
             let kind = TaskKind::parse(&task.kind);
             let note = library.notes.iter().position(|note| note.id == task.target);
+            let mains = library.mains_ix(&task.target);
             let drill = mentor::task_drill(library, task);
             // The brief's day, and the last time its quiz was sat.
             let brief: Option<NaiveDate> = match kind {
@@ -240,6 +243,13 @@ impl TodayScreen {
                                 }
                             }
                             Some(TaskKind::Drill) => this.sit(drill.clone(), cx),
+                            Some(TaskKind::Mains) => {
+                                if let Some(question) = mains {
+                                    let _ = this
+                                        .shell
+                                        .update(cx, |shell, cx| shell.open_mains(question, cx));
+                                }
+                            }
                             None => {}
                         })),
                 )

@@ -1,15 +1,18 @@
 //! The mentor: plain, deterministic rules over the content and the student's
 //! record: how a test is marked and which questions it asks (Phase 2), and
-//! today's plan, the insights and the streak (Phase 3), and the review dates
-//! (Phase 5). Rules that depend on the date take it as an argument.
+//! today's plan, the insights and the streak (Phase 3), the review dates
+//! (Phase 5), and the Mains clock, task and trend (Phase 6). Rules that
+//! depend on the date take it as an argument.
 
 use std::cmp::{Ordering, Reverse};
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use chrono::{Datelike as _, Duration, NaiveDate, NaiveDateTime};
 
-use crate::content::{Flashcard, Library, Note, Question, Story, within};
-use crate::store::{Answer, Attempt, Confidence, Past, PlanTask, Reading, Review};
+use crate::content::{Flashcard, Library, MainsQuestion, Note, Question, Story, within};
+use crate::store::{
+    Answer, Attempt, Confidence, MainsAnswer, Past, PlanTask, Reading, Review, SCORES,
+};
 use crate::syllabus::{self, Status};
 
 /// Prelims allows 2 hours for 100 questions.
@@ -773,8 +776,6 @@ const MIN_TASK_MINUTES: u32 = 5;
 pub const STORY_MINUTES: u32 = 5;
 
 /// The kinds of task in a day's plan, in the order the plan fills them.
-/// A Mains answer (Phase 6) becomes a variant here, with its step in
-/// [`today_plan`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TaskKind {
     /// Read the stories of today's brief. The target is the brief's date.
@@ -785,6 +786,8 @@ pub enum TaskKind {
     Note,
     /// A drill on the weakest topic.
     Drill,
+    /// Write a Mains answer. The target is the question's id.
+    Mains,
 }
 
 impl TaskKind {
@@ -795,6 +798,7 @@ impl TaskKind {
             TaskKind::Review => "review",
             TaskKind::Note => "note",
             TaskKind::Drill => "drill",
+            TaskKind::Mains => "mains",
         }
     }
 
@@ -804,6 +808,7 @@ impl TaskKind {
             "review" => Some(TaskKind::Review),
             "note" => Some(TaskKind::Note),
             "drill" => Some(TaskKind::Drill),
+            "mains" => Some(TaskKind::Mains),
             _ => None,
         }
     }
@@ -826,25 +831,29 @@ impl Plan {
 /// order of "Mentor rules": today's brief if any of its stories is unread
 /// (see [`Library::todays_brief`]); the reviews due, [`REVIEW_MINUTES`] at
 /// most (see [`review_queue`]); the note in progress, or else the next
-/// unread note in the least-covered subject; then a drill on the weakest topic
-/// with at least [`WEAK_AFTER`] answers. Each task takes what is left of the
-/// day and is shortened to fit, or left out below its least useful size.
-/// The caller saves it, so it stays frozen for the day.
+/// unread note in the least-covered subject; a drill on the weakest topic
+/// with at least [`WEAK_AFTER`] answers; then a Mains answer on alternate
+/// days (see [`mains_task`]). Each task takes what is left of the day and is
+/// shortened to fit, or left out below its least useful size. `mains` is
+/// every Mains answer, drafts included. The caller saves the plan, so it
+/// stays frozen for the day.
 pub fn today_plan(
     library: &Library,
     reading: &HashMap<String, Reading>,
     history: &[Past],
     reviews: &HashMap<String, Review>,
+    mains: &[MainsAnswer],
     daily_minutes: u32,
     today: NaiveDate,
 ) -> Plan {
     let mut left = daily_minutes;
     let mut tasks = Vec::new();
-    let steps: [&dyn Fn(u32) -> Option<PlanTask>; 4] = [
+    let steps: [&dyn Fn(u32) -> Option<PlanTask>; 5] = [
         &|left| brief_task(library, reading, today, left),
         &|left| review_task(library, reviews, today, left),
         &|left| note_task(library, reading, left),
         &|left| drill_task(library, history, left),
+        &|left| mains_task(library, mains, today, left),
     ];
     for step in steps {
         if let Some(task) = step(left) {
@@ -972,7 +981,7 @@ fn next_unread<'a>(library: &'a Library, reading: &HashMap<String, Reading>) -> 
 }
 
 /// The subject a topic sits in: `mains.gs2.polity` for any topic under it.
-fn subject_node(topic: &str) -> &str {
+pub(crate) fn subject_node(topic: &str) -> &str {
     match topic.match_indices('.').nth(2) {
         Some((ix, _)) => &topic[..ix],
         None => topic,
@@ -1034,8 +1043,8 @@ pub fn topic_title(library: &Library, id: &str) -> String {
 /// done another way. A note is done once it is marked read, and a drill
 /// once a drill on its topic is submitted that day, and the brief once
 /// every one of its stories is read. Reviews are done once as many items
-/// as planned are answered that day, or none is left. `tests` are
-/// finished sittings.
+/// as planned are answered that day, or none is left, and a Mains answer
+/// once any answer is submitted that day. `tests` are finished sittings.
 pub fn task_done(
     library: &Library,
     task: &PlanTask,
@@ -1043,6 +1052,7 @@ pub fn task_done(
     reading: &HashMap<String, Reading>,
     tests: &[Attempt],
     reviews: &HashMap<String, Review>,
+    mains: &[MainsAnswer],
 ) -> bool {
     task.done
         || match TaskKind::parse(&task.kind) {
@@ -1072,8 +1082,171 @@ pub fn task_done(
                     .iter()
                     .any(|t| t.kind == key && t.finished.is_some_and(|f| f.date() == day))
             }
+            Some(TaskKind::Mains) => mains
+                .iter()
+                .any(|answer| answer.submitted.is_some_and(|s| s.date() == day)),
             None => false,
         }
+}
+
+// ---- Mains ------------------------------------------------------------------
+
+/// What a Mains answer is scored on, 0 to 5 each, with the question the
+/// student asks of their own answer. deepmentor names the first and the
+/// last; the five between are ours.
+pub const DIMENSIONS: [(&str, &str); SCORES] = [
+    (
+        "Directive",
+        "Does it do what the question asks: discuss, examine, explain?",
+    ),
+    (
+        "Introduction",
+        "Does it open by defining the subject or setting the context?",
+    ),
+    ("Content", "Is it accurate and relevant, with enough depth?"),
+    (
+        "Dimensions covered",
+        "Does it take in every angle the question needs: social, economic, political and so on?",
+    ),
+    (
+        "Examples and data",
+        "Does it back its points with examples, cases, articles or figures?",
+    ),
+    (
+        "Conclusion",
+        "Does it end with a balanced judgement or a way forward?",
+    ),
+    (
+        "Presentation",
+        "Is it clear and well laid out, with headings or points, within the limit?",
+    ),
+];
+
+/// The minutes the plan allows for scoring an answer, on top of its clock.
+pub const MAINS_SCORING_MINUTES: u32 = 5;
+
+/// The seconds left on a Mains answer's clock after `used`, set by the
+/// question's marks. Negative once time is up: the overrun.
+pub fn seconds_left(question: &MainsQuestion, used: u32) -> i64 {
+    i64::from(question.minutes() * 60) - i64::from(used)
+}
+
+/// The Mains answer on the plan, on alternate days counted from the
+/// student's own writing: there is none the day after an answer was
+/// submitted. It finishes the latest draft if there is one, else writes an
+/// unanswered question from the paper with the fewest answers, else rewrites
+/// the answer written longest ago. It takes the question's clock plus
+/// [`MAINS_SCORING_MINUTES`], and the first that fits what is left is taken.
+fn mains_task(
+    library: &Library,
+    mains: &[MainsAnswer],
+    today: NaiveDate,
+    left: u32,
+) -> Option<PlanTask> {
+    let yesterday = today.pred_opt()?;
+    if mains
+        .iter()
+        .any(|answer| answer.submitted.is_some_and(|s| s.date() == yesterday))
+    {
+        return None;
+    }
+    let submitted: Vec<(usize, NaiveDateTime)> = mains
+        .iter()
+        .filter_map(|answer| Some((library.mains_ix(&answer.question)?, answer.submitted?)))
+        .collect();
+    let last = |ix: usize| {
+        submitted
+            .iter()
+            .filter(|(answered, _)| *answered == ix)
+            .map(|(_, when)| *when)
+            .max()
+    };
+    let in_paper = |paper: &str| {
+        submitted
+            .iter()
+            .filter(|(ix, _)| library.mains[*ix].paper == paper)
+            .count()
+    };
+    let drafts = mains
+        .iter()
+        .rev()
+        .filter(|answer| answer.submitted.is_none())
+        .filter_map(|answer| library.mains_ix(&answer.question))
+        .map(|ix| ("Finish your Mains answer", ix));
+    let mut unanswered: Vec<usize> = (0..library.mains.len())
+        .filter(|&ix| last(ix).is_none())
+        .collect();
+    unanswered.sort_by_key(|&ix| (in_paper(&library.mains[ix].paper), ix));
+    let mut answered: Vec<(NaiveDateTime, usize)> = (0..library.mains.len())
+        .filter_map(|ix| Some((last(ix)?, ix)))
+        .collect();
+    answered.sort();
+    drafts
+        .chain(
+            unanswered
+                .into_iter()
+                .map(|ix| ("Write one Mains answer", ix)),
+        )
+        .chain(
+            answered
+                .into_iter()
+                .map(|(_, ix)| ("Rewrite a Mains answer", ix)),
+        )
+        .find_map(|(verb, ix)| {
+            let question = &library.mains[ix];
+            let minutes = question.minutes() + MAINS_SCORING_MINUTES;
+            (minutes <= left).then(|| PlanTask {
+                kind: TaskKind::Mains.key().into(),
+                target: question.id.clone(),
+                title: format!(
+                    "{verb}: {}, {} marks",
+                    question.paper_title(),
+                    question.marks
+                ),
+                minutes,
+                done: false,
+            })
+        })
+}
+
+/// One dimension's scores over the scored answers.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Trend {
+    /// The day each scored answer was submitted, with its score, oldest first.
+    pub scores: Vec<(NaiveDate, u8)>,
+    /// The mean of the latest scores less the mean of as many before them,
+    /// up to three each. `None` until two answers are scored.
+    pub change: Option<f64>,
+}
+
+impl Trend {
+    pub fn average(&self) -> Option<f64> {
+        let total: u32 = self.scores.iter().map(|&(_, score)| u32::from(score)).sum();
+        (!self.scores.is_empty()).then(|| f64::from(total) / self.scores.len() as f64)
+    }
+}
+
+/// The trend on each dimension, in the order of [`DIMENSIONS`], over the
+/// submitted answers that have all seven scores.
+pub fn mains_trend(answers: &[MainsAnswer]) -> [Trend; SCORES] {
+    let mut scored: Vec<(NaiveDateTime, &[Option<u8>; SCORES])> = answers
+        .iter()
+        .filter(|answer| answer.total().is_some())
+        .filter_map(|answer| Some((answer.submitted?, &answer.scores)))
+        .collect();
+    scored.sort_by_key(|(when, _)| *when);
+    std::array::from_fn(|dimension| {
+        let scores: Vec<(NaiveDate, u8)> = scored
+            .iter()
+            .filter_map(|(when, scores)| Some((when.date(), scores[dimension]?)))
+            .collect();
+        let mean = |part: &[(NaiveDate, u8)]| {
+            part.iter().map(|&(_, score)| f64::from(score)).sum::<f64>() / part.len() as f64
+        };
+        let (n, k) = (scores.len(), (scores.len() / 2).min(3));
+        let change = (k > 0).then(|| mean(&scores[n - k..]) - mean(&scores[n - 2 * k..n - k]));
+        Trend { scores, change }
+    })
 }
 
 /// The number of days in a row, ending today or yesterday, with any study
@@ -1940,7 +2113,7 @@ topic = [
         let mut reviews: HashMap<String, Review> = (0..20)
             .map(|n| (format!("question:q{n:02}"), due_on(1, Some(day(16)))))
             .collect();
-        let plan = today_plan(&library, &HashMap::new(), &[], &reviews, 90, day(16));
+        let plan = today_plan(&library, &HashMap::new(), &[], &reviews, &[], 90, day(16));
         assert_eq!(
             titles(&plan),
             [
@@ -1952,7 +2125,7 @@ topic = [
         let task = plan.tasks[1].clone();
         assert_eq!((task.kind.as_str(), task.target.as_str()), ("review", "15"));
         // Shortened to what is left of the day.
-        let short = today_plan(&library, &HashMap::new(), &[], &reviews, 12, day(16));
+        let short = today_plan(&library, &HashMap::new(), &[], &reviews, &[], 12, day(16));
         assert_eq!(titles(&short)[1], ("Review 7 mistakes".to_string(), 7));
 
         // Done once 15 are answered that day, or once nothing is left.
@@ -1967,7 +2140,8 @@ topic = [
             day(16),
             &HashMap::new(),
             &[],
-            &reviews
+            &reviews,
+            &[]
         ));
         let next = review(reviews.get("question:q14"), false, day(16));
         reviews.insert("question:q14".into(), next);
@@ -1977,10 +2151,19 @@ topic = [
             day(16),
             &HashMap::new(),
             &[],
-            &reviews
+            &reviews,
+            &[]
         ));
         assert!(
-            !task_done(&library, &task, day(17), &HashMap::new(), &[], &reviews),
+            !task_done(
+                &library,
+                &task,
+                day(17),
+                &HashMap::new(),
+                &[],
+                &reviews,
+                &[]
+            ),
             "answered on the 16th"
         );
 
@@ -1989,13 +2172,21 @@ topic = [
             ("question:q00".to_string(), due_on(1, Some(day(16)))),
             ("question:q01".to_string(), due_on(2, Some(day(14)))),
         ]);
-        let plan = today_plan(&library, &HashMap::new(), &[], &reviews, 90, day(16));
+        let plan = today_plan(&library, &HashMap::new(), &[], &reviews, &[], 90, day(16));
         assert_eq!(
             titles(&plan)[1],
             ("Review 2 mistakes and 5 flashcards".to_string(), 5)
         );
         // Only new cards, nothing due.
-        let plan = today_plan(&library, &HashMap::new(), &[], &HashMap::new(), 90, day(16));
+        let plan = today_plan(
+            &library,
+            &HashMap::new(),
+            &[],
+            &HashMap::new(),
+            &[],
+            90,
+            day(16),
+        );
         assert_eq!(titles(&plan)[1], ("Review 5 flashcards".to_string(), 5));
     }
 
@@ -2091,7 +2282,15 @@ topic = [
         // Polity has 0 of 3 topics read and economy 0 of 1: a tie, so the
         // subject first in the syllabus, and its first note. No topic has
         // 8 answers, so no drill.
-        let plan = today_plan(&library, &HashMap::new(), &[], &HashMap::new(), 90, day(16));
+        let plan = today_plan(
+            &library,
+            &HashMap::new(),
+            &[],
+            &HashMap::new(),
+            &[],
+            90,
+            day(16),
+        );
         assert_eq!(plan.day, day(16));
         assert_eq!(titles(&plan), [("Read: rights".to_string(), 30)]);
         assert_eq!(plan.tasks[0].kind, "note");
@@ -2109,7 +2308,15 @@ topic = [
         // weakest topic with 8 answers. 10 questions at 72 s is 12 minutes.
         let mut history = answers_on("pre.gs.polity.courts.supreme", 2, 8);
         history.extend(answers_on("pre.gs.polity.rights.writs", 6, 10));
-        let plan = today_plan(&library, &reading, &history, &HashMap::new(), 90, day(16));
+        let plan = today_plan(
+            &library,
+            &reading,
+            &history,
+            &HashMap::new(),
+            &[],
+            90,
+            day(16),
+        );
         assert_eq!(
             titles(&plan),
             [
@@ -2137,10 +2344,26 @@ topic = [
         let history = answers_on("pre.gs.polity.courts.supreme", 2, 8);
         // 15 minutes: the note takes 10, and 5 minutes fit 4 questions,
         // under the 5 a drill needs. No drill.
-        let plan = today_plan(&library, &reading, &history, &HashMap::new(), 15, day(16));
+        let plan = today_plan(
+            &library,
+            &reading,
+            &history,
+            &HashMap::new(),
+            &[],
+            15,
+            day(16),
+        );
         assert_eq!(titles(&plan), [("Continue: courts".to_string(), 10)]);
         // 20 minutes: 10 left fit 8 questions, 576 s, which is 10 minutes.
-        let plan = today_plan(&library, &reading, &history, &HashMap::new(), 20, day(16));
+        let plan = today_plan(
+            &library,
+            &reading,
+            &history,
+            &HashMap::new(),
+            &[],
+            20,
+            day(16),
+        );
         assert_eq!(
             titles(&plan),
             [
@@ -2151,7 +2374,16 @@ topic = [
         assert_eq!(task_drill(&library, &plan.tasks[1]).count, 8);
         // 4 minutes is under the shortest task: nothing is planned.
         assert_eq!(
-            today_plan(&library, &reading, &history, &HashMap::new(), 4, day(16)).tasks,
+            today_plan(
+                &library,
+                &reading,
+                &history,
+                &HashMap::new(),
+                &[],
+                4,
+                day(16)
+            )
+            .tasks,
             []
         );
     }
@@ -2174,7 +2406,8 @@ topic = [
             day(16),
             &reading,
             &[],
-            &HashMap::new()
+            &HashMap::new(),
+            &[]
         ));
         assert!(task_done(
             &none,
@@ -2185,11 +2418,12 @@ topic = [
             day(16),
             &reading,
             &[],
-            &HashMap::new()
+            &HashMap::new(),
+            &[]
         ));
         reading.insert("courts".into(), opened(16, 60, true));
         assert!(
-            task_done(&none, &note, day(16), &reading, &[], &HashMap::new()),
+            task_done(&none, &note, day(16), &reading, &[], &HashMap::new(), &[]),
             "marked read"
         );
 
@@ -2204,13 +2438,22 @@ topic = [
                 day(16),
                 &reading,
                 &[sat.clone()],
-                &HashMap::new()
+                &HashMap::new(),
+                &[]
             ),
             "sat yesterday"
         );
         sat.finished = Some(day(16).and_hms_opt(20, 0, 0).unwrap());
         assert!(
-            task_done(&none, &drill, day(16), &reading, &[sat], &HashMap::new()),
+            task_done(
+                &none,
+                &drill,
+                day(16),
+                &reading,
+                &[sat],
+                &HashMap::new(),
+                &[]
+            ),
             "sat today"
         );
     }
@@ -2241,7 +2484,7 @@ topic = [
         let mut reading = HashMap::new();
 
         // On the 16th there is no brief of its own, so the newest before it is read.
-        let plan = today_plan(&library, &reading, &[], &HashMap::new(), 90, day(16));
+        let plan = today_plan(&library, &reading, &[], &HashMap::new(), &[], 90, day(16));
         assert_eq!(
             titles(&plan),
             [("Read the brief for 14 Nov: 2 stories".to_string(), 10)]
@@ -2257,13 +2500,14 @@ topic = [
                 &reading,
                 &[],
                 &HashMap::new(),
+                &[],
                 90,
                 day(14)
             )),
             [("Read today's brief: 2 stories".to_string(), 10)]
         );
         assert_eq!(
-            today_plan(&library, &reading, &[], &HashMap::new(), 7, day(16)).tasks[0].minutes,
+            today_plan(&library, &reading, &[], &HashMap::new(), &[], 7, day(16)).tasks[0].minutes,
             7,
             "shortened to fit the day"
         );
@@ -2276,6 +2520,7 @@ topic = [
                 &reading,
                 &[],
                 &HashMap::new(),
+                &[],
                 90,
                 day(16)
             )),
@@ -2287,7 +2532,8 @@ topic = [
             day(16),
             &reading,
             &[],
-            &HashMap::new()
+            &HashMap::new(),
+            &[]
         ));
         // Opened but not read does not count.
         reading.insert("story:s2".to_string(), opened(16, 0, false));
@@ -2297,15 +2543,24 @@ topic = [
             day(16),
             &reading,
             &[],
-            &HashMap::new()
+            &HashMap::new(),
+            &[]
         ));
         reading.insert("story:s2".to_string(), opened(16, 0, true));
         assert!(
-            task_done(&library, &brief, day(16), &reading, &[], &HashMap::new()),
+            task_done(
+                &library,
+                &brief,
+                day(16),
+                &reading,
+                &[],
+                &HashMap::new(),
+                &[]
+            ),
             "all read"
         );
         assert_eq!(
-            today_plan(&library, &reading, &[], &HashMap::new(), 90, day(16)).tasks,
+            today_plan(&library, &reading, &[], &HashMap::new(), &[], 90, day(16)).tasks,
             []
         );
 
@@ -2568,5 +2823,182 @@ topic = [
             .filter_map(|d| question_of_the_day(&library, day(d)))
             .collect();
         assert!(week.len() > 1, "it changes from day to day");
+    }
+
+    fn mains_library() -> Library {
+        let question = |id: &str, paper: &str, marks: u32, words: u32| {
+            format!(
+                "[[question]]\nid = \"{id}\"\npaper = \"{paper}\"\ntopics = [\"mains.{paper}\"]\n\
+                 marks = {marks}\nwords = {words}\nquestion = \"Discuss.\"\npoints = [\"One\"]\n\
+                 model = \"An answer.\"\n\n"
+            )
+        };
+        let library = Library::from_files([
+            (
+                "syllabus.toml".to_string(),
+                "topic = [{ id = \"mains\", title = \"Mains\" }, { id = \"mains.gs1\", title = \"GS-1\" }, \
+                 { id = \"mains.gs2\", title = \"GS-2\" }]"
+                    .to_string(),
+            ),
+            ("mains/gs1.toml".to_string(), question("g1", "gs1", 10, 150)),
+            (
+                "mains/gs2.toml".to_string(),
+                question("g2a", "gs2", 15, 250) + &question("g2b", "gs2", 10, 150),
+            ),
+        ]);
+        assert_eq!(library.problems, Vec::<String>::new());
+        library
+    }
+
+    /// An answer to `question` begun at 9:00 on `started`, and submitted
+    /// 15 minutes later on `submitted`, or a draft.
+    fn written(question: &str, started: u32, submitted: Option<u32>) -> MainsAnswer {
+        MainsAnswer {
+            submitted: submitted.map(|d| day(d).and_hms_opt(9, 15, 0).unwrap()),
+            text: "Words.".into(),
+            ..MainsAnswer::new(question, day(started).and_hms_opt(9, 0, 0).unwrap())
+        }
+    }
+
+    #[test]
+    fn the_mains_clock_is_set_by_the_marks() {
+        let library = mains_library();
+        let ten = &library.mains[library.mains_ix("g1").unwrap()];
+        let fifteen = &library.mains[library.mains_ix("g2a").unwrap()];
+        assert_eq!(seconds_left(ten, 0), 7 * 60, "10 marks, 7 minutes");
+        assert_eq!(seconds_left(fifteen, 0), 11 * 60, "15 marks, 11 minutes");
+        assert_eq!(seconds_left(fifteen, 600), 60);
+        assert_eq!(seconds_left(ten, 465), -45, "the overrun");
+    }
+
+    #[test]
+    fn a_mains_answer_is_planned_on_alternate_days() {
+        let library = mains_library();
+        let plan = |mains: &[MainsAnswer], minutes: u32, today: u32| {
+            today_plan(
+                &library,
+                &HashMap::new(),
+                &[],
+                &HashMap::new(),
+                mains,
+                minutes,
+                day(today),
+            )
+        };
+
+        // Nothing written yet: the first question, 7 minutes to write and
+        // 5 to score it.
+        let first = plan(&[], 90, 16);
+        assert_eq!(
+            titles(&first),
+            [("Write one Mains answer: GS-1, 10 marks".to_string(), 12)]
+        );
+        assert_eq!(
+            (first.tasks[0].kind.as_str(), first.tasks[0].target.as_str()),
+            ("mains", "g1")
+        );
+
+        // Written on the 16th: no task on the 17th, and on the 18th a
+        // question from GS-2, the paper with no answers. A 15-mark question
+        // takes 11 minutes and 5 to score, the sketch's 16.
+        let one = [written("g1", 16, Some(16))];
+        assert_eq!(plan(&one, 90, 17).tasks, []);
+        assert_eq!(
+            titles(&plan(&one, 90, 18)),
+            [("Write one Mains answer: GS-2, 15 marks".to_string(), 16)]
+        );
+        // A day missed is not waited out: nothing written on the 18th, so
+        // the 19th has a task too.
+        assert_eq!(plan(&one, 90, 19).tasks.len(), 1);
+
+        // With 12 minutes only the 10-mark question fits; with 11, nothing.
+        assert_eq!(plan(&one, 12, 18).tasks[0].target, "g2b");
+        assert_eq!(plan(&one, 11, 18).tasks, []);
+
+        // A draft is finished first.
+        let drafted = [written("g1", 16, Some(16)), written("g2b", 18, None)];
+        assert_eq!(
+            titles(&plan(&drafted, 90, 18)),
+            [("Finish your Mains answer: GS-2, 10 marks".to_string(), 12)]
+        );
+
+        // Every question answered: the one answered longest ago comes back.
+        let all = [
+            written("g2a", 10, Some(10)),
+            written("g1", 12, Some(12)),
+            written("g2b", 14, Some(14)),
+            written("g1", 15, None),
+        ];
+        let rewrite = plan(&all[..3], 90, 16);
+        assert_eq!(
+            titles(&rewrite),
+            [("Rewrite a Mains answer: GS-2, 15 marks".to_string(), 16)]
+        );
+        assert_eq!(rewrite.tasks[0].target, "g2a");
+        assert_eq!(
+            plan(&all, 90, 16).tasks[0].title,
+            "Finish your Mains answer: GS-1, 10 marks",
+            "a rewrite under way is a draft"
+        );
+    }
+
+    #[test]
+    fn a_mains_task_is_done_once_an_answer_is_submitted_that_day() {
+        let task = PlanTask {
+            kind: TaskKind::Mains.key().into(),
+            target: "g1".into(),
+            title: String::new(),
+            minutes: 12,
+            done: false,
+        };
+        let none = Library::default();
+        let done = |mains: &[MainsAnswer]| {
+            task_done(
+                &none,
+                &task,
+                day(16),
+                &HashMap::new(),
+                &[],
+                &HashMap::new(),
+                mains,
+            )
+        };
+        assert!(!done(&[written("g1", 16, None)]), "a draft");
+        assert!(!done(&[written("g1", 15, Some(15))]), "yesterday's answer");
+        assert!(
+            done(&[written("g2b", 16, Some(16))]),
+            "any answer submitted today"
+        );
+    }
+
+    #[test]
+    fn the_trend_follows_each_dimension_over_the_scored_answers() {
+        let scored = |d: u32, scores: [u8; SCORES]| MainsAnswer {
+            scores: scores.map(Some),
+            ..written("g1", d, Some(d))
+        };
+        let mut part_scored = written("g2b", 15, Some(15));
+        part_scored.scores[0] = Some(5);
+        let answers = [
+            scored(14, [2, 1, 2, 1, 0, 1, 2]),
+            scored(10, [1, 1, 1, 1, 0, 1, 2]),
+            written("g2a", 15, None),
+            part_scored,
+            scored(16, [3, 2, 3, 2, 1, 2, 2]),
+            scored(17, [4, 2, 3, 3, 2, 3, 2]),
+        ];
+        let trend = mains_trend(&answers);
+        assert_eq!(
+            trend[0].scores,
+            [(day(10), 1), (day(14), 2), (day(16), 3), (day(17), 4)],
+            "oldest first, leaving out the draft and the answer not fully scored"
+        );
+        // Four scored answers: the last two against the two before them.
+        assert_eq!(trend[0].change, Some(2.0));
+        assert_eq!(trend[4].change, Some(1.5));
+        assert_eq!(trend[6].change, Some(0.0), "presentation is flat");
+        assert_eq!(trend[0].average(), Some(2.5));
+        assert_eq!(mains_trend(&answers[..1])[0].change, None, "one answer");
+        assert_eq!(mains_trend(&[])[3].average(), None);
     }
 }

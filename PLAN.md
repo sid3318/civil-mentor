@@ -1,6 +1,6 @@
 # Civil Mentor: build plan
 
-Status: Phase 0 (the shell), Phase 1 (notes and the full UPSC syllabus), Phase 2 (practice: tests, the exam room, results and past papers), Phase 3 (Analysis, the Today plan, study time and demo history), Phase 4 (current affairs: daily briefs, the story reader, the daily and monthly quizzes) and Phase 5 (revision: review dates, the mistake book and flashcards, the review session, highlights and clips, the Notebook and the focus timer) are built and tested, which completes the first build. Phase 6 is not started. Plan written 14 Nov 2026, updated 17 Nov 2026.
+Status: Phase 0 (the shell), Phase 1 (notes and the full UPSC syllabus), Phase 2 (practice: tests, the exam room, results and past papers), Phase 3 (Analysis, the Today plan, study time and demo history), Phase 4 (current affairs: daily briefs, the story reader, the daily and monthly quizzes) Phase 5 (revision: review dates, the mistake book and flashcards, the review session, highlights and clips, the Notebook and the focus timer) and Phase 6 (Mains: questions with model answers, the timed editor, self-evaluation and the history) are built and tested, so every phase of this plan is built. What comes next is under "Later". Plan written 14 Nov 2026, updated 17 Nov 2026.
 
 A desktop study companion for UPSC CSE aspirants. It plans the student's day, gives them the notes and current affairs to read, tests them in an exam-like room, and turns the results into the next thing to study.
 
@@ -232,7 +232,7 @@ Current affairs:
 
 ### Project structure
 
-As built in Phases 0 to 4:
+As built in Phases 0 to 6:
 
 ```
 Cargo.toml
@@ -243,13 +243,15 @@ content/                 the content pack (dummy now, ours later)
   questions/polity.toml   sample questions, one file per subject
   questions/upsc-prelims-2025.toml   a real paper with UPSC's answer key
   current-affairs/2026-11-14.toml   one brief per day, 10 to 16 Nov 2026
+  flashcards/polity.toml  sample flashcards, one file per subject
+  mains/gs2.toml          sample Mains questions with model answers, one file per paper
 src/
   main.rs                calls run()
   lib.rs                 start-up: app state, theme, icons, window
   app.rs                 shell: title bar, sidebar, shortcuts, search palette, open(target), back and forward
   content.rs             content types, loader, validation, search, note sections
-  store.rs               SQLite schema, migrations, settings, reading records, tests and answers, study time, plans, reviews, marks, own notes, demo rows
-  mentor.rs              subjects, scoring, question choice, today's plan, insights, the streak
+  store.rs               SQLite schema, migrations, settings, reading records, tests and answers, study time, plans, reviews, marks, own notes, Mains answers, demo rows
+  mentor.rs              subjects, scoring, question choice, today's plan, insights, the streak, review dates, the Mains clock, task and trend
   today.rs               the Today screen: plan, continue reading, question of the day, mentor cards, this week
   analysis.rs            the Analysis screen: Overview, Subjects, Tests, Time and Coverage tabs
   demo.rs                30 days of made-up history, added and removed from Settings
@@ -261,14 +263,13 @@ src/
   revision.rs            the Revision screen: the mistake book by subject and the review session
   marks.rs               highlights and clips: markable text views, the selection, the comment bar
   notebook.rs            the Notebook: highlights, clips, bookmarks and the student's own notes
+  mains.rs               the Mains screen: questions by paper and topic, the timed editor, self-evaluation, the history and its trend
   syllabus.rs            the Syllabus screen, topic status and coverage
   settings.rs            the Settings screen
-  screens.rs             stand-in screens, replaced phase by phase
+  screens.rs             the page column and counted nouns every screen uses
 tests/
   screens.rs             drives the shell offscreen and saves a PNG of every screen
 ```
-
-Still to come, each with its phase: `src/mains.rs`, and `content/mains/`.
 
 One crate, no workspace. The app is a library plus a three-line `main.rs` so the tests can drive it.
 
@@ -336,6 +337,25 @@ A question from a real paper has `source = "UPSC Prelims YYYY"`, and those quest
 
 A day of current affairs is one TOML file, named by its date, with a list of stories and a list of editorials. Each story has: a stable id (the date and a slug, never changed once shipped, because the student's reading is kept under it), title, topics (a Prelims subject first, which the screen groups by), context, why it matters, key facts, the trap, PYQ pattern, a practice question, a Mains question with an answer frame, and linked notes. A story's question takes the id `ca-<story id>` unless it names its own; the first six stories keep their old question ids so that answers given before stories had ids still match. An editorial has an id, title, topics, a Markdown body and linked notes. Story and editorial ids are unique across all briefs, and the loader reports a repeat.
 
+A Mains question is a `[[question]]` entry in `content/mains/`, one file per paper:
+
+```toml
+[[question]]
+id = "gs2-governor-discretion"     # stable: the student's answers are kept under it
+paper = "gs2"                      # gs1 to gs4
+topics = ["mains.gs2.polity.federalism.challenges"]
+source = "Civil Mentor sample"
+marks = 15                         # 10 marks and 150 words, or 15 marks and 250 words
+words = 250
+question = "..."
+points = ["...", "..."]            # what a good answer covers, ticked in self-evaluation
+model = """
+The model answer in Markdown, within the word limit.
+"""
+```
+
+The loader refuses a question with other marks, a word limit that does not go with its marks, an unknown paper or no question, model answer or points, because the clock is set by the marks. It reports, and keeps, a question with an unknown topic or a model answer over its limit. Words are counted as an examiner would: every run of text with a letter or digit in it.
+
 ### What the store holds
 
 | Table | One row per | Key fields |
@@ -348,7 +368,7 @@ A day of current affairs is one TOML file, named by its date, with a list of sto
 | `my_note` | note the student wrote | title, body |
 | `session` | block of study time | day, kind, item, seconds |
 | `plan_task` | task in a day's plan | day, position, kind, target, title, minutes, done |
-| `mains_answer` | written answer | question, text, self-scores |
+| `mains_answer` | written answer, drafts included | question, text, start and submit times, seconds on the clock, points ticked, seven self-scores |
 | `setting` | setting | exam date, daily minutes, theme |
 
 ### Mentor rules, version 1
@@ -371,8 +391,8 @@ Each phase ends with an app that runs and can be clicked through. The first buil
 | 2. Practice | Timed tests in an exam room, with results and review | Done |
 | 3. Analysis and Today | Charts, the mentor's rules and the daily plan | Done |
 | 4. Current affairs | Daily briefs, the story reader and the daily quiz | Done |
-| 5. Revision and notebook | Mistake book, flashcards, highlights and own notes | Next |
-| 6. Mains | Answer writing against the clock, with self-evaluation | To do |
+| 5. Revision and notebook | Mistake book, flashcards, highlights and own notes | Done |
+| 6. Mains | Answer writing against the clock, with self-evaluation | Done |
 
 ### How to work through a phase
 
@@ -534,14 +554,28 @@ Every phase below has a to-do list, so any agent can pick up the next open task.
 
 ### Phase 6: Mains
 
-- [ ] **6.1 Mains questions.** A loader for `content/mains/` (id, paper, topics, source, marks, word limit, the question, a model answer in Markdown, and the points to cover), validated like questions, and 10 original sample questions with model answers.
-- [ ] **6.2 Mains screen.** `src/mains.rs`: questions by paper and topic, filtered by paper and by answered or not. The model answer stays hidden until the student has written an answer or asks to see it.
-- [ ] **6.3 Timed editor.** A countdown set by the marks (7 minutes for 10 marks, 11 for 15) and a live word count against the limit (150 or 250 words). Save the answer to `mains_answer` as the student types, so a crash loses nothing.
-- [ ] **6.4 Self-evaluation.** After submitting, the student sees the model answer and the points to cover beside their own answer, ticks the points they made, and scores themselves from 0 to 5 on seven dimensions: directive (does the answer do what the question asks), introduction, content, dimensions covered, examples and data, conclusion, and presentation. deepmentor's site names only its first and last dimensions, directive and presentation, so the five in between are our choice.
-- [ ] **6.5 History.** Every answer with its date, time taken, word count and scores, and the trend per dimension. Today's plan gains its Mains task on alternate days, which opens an unanswered question.
-- [ ] **6.6 Tests.** The UI test writes an answer, scores it and finds it in the history, with screenshots.
+- [x] **6.1 Mains questions.** A loader for `content/mains/` (id, paper, topics, source, marks, word limit, the question, a model answer in Markdown, and the points to cover), validated like questions, and 10 original sample questions with model answers.
+- [x] **6.2 Mains screen.** `src/mains.rs`: questions by paper and topic, filtered by paper and by answered or not. The model answer stays hidden until the student has written an answer or asks to see it.
+- [x] **6.3 Timed editor.** A countdown set by the marks (7 minutes for 10 marks, 11 for 15) and a live word count against the limit (150 or 250 words). Save the answer to `mains_answer` as the student types, so a crash loses nothing.
+- [x] **6.4 Self-evaluation.** After submitting, the student sees the model answer and the points to cover beside their own answer, ticks the points they made, and scores themselves from 0 to 5 on seven dimensions: directive (does the answer do what the question asks), introduction, content, dimensions covered, examples and data, conclusion, and presentation. deepmentor's site names only its first and last dimensions, directive and presentation, so the five in between are our choice.
+- [x] **6.5 History.** Every answer with its date, time taken, word count and scores, and the trend per dimension. Today's plan gains its Mains task on alternate days, which opens an unanswered question.
+- [x] **6.6 Tests.** The UI test writes an answer, scores it and finds it in the history, with screenshots.
 
 **Done when** an answer can be written, scored and seen in the history.
+
+**As built.** The condition is met and checked by `cargo test`. The UI test opens today's plan, finds the Mains task last in it and opens its question with the model answer hidden, filters the list by paper and by answered, then writes an answer to a 15-mark question while its 11 minutes count down. It closes the app mid-answer, reopens it on the same file and finds the words and the clock where they were, lets the time run out, writes on into the overrun, submits, ticks points and gives seven scores, and finds the answer in the history. It then moves the date on a day (no Mains task) and two days (the task is back, from GS-1, the paper with no answer yet), asks for a model answer before writing, writes and scores a second answer and proves the seven trend charts drew their lines by their coloured pixels. `mentor::tests` checks the clock (7 minutes for 10 marks, 11 for 15, and the overrun), the alternate-day task, when it is done and the trend. `store::tests` checks that an answer is saved as typed and survives a crash, that a Phase 5 file upgrades with every row of every table intact, and that removing demo history leaves the student's Mains answers and drafts alone. `content::tests` checks that the 10 questions load cleanly and that bad ones are reported. What differs from the plan, and the calls this phase made:
+
+- **Alternate days count from the student's own writing, not the calendar.** The plan has no Mains task on the day after one on which an answer was submitted, and has one on every other day. So a day missed brings the task back the next day instead of two days later. The task finishes the latest draft if there is one, else writes an unanswered question from the paper with the fewest answers, else rewrites the answer written longest ago, so the task does not stop once all 10 are answered. It takes the question's clock and 5 minutes to score it: 16 minutes for 15 marks, the sketch's figure, and 12 for 10. It is done once any answer is submitted that day.
+- **A draft resumes after leaving or a crash.** The answer is saved the moment writing starts, then on every keystroke and every second of its clock, so a crash loses at most a second. The clock runs only while the editor is on screen, and stands where it stopped. At zero the editor stays open: the clock shows the overrun in red, a banner says time is up, and the overrun is kept with the answer and shown in the history. Once time is up the clock counts only while the student types (the readers' five idle minutes), so an editor left open does not run for hours.
+- **Writing time is study time**: a `session` row of a new kind, `mains`, with the answer's id as its item, so it counts towards the day, the streak and the charts.
+- **Demo history writes no Mains answers.** A made-up answer would need made-up text, and would mark questions as answered that the student never wrote, which would also steer the Mains task away from them. `mains_answer` therefore has no demo column, and removing demo history never touches it.
+- **The loader handles marks strictly**: 10 marks with 150 words or 15 with 250, nothing else, as under "Content format".
+- **The Mains screen** has two tabs. Questions groups them by paper and then by subject, with filters for the paper and for answered or not, and each row shows its marks, limit, clock and whether it is unanswered, a draft or answered with its last score. A question's page offers Start writing (or Resume your draft, or Write it again) and Show the model answer, which is hidden until the student has submitted an answer or asks for it. The editor shows the question, the clock, the word count against the limit (red when over), Save and leave, and Submit and score it. History lists every submitted answer with its date, time taken (overrun in red), word count, points made and total out of 35, under a small chart per dimension with its average and its change (the last up to three scores against as many before them); each entry opens its scoring sheet again, where ticks and scores can be changed.
+- **The seven dimensions** are directive, introduction, content, dimensions covered, examples and data, conclusion and presentation, each with the question the student asks of their own answer. Scores and ticks are saved as they are clicked; the total shows once all seven are given.
+- **The stand-in screens are gone.** Mains replaced the last one, so `src/screens.rs` keeps only the page column and counted nouns.
+- **A test helper, `centre`.** `reveal` stops once any part of an element shows, so a click at its centre can miss below the edge of the window, which happened on the scoring sheet. `centre` scrolls the element towards the middle of the window first.
+- **Content**: 10 original questions, all marked as sample: three from GS-1 (the Western Ghats and rainfall, the Non-Cooperation Movement, urbanisation and the joint family), three from GS-2 (the Governor's discretion, self-help groups, the Indian Ocean), three from GS-3 (the Monetary Policy Committee, micro-irrigation, heatwaves) and one from GS-4 (probity), five of 10 marks and five of 15. No 20-mark GS-4 case study, as planned. Facts that are not textbook staples were checked on the web: IMD's heatwave thresholds, Ahmedabad's 2013 heat action plan as South Asia's first, NABARD's description of the SHG–Bank Linkage Programme as the world's largest microfinance programme, the fourteen-day rule for publishing MPC minutes, and the notification of heatwaves as a calamity for the disaster response funds on 4 August 2026. The flashcard on the inflation target was checked too: the notification of 25 March 2026 kept 4% with a band of 2% to 6% for April 2026 to March 2031.
+- **Not built here, as planned**: AI evaluation, the Essay paper, GS-4 case studies, handwritten or uploaded answers, sync, and links from the current-affairs stories' Mains questions to this screen.
 
 ### Later
 

@@ -1,0 +1,32 @@
+# Sample Mains questions written for Civil Mentor. They are not UPSC previous-year
+# questions, and the model answers are ours. The format is described in gs1.toml.
+
+[[question]]
+id = "gs4-probity"
+paper = "gs4"
+topics = ["mains.gs4.probity.philosophical-basis-of-governance", "mains.gs4.probity.codes-of-ethics-and-codes"]
+source = "Civil Mentor sample"
+marks = 10
+words = 150
+question = "What do you understand by probity in public life? Suggest measures to strengthen it in Indian administration."
+points = [
+    "A clear definition that goes beyond the absence of corruption",
+    "A reference such as the Nolan principles of public life",
+    "Institutional measures: a code of ethics, transparency, accountability",
+    "Measures on conflicts of interest and postings",
+    "The role of character and leadership",
+]
+model = """
+Probity is integrity and uprightness in public affairs: using public power and money only for public purposes, honestly and fairly. It goes beyond avoiding corruption to following due process, avoiding conflicts of interest and staying open to scrutiny. The Nolan Committee's seven principles of public life (selflessness, integrity, objectivity, accountability, openness, honesty and leadership) capture it well.
+
+**Measures to strengthen it**
+
+- **A code of ethics** for civil servants, as the Second Administrative Reforms Commission recommended, going beyond the conduct rules.
+- **Transparency:** proactive disclosure under the RTI Act, 2005, and e-procurement.
+- **Accountability:** a working Lokpal and Lokayuktas, and protection for whistle-blowers.
+- **Conflicts of interest:** clear rules and regular declarations of assets.
+- **Postings on merit** and stable tenures, to reduce political pressure.
+- **Ethics training** and leaders who set an example.
+
+Probity rests finally on character, which rules can support but not replace.
+"""

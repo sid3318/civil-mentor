@@ -109,6 +109,28 @@ const MIGRATIONS: &[&str] = &[
         added TEXT NOT NULL,
         updated TEXT NOT NULL
     ) STRICT",
+    // A Mains answer, saved as it is typed. `submitted` is empty while it is
+    // a draft; `seconds` is the time on its clock, overrun included; `points`
+    // lists the points to cover the student ticked, by position, separated by
+    // commas; the last seven columns are the student's own scores, 0 to 5,
+    // empty until given.
+    "CREATE TABLE mains_answer (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        question TEXT NOT NULL,
+        text TEXT NOT NULL,
+        started TEXT NOT NULL,
+        submitted TEXT,
+        seconds INTEGER NOT NULL DEFAULT 0,
+        points TEXT NOT NULL DEFAULT '',
+        directive INTEGER,
+        introduction INTEGER,
+        content INTEGER,
+        dimensions INTEGER,
+        examples INTEGER,
+        conclusion INTEGER,
+        presentation INTEGER
+    ) STRICT;
+    CREATE INDEX mains_answer_by_question ON mains_answer (question)",
 ];
 
 const TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
@@ -301,6 +323,54 @@ impl MyNote {
         }
         let first = self.body.lines().find(|line| !line.trim().is_empty());
         first.unwrap_or("Untitled note").trim().to_string()
+    }
+}
+
+/// How many dimensions a Mains answer is scored on. Their names are
+/// [`crate::mentor::DIMENSIONS`].
+pub const SCORES: usize = 7;
+
+/// An answer the student wrote to a Mains question, saved as it is typed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MainsAnswer {
+    /// Zero until it is first saved.
+    pub id: i64,
+    /// The question's id.
+    pub question: String,
+    pub text: String,
+    pub started: NaiveDateTime,
+    /// Empty while it is a draft.
+    pub submitted: Option<NaiveDateTime>,
+    /// Time on the clock, overrun included.
+    pub seconds: u32,
+    /// The points to cover the student says they made, by position in the
+    /// question's list.
+    pub points: Vec<usize>,
+    /// The student's own score on each dimension, 0 to 5.
+    pub scores: [Option<u8>; SCORES],
+}
+
+impl MainsAnswer {
+    /// A draft begun at `started`, with nothing written.
+    pub fn new(question: &str, started: NaiveDateTime) -> MainsAnswer {
+        MainsAnswer {
+            id: 0,
+            question: question.to_string(),
+            text: String::new(),
+            started,
+            submitted: None,
+            seconds: 0,
+            points: Vec::new(),
+            scores: [None; SCORES],
+        }
+    }
+
+    /// The total of the seven scores, out of 35, once every one is given.
+    pub fn total(&self) -> Option<u32> {
+        self.scores
+            .iter()
+            .map(|score| score.map(u32::from))
+            .sum::<Option<u32>>()
     }
 }
 
@@ -985,6 +1055,123 @@ impl Store {
     }
 }
 
+// ---- Mains answers ----------------------------------------------------------
+
+const SCORE_COLUMNS: &str =
+    "directive, introduction, content, dimensions, examples, conclusion, presentation";
+
+impl Store {
+    /// Every Mains answer, drafts included, oldest first.
+    pub fn mains_answers(&self) -> Result<Vec<MainsAnswer>> {
+        let mut query = self.conn.prepare(&format!(
+            "SELECT id, question, text, started, submitted, seconds, points, {SCORE_COLUMNS}
+             FROM mains_answer ORDER BY id"
+        ))?;
+        let rows = query.query_map([], |row| {
+            let mut scores = [None; SCORES];
+            for (ix, score) in scores.iter_mut().enumerate() {
+                *score = row.get::<_, Option<u8>>(7 + ix)?;
+            }
+            Ok((
+                row.get::<_, i64>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, String>(3)?,
+                row.get::<_, Option<String>>(4)?,
+                row.get::<_, u32>(5)?,
+                row.get::<_, String>(6)?,
+                scores,
+            ))
+        })?;
+        let mut answers = Vec::new();
+        for row in rows {
+            let (id, question, text, started, submitted, seconds, points, scores) = row?;
+            let started = NaiveDateTime::parse_from_str(&started, TIME_FORMAT)
+                .with_context(|| format!("Mains answer {id} has an unreadable start time"))?;
+            let submitted = match submitted {
+                Some(time) => Some(
+                    NaiveDateTime::parse_from_str(&time, TIME_FORMAT).with_context(|| {
+                        format!("Mains answer {id} has an unreadable submission time")
+                    })?,
+                ),
+                None => None,
+            };
+            answers.push(MainsAnswer {
+                id,
+                question,
+                text,
+                started,
+                submitted,
+                seconds,
+                points: points
+                    .split(',')
+                    .filter_map(|point| point.trim().parse().ok())
+                    .collect(),
+                scores,
+            });
+        }
+        Ok(answers)
+    }
+
+    /// Saves a Mains answer as it stands and returns it with its id. Called
+    /// on every keystroke and every tick of its clock, so a crash loses at
+    /// most a second.
+    pub fn save_mains_answer(&self, answer: &MainsAnswer) -> Result<MainsAnswer> {
+        let mut answer = answer.clone();
+        let points = answer
+            .points
+            .iter()
+            .map(usize::to_string)
+            .collect::<Vec<_>>()
+            .join(",");
+        let started = answer.started.format(TIME_FORMAT).to_string();
+        let [
+            directive,
+            introduction,
+            content,
+            dimensions,
+            examples,
+            conclusion,
+            presentation,
+        ] = answer.scores;
+        let tx = self.conn.unchecked_transaction()?;
+        if answer.id == 0 {
+            tx.execute(
+                "INSERT INTO mains_answer (question, text, started) VALUES (?1, '', ?2)",
+                params![answer.question, started],
+            )?;
+            answer.id = tx.last_insert_rowid();
+        }
+        let changed = tx.execute(
+            "UPDATE mains_answer SET question = ?2, text = ?3, started = ?4, submitted = ?5,
+                 seconds = ?6, points = ?7, directive = ?8, introduction = ?9, content = ?10,
+                 dimensions = ?11, examples = ?12, conclusion = ?13, presentation = ?14
+             WHERE id = ?1",
+            params![
+                answer.id,
+                answer.question,
+                answer.text,
+                started,
+                answer.submitted.map(|t| t.format(TIME_FORMAT).to_string()),
+                answer.seconds,
+                points,
+                directive,
+                introduction,
+                content,
+                dimensions,
+                examples,
+                conclusion,
+                presentation,
+            ],
+        )?;
+        if changed == 0 {
+            bail!("Mains answer {} is not in the data file", answer.id);
+        }
+        tx.commit()?;
+        Ok(answer)
+    }
+}
+
 /// What a block of study time was spent on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Study {
@@ -997,6 +1184,8 @@ pub enum Study {
     Story,
     /// Today's review session. The item is `session`.
     Review,
+    /// Writing a Mains answer. The item is the answer's id.
+    Mains,
     /// A focus block from the sidebar timer, counted only where nothing
     /// else counted the same minutes. The item is the block's length in
     /// minutes.
@@ -1010,6 +1199,7 @@ impl Study {
             Study::Test => "test",
             Study::Story => "story",
             Study::Review => "review",
+            Study::Mains => "mains",
             Study::Focus => "focus",
         }
     }
@@ -1769,6 +1959,194 @@ mod tests {
     }
 
     #[test]
+    fn mains_answers_are_saved_as_typed_and_survive_a_crash() {
+        let dir = std::env::temp_dir().join(format!("civil-mentor-mains-{}", std::process::id()));
+        let path = dir.join("civil-mentor.db");
+        let _ = std::fs::remove_dir_all(&dir);
+        let at = |d, h, m| {
+            NaiveDate::from_ymd_opt(2026, 11, d)
+                .unwrap()
+                .and_hms_opt(h, m, 0)
+                .unwrap()
+        };
+
+        // A draft is saved the moment it is begun, then with every keystroke.
+        let store = Store::open(&path).unwrap();
+        let draft = store
+            .save_mains_answer(&MainsAnswer::new("gs2-governor-discretion", at(16, 9, 0)))
+            .unwrap();
+        assert!(draft.id > 0, "a new answer is given an id");
+        let typed = MainsAnswer {
+            text: "The Governor is the constitutional head".into(),
+            seconds: 95,
+            ..draft.clone()
+        };
+        assert_eq!(store.save_mains_answer(&typed).unwrap(), typed);
+        let other = store
+            .save_mains_answer(&MainsAnswer::new("gs3-heatwaves", at(16, 10, 0)))
+            .unwrap();
+        drop(store);
+
+        // The app is killed and reopened: the words and the clock are there.
+        let store = Store::open(&path).unwrap();
+        assert_eq!(store.mains_answers().unwrap(), [typed.clone(), other]);
+
+        // Submitted, then scored with two points ticked.
+        let scored = MainsAnswer {
+            submitted: Some(at(16, 9, 12)),
+            seconds: 702,
+            points: vec![0, 3],
+            scores: [
+                Some(4),
+                Some(3),
+                Some(3),
+                Some(2),
+                Some(1),
+                Some(3),
+                Some(4),
+            ],
+            ..typed.clone()
+        };
+        store.save_mains_answer(&scored).unwrap();
+        let saved = store.mains_answers().unwrap();
+        assert_eq!(saved[0], scored);
+        assert_eq!(saved[0].total(), Some(20));
+        assert_eq!(typed.total(), None, "no total until every score is given");
+        assert!(
+            store
+                .save_mains_answer(&MainsAnswer { id: 99, ..typed })
+                .is_err(),
+            "an answer that is not in the file is not quietly made"
+        );
+        drop(store);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    /// Every row of every table, as text, to compare a file before and after
+    /// an upgrade.
+    fn dump(conn: &Connection) -> Vec<(String, Vec<String>)> {
+        let tables: Vec<String> = conn
+            .prepare(
+                "SELECT name FROM sqlite_master
+                 WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+            )
+            .unwrap()
+            .query_map([], |row| row.get(0))
+            .unwrap()
+            .collect::<rusqlite::Result<_>>()
+            .unwrap();
+        tables
+            .into_iter()
+            .map(|table| {
+                let mut query = conn
+                    .prepare(&format!("SELECT * FROM {table} ORDER BY rowid"))
+                    .unwrap();
+                let columns = query.column_count();
+                let rows = query
+                    .query_map([], |row| {
+                        (0..columns)
+                            .map(|ix| {
+                                row.get::<_, rusqlite::types::Value>(ix)
+                                    .map(|value| format!("{value:?}"))
+                            })
+                            .collect::<rusqlite::Result<Vec<_>>>()
+                            .map(|values| values.join(" | "))
+                    })
+                    .unwrap()
+                    .collect::<rusqlite::Result<Vec<_>>>()
+                    .unwrap();
+                (table, rows)
+            })
+            .collect()
+    }
+
+    #[test]
+    fn a_phase_5_store_takes_mains_answers_without_losing_a_row() {
+        let dir = std::env::temp_dir().join(format!("civil-mentor-phase6-{}", std::process::id()));
+        let path = dir.join("civil-mentor.db");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        // A file as Phase 5 left it, with a row in every table: real and
+        // demo tests, readings, study time and review boxes, a plan, a
+        // highlight, a clip and a note of the student's own.
+        let conn = Connection::open(&path).unwrap();
+        for sql in &MIGRATIONS[..7] {
+            conn.execute_batch(sql).unwrap();
+        }
+        conn.pragma_update(None, "user_version", 7).unwrap();
+        conn.execute_batch(
+            "INSERT INTO setting VALUES ('diagnostic', 'taken'), ('daily_minutes', '180'),
+                 ('mistakes_backfilled', '2026-11-16');
+             INSERT INTO reading VALUES
+                 ('fr', '2026-11-10', '2026-11-12', '2026-11-12', 1, 900, 0),
+                 ('monsoon', '2026-11-01', '2026-11-03', NULL, 0, 600, 1);
+             INSERT INTO attempt (id, kind, title, started, finished, seconds_allowed,
+                 seconds_used, right_marks, wrong_marks, current, demo)
+             VALUES (7, 'micro', 'Micro test', '2026-11-12 09:00:00', '2026-11-12 09:10:00',
+                     720, 600, 2.0, 0.6666666666666666, 1, 0),
+                    (8, 'mini', 'Demo', '2026-11-02 19:00:00', '2026-11-02 19:20:00',
+                     1440, 1200, 2.0, 0.6666666666666666, 0, 1),
+                    (9, 'micro', 'Micro test', '2026-11-16 08:00:00', NULL,
+                     720, 30, 2.0, 0.6666666666666666, 0, 0);
+             INSERT INTO answer (attempt, position, question, subject, topic, chosen, correct,
+                 confidence, marked, struck, visited, seconds)
+             VALUES (7, 0, 'polity-0001', 'polity', 'pre.gs.polity.rights', 2, 0, 'sure', 0, 0, 1, 40),
+                    (7, 1, 'polity-0002', 'polity', 'pre.gs.polity.rights', 1, 1, NULL, 1, 5, 1, 20),
+                    (8, 0, 'economy-0001', 'economy', 'pre.gs.economy', 0, 0, 'guess', 0, 0, 1, 30),
+                    (9, 0, 'history-0001', 'history', 'pre.gs.history', NULL, NULL, NULL, 0, 0, 1, 30);
+             INSERT INTO session (day, kind, item, seconds, demo)
+             VALUES ('2026-11-12', 'test', '7', 600, 0), ('2026-11-02', 'test', 'demo-1', 1200, 1),
+                    ('2026-11-16', 'review', 'session', 240, 0), ('2026-11-16', 'focus', '25', 900, 0);
+             INSERT INTO plan_task VALUES ('2026-11-16', 0, 'review', '6', 'Review 6 mistakes', 6, 1),
+                    ('2026-11-16', 1, 'note', 'fr', 'Read: fr', 30, 0);
+             INSERT INTO review VALUES
+                 ('question:polity-0001', 2, '2026-11-19', '2026-11-13', '2026-11-16', 0),
+                 ('card:economy-repo', 5, NULL, '2026-10-01', '2026-11-15', 0),
+                 ('question:economy-0001', 1, '2026-11-17', '2026-11-02', NULL, 1);
+             INSERT INTO mark (item, part, kind, start, end, quote, comment, added) VALUES
+                 ('fr', '0', 'highlight', 4, 30, 'Part III of the Constitution', 'Why III?', '2026-11-16'),
+                 ('story:2026-11-14-ca-1', 'context', 'clip', 0, 12, 'The Cabinet', NULL, '2026-11-16');
+             INSERT INTO my_note (title, body, added, updated)
+             VALUES ('Writs', 'Five writs under **Article 32**.', '2026-11-15', '2026-11-16');",
+        )
+        .unwrap();
+        let before = dump(&conn);
+        drop(conn);
+
+        let store = Store::open(&path).expect("the Phase 5 file upgrades");
+        let version: u32 = store
+            .conn
+            .pragma_query_value(None, "user_version", |row| row.get(0))
+            .unwrap();
+        assert_eq!(version as usize, MIGRATIONS.len());
+        let after: Vec<(String, Vec<String>)> = dump(&store.conn)
+            .into_iter()
+            .filter(|(table, _)| table != "mains_answer")
+            .collect();
+        assert_eq!(after, before, "every row of every table is as it was");
+        assert!(before.iter().all(|(_, rows)| !rows.is_empty()));
+        assert_eq!(store.mains_answers().unwrap(), [], "no Mains answers yet");
+        assert!(store.has_demo().unwrap() && store.has_own_tests().unwrap());
+        assert_eq!(store.unfinished().unwrap().len(), 1, "the test in progress");
+        assert_eq!(store.reviews().unwrap().len(), 3);
+        assert_eq!(store.marks().unwrap().len(), 2);
+        assert_eq!(store.my_notes().unwrap()[0].title, "Writs");
+
+        // And the new table works on the upgraded file.
+        let at = NaiveDate::from_ymd_opt(2026, 11, 17)
+            .unwrap()
+            .and_hms_opt(7, 30, 0)
+            .unwrap();
+        let answer = store
+            .save_mains_answer(&MainsAnswer::new("gs4-probity", at))
+            .unwrap();
+        assert_eq!(store.mains_answers().unwrap(), [answer]);
+        drop(store);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
     fn reviews_are_saved_updated_and_backfilled_once() {
         let store = Store::in_memory();
         let day = |d| NaiveDate::from_ymd_opt(2026, 11, d).unwrap();
@@ -1854,6 +2232,19 @@ mod tests {
         let mut mine = MyNote::new(day(12));
         mine.title = "My own".into();
         let mine = store.save_my_note(&mine).unwrap();
+        let written = day(12).and_hms_opt(18, 0, 0).unwrap();
+        let mut answer = MainsAnswer::new("gs2-governor-discretion", written);
+        answer.text = "The Governor links the Union and the states.".into();
+        answer.submitted = Some(written + chrono::Duration::minutes(11));
+        answer.seconds = 660;
+        answer.points = vec![1];
+        answer.scores = [Some(3); SCORES];
+        let answer = store.save_mains_answer(&answer).unwrap();
+        let mut draft = MainsAnswer::new("gs3-heatwaves", written);
+        draft.text = "Heatwaves are".into();
+        let draft = store.save_mains_answer(&draft).unwrap();
+        let mains_block = store.start_session(day(12), Study::Mains, "1").unwrap();
+        store.add_session_seconds(mains_block, 660).unwrap();
         let before = (
             store.finished(100).unwrap(),
             store.readings().unwrap(),
@@ -1862,6 +2253,7 @@ mod tests {
             store.reviews().unwrap(),
             store.marks().unwrap(),
             store.my_notes().unwrap(),
+            store.mains_answers().unwrap(),
         );
         assert!(!store.has_demo().unwrap());
 
@@ -1899,7 +2291,7 @@ mod tests {
             "the student's own record stays as it was"
         );
         assert!(readings["monsoon"].demo);
-        assert_eq!(store.study_days().unwrap()[&day(12)], 1200);
+        assert_eq!(store.study_days().unwrap()[&day(12)], 1860);
         let reviews = store.reviews().unwrap();
         assert_eq!(
             reviews["question:q0"], mistake,
@@ -1916,6 +2308,7 @@ mod tests {
             store.reviews().unwrap(),
             store.marks().unwrap(),
             store.my_notes().unwrap(),
+            store.mains_answers().unwrap(),
         );
         assert_eq!(after, before, "every real row is back exactly");
         assert_eq!(after.5, [kept], "the highlight is untouched");
@@ -1923,6 +2316,11 @@ mod tests {
             after.6,
             [mine],
             "the note of the student's own is untouched"
+        );
+        assert_eq!(
+            after.7,
+            [answer, draft],
+            "the student's Mains answer and draft are untouched"
         );
         assert!(!store.has_demo().unwrap());
         assert!(store.has_own_tests().unwrap());

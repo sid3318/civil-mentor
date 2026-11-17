@@ -75,6 +75,59 @@ pub struct Flashcard {
     pub source: String,
 }
 
+/// A Mains question: the question, its marks and word limit, a model answer
+/// and the points a good answer covers.
+#[derive(Debug, Clone)]
+pub struct MainsQuestion {
+    pub id: String,
+    /// One of [`MAINS_PAPERS`].
+    pub paper: String,
+    pub topics: Vec<String>,
+    /// Who wrote it, such as "Civil Mentor sample".
+    pub source: String,
+    /// 10 or 15, with the word limit and clock in [`MAINS_MARKS`].
+    pub marks: u32,
+    /// The word limit.
+    pub words: u32,
+    pub question: String,
+    /// What a good answer covers. The student ticks the ones they made.
+    pub points: Vec<String>,
+    /// The model answer, Markdown, within the word limit.
+    pub model: String,
+}
+
+/// The papers a Mains question can be set in. The Essay paper and the case
+/// studies of GS-4 are not in yet.
+pub const MAINS_PAPERS: [&str; 4] = ["gs1", "gs2", "gs3", "gs4"];
+
+/// The marks a Mains question can carry, each with its word limit and the
+/// minutes on its clock, which keep to the exam's pace of three hours for
+/// 250 marks.
+pub const MAINS_MARKS: [(u32, u32, u32); 2] = [(10, 150, 7), (15, 250, 11)];
+
+impl MainsQuestion {
+    /// The minutes on the clock for its marks.
+    pub fn minutes(&self) -> u32 {
+        MAINS_MARKS
+            .iter()
+            .find(|(marks, ..)| *marks == self.marks)
+            .map_or(0, |(_, _, minutes)| *minutes)
+    }
+
+    /// "GS-2".
+    pub fn paper_title(&self) -> String {
+        format!("GS-{}", self.paper.trim_start_matches("gs"))
+    }
+}
+
+/// The words in an answer as an examiner would count them: every run of
+/// text with a letter or digit in it, so list bullets and dashes do not count.
+pub fn word_count(text: &str) -> usize {
+    text.split_whitespace()
+        .filter(|word| word.chars().any(char::is_alphanumeric))
+        .count()
+}
+
 /// The prefix of `source` on a question from a real UPSC paper, followed by its year.
 pub const PAPER_SOURCE: &str = "UPSC Prelims ";
 
@@ -162,6 +215,8 @@ pub struct Library {
     pub questions: Vec<Question>,
     /// In file order: files by name, cards as written.
     pub cards: Vec<Flashcard>,
+    /// Mains questions in file order: by paper, then as written.
+    pub mains: Vec<MainsQuestion>,
     /// Newest first.
     pub briefs: Vec<Brief>,
     /// Everything wrong with the content files, as "path: message".
@@ -170,6 +225,7 @@ pub struct Library {
     note_index: HashMap<String, usize>,
     question_index: HashMap<String, usize>,
     card_index: HashMap<String, usize>,
+    mains_index: HashMap<String, usize>,
     /// Story and editorial ids, which must be unique across every brief.
     item_ids: std::collections::HashSet<String>,
 }
@@ -243,6 +299,27 @@ struct RawCard {
     back: String,
     note: Option<String>,
     source: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct MainsFile {
+    question: Vec<RawMains>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawMains {
+    id: String,
+    paper: String,
+    topics: Vec<String>,
+    source: Option<String>,
+    marks: u32,
+    words: u32,
+    question: String,
+    #[serde(default)]
+    points: Vec<String>,
+    model: String,
 }
 
 #[derive(Deserialize)]
@@ -328,12 +405,18 @@ impl Library {
                 library.load_cards(path, text);
             }
         }
+        for (path, text) in &files {
+            if path.starts_with("mains/") && path.ends_with(".toml") {
+                library.load_mains(path, text);
+            }
+        }
         for (path, _) in &files {
             let known = path == "syllabus.toml"
                 || (path.starts_with("notes/") && path.ends_with(".md"))
                 || ((path.starts_with("questions/")
                     || path.starts_with("current-affairs/")
-                    || path.starts_with("flashcards/"))
+                    || path.starts_with("flashcards/")
+                    || path.starts_with("mains/"))
                     && path.ends_with(".toml"));
             // Editors and Finder leave dotfiles behind; those are not content.
             let hidden = path
@@ -543,6 +626,83 @@ impl Library {
         }
     }
 
+    fn load_mains(&mut self, path: &str, text: &str) {
+        let file: MainsFile = match toml::from_str(text) {
+            Ok(file) => file,
+            Err(err) => return self.problem(path, toml_error(text, &err)),
+        };
+        for raw in file.question {
+            let id = raw.id;
+            if id.is_empty() || self.mains_index.contains_key(&id) {
+                self.problem(
+                    path,
+                    format!("Mains question id `{id}` is empty or already used"),
+                );
+                continue;
+            }
+            if !MAINS_PAPERS.contains(&raw.paper.as_str()) {
+                self.problem(
+                    path,
+                    format!(
+                        "Mains question `{id}` has paper `{}`, it must be gs1, gs2, gs3 or gs4",
+                        raw.paper
+                    ),
+                );
+                continue;
+            }
+            // The clock is set by the marks, so other marks have no clock.
+            if !MAINS_MARKS
+                .iter()
+                .any(|&(marks, words, _)| (marks, words) == (raw.marks, raw.words))
+            {
+                self.problem(
+                    path,
+                    format!(
+                        "Mains question `{id}` has {} marks and {} words, it must be 10 marks \
+                         and 150 words or 15 marks and 250 words",
+                        raw.marks, raw.words
+                    ),
+                );
+                continue;
+            }
+            if raw.question.trim().is_empty()
+                || raw.model.trim().is_empty()
+                || raw.points.is_empty()
+            {
+                self.problem(
+                    path,
+                    format!("Mains question `{id}` needs a question, a model answer and points"),
+                );
+                continue;
+            }
+            if raw.topics.is_empty() {
+                self.problem(path, format!("Mains question `{id}` has no topics"));
+            }
+            let length = word_count(&raw.model);
+            if length > raw.words as usize {
+                self.problem(
+                    path,
+                    format!(
+                        "the model answer to `{id}` has {length} words, over its limit of {}",
+                        raw.words
+                    ),
+                );
+            }
+            self.mains_index.insert(id.clone(), self.mains.len());
+            self.mains.push(MainsQuestion {
+                id,
+                paper: raw.paper,
+                topics: raw.topics,
+                source: raw.source.unwrap_or_default(),
+                marks: raw.marks,
+                words: raw.words,
+                question: raw.question.trim().to_string(),
+                points: raw.points,
+                model: raw.model.trim().to_string(),
+            });
+        }
+    }
+
     fn load_brief(&mut self, path: &str, text: &str) {
         let name = path
             .rsplit('/')
@@ -656,6 +816,16 @@ impl Library {
                 found.push(format!("card `{}`: unknown note `{note}`", card.id));
             }
         }
+        for question in &self.mains {
+            for topic in &question.topics {
+                if !self.topic_index.contains_key(topic) {
+                    found.push(format!(
+                        "Mains question `{}`: unknown topic `{topic}`",
+                        question.id
+                    ));
+                }
+            }
+        }
         for brief in &self.briefs {
             let items = brief
                 .stories
@@ -694,6 +864,11 @@ impl Library {
 
     pub fn question(&self, id: &str) -> Option<&Question> {
         self.question_index.get(id).map(|&ix| &self.questions[ix])
+    }
+
+    /// A Mains question's place in [`Library::mains`].
+    pub fn mains_ix(&self, id: &str) -> Option<usize> {
+        self.mains_index.get(id).copied()
     }
 
     pub fn card(&self, id: &str) -> Option<&Flashcard> {
@@ -1105,6 +1280,105 @@ note = "rights"
             let notes = library.notes.iter().filter(|n| is_under(&n.topics, paper));
             assert!(notes.count() >= 3, "{paper} has at least three notes");
         }
+        assert_eq!(library.mains.len(), 10, "every sample Mains question loads");
+        for paper in MAINS_PAPERS {
+            assert!(
+                library.mains.iter().any(|q| q.paper == paper),
+                "{paper} has a Mains question"
+            );
+        }
+        for question in &library.mains {
+            assert_eq!(question.source, "Civil Mentor sample", "{}", question.id);
+            assert!(
+                question.topics.iter().all(|t| t.starts_with("mains.")),
+                "{} is tagged with Mains topics",
+                question.id
+            );
+            assert!(
+                word_count(&question.model) <= question.words as usize,
+                "{} keeps to its limit",
+                question.id
+            );
+            assert!(question.points.len() >= 4, "{} has points", question.id);
+        }
+    }
+
+    #[test]
+    fn words_are_counted_as_an_examiner_counts_them() {
+        assert_eq!(word_count(""), 0);
+        assert_eq!(word_count("  The Governor  acts\non advice. "), 5);
+        assert_eq!(
+            word_count("- **Content.** It's 4 per cent — not 6%."),
+            7,
+            "bullets and dashes are not words"
+        );
+        assert_eq!(word_count("Article 356\n\n1. Bommai (1994)"), 5);
+    }
+
+    #[test]
+    fn mains_questions_load_and_bad_ones_are_reported() {
+        let question = |id: &str, paper: &str, marks: u32, words: u32, model: &str| {
+            format!(
+                "[[question]]\nid = \"{id}\"\npaper = \"{paper}\"\n\
+                 topics = [\"mains.gs2.polity.rights\"]\nsource = \"Civil Mentor sample\"\n\
+                 marks = {marks}\nwords = {words}\nquestion = \"  Discuss Article 21.  \"\n\
+                 points = [\"Meaning\", \"Cases\"]\nmodel = \"{model}\"\n\n"
+            )
+        };
+        let long = "word ".repeat(151);
+        let mains = [
+            question("life", "gs2", 10, 150, "Article 21 protects life."),
+            question("life", "gs2", 15, 250, "Again."),
+            question("essay", "essay", 15, 250, "An essay."),
+            question("case", "gs4", 20, 250, "A case study."),
+            question("mismatch", "gs2", 10, 250, "Ten marks, 250 words."),
+            question("wordy", "gs2", 10, 150, &long),
+            question("bare", "gs2", 15, 250, " "),
+        ]
+        .concat()
+            + "[[question]]\nid = \"lost\"\npaper = \"gs3\"\ntopics = [\"gs9.nowhere\"]\n\
+               marks = 15\nwords = 250\nquestion = \"Q\"\npoints = [\"P\"]\nmodel = \"M\"\n";
+        let library = Library::from_files(files(&[
+            ("syllabus.toml", SYLLABUS),
+            ("mains/gs2.toml", &mains),
+            (
+                "mains/broken.toml",
+                "[[question]]\nid = \"x\"\nmarks = \"ten\"\n",
+            ),
+        ]));
+
+        let problems = library.problems.join("\n");
+        for expected in [
+            "Mains question id `life` is empty or already used",
+            "Mains question `essay` has paper `essay`, it must be gs1, gs2, gs3 or gs4",
+            "Mains question `case` has 20 marks and 250 words",
+            "Mains question `mismatch` has 10 marks and 250 words",
+            "the model answer to `wordy` has 151 words, over its limit of 150",
+            "Mains question `bare` needs a question, a model answer and points",
+            "Mains question `lost`: unknown topic `gs9.nowhere`",
+            "mains/broken.toml:",
+        ] {
+            assert!(
+                problems.contains(expected),
+                "missing {expected:?} in:\n{problems}"
+            );
+        }
+        assert_eq!(library.problems.len(), 8, "{problems}");
+
+        let ids: Vec<&str> = library.mains.iter().map(|q| q.id.as_str()).collect();
+        assert_eq!(
+            ids,
+            ["life", "wordy", "lost"],
+            "an unknown topic or a long model answer is reported, not dropped"
+        );
+        let life = &library.mains[library.mains_ix("life").unwrap()];
+        assert_eq!(life.question, "Discuss Article 21.");
+        assert_eq!(
+            (life.minutes(), life.paper_title()),
+            (7, "GS-2".to_string())
+        );
+        assert_eq!(library.mains[2].minutes(), 11, "15 marks get 11 minutes");
+        assert_eq!(library.mains[2].source, "");
     }
 
     #[test]

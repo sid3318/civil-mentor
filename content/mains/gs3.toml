@@ -1,0 +1,115 @@
+# Sample Mains questions written for Civil Mentor. They are not UPSC previous-year
+# questions, and the model answers are ours. The format is described in gs1.toml.
+
+[[question]]
+id = "gs3-monetary-policy-committee"
+paper = "gs3"
+topics = ["mains.gs3.economy.planning.inflation"]
+source = "Civil Mentor sample"
+marks = 10
+words = 150
+question = "Explain the role of the Monetary Policy Committee in India's flexible inflation-targeting framework."
+points = [
+    "The legal basis: the 2016 amendment to the RBI Act, 1934",
+    "The target: 4 per cent CPI inflation with a band of 2 to 6 per cent, set every five years",
+    "Composition and voting of the committee",
+    "Transparency through published minutes",
+    "Accountability when the target is missed, and the flexibility to weigh growth",
+]
+model = """
+Flexible inflation targeting got its legal basis in the 2016 amendment to the RBI Act, 1934. The Central Government, consulting the RBI, sets the target every five years: 4 per cent CPI inflation, within a band of 2 to 6 per cent.
+
+**Role of the MPC**
+
+- **Sets the policy rate.** It decides the repo rate needed to reach the target.
+- **Composition.** Six members: the Governor (chair, with a casting vote), a Deputy Governor, an RBI officer and three external members appointed by the Centre for four years.
+- **Transparency.** Each member votes, and minutes published fourteen days after the meeting record every vote.
+- **Accountability.** If inflation stays outside the band for three consecutive quarters, the RBI must explain to the Government why and how it will respond.
+- **Flexibility.** It weighs growth too, as in the rate cuts of 2020.
+
+The MPC has made monetary policy rule-based, transparent and accountable.
+"""
+
+[[question]]
+id = "gs3-micro-irrigation"
+paper = "gs3"
+topics = ["mains.gs3.agriculture.crops.irrigation-types-and-systems"]
+source = "Civil Mentor sample"
+marks = 15
+words = 250
+question = "Micro-irrigation could do for water what the Green Revolution did for yields. Examine the case for it in India and the obstacles to its spread."
+points = [
+    "What micro-irrigation is: drip and sprinkler systems",
+    "Why water use in farming matters: the share of fresh water and falling groundwater",
+    "Benefits: water saved, yields, costs, climate resilience",
+    "Obstacles: upfront cost, free power, small holdings, maintenance, crop incentives",
+    "Policy: Per Drop More Crop and what would speed adoption",
+    "A conclusion that weighs the comparison in the question",
+]
+model = """
+Micro-irrigation delivers water to the root zone in small, frequent doses through drips or sprinklers. Farming uses most of India's fresh water, much of it pumped from falling groundwater tables, so saving water on farms is the largest saving available.
+
+**The case for it**
+
+- **Water saved.** Far less water is lost to evaporation, runoff and deep percolation than in flood irrigation.
+- **Better yields.** Steady moisture and fertigation, fertiliser fed through the drip, raise yields of crops such as sugarcane, banana, cotton and vegetables.
+- **Lower costs.** Less power for pumping, less labour and less weeding.
+- **Groundwater.** Less pumping slows the fall of water tables in states such as Punjab, Haryana and Rajasthan.
+- **Resilience.** Farms cope better with erratic rain and dry spells.
+
+**Obstacles**
+
+- **Upfront cost** and slow subsidy procedures deter small and marginal farmers, who hold most of India's farms.
+- **Free or flat-rate power** removes the incentive to save water.
+- **Small, fragmented holdings** and insecure tenancy discourage investment.
+- **Clogging and upkeep**, with weak after-sales service.
+- **Incentives** such as assured procurement of rice favour water-hungry crops.
+
+**Way forward**
+
+- The Per Drop More Crop scheme, begun under the Pradhan Mantri Krishi Sinchayee Yojana in 2015, subsidises systems; faster, simpler payment would widen its reach.
+- Community systems linked to canals can serve clusters of small farms.
+- Metered farm power and crop diversification would reward saving water.
+- Farmer producer organisations can buy and maintain systems together.
+
+Like the Green Revolution, micro-irrigation needs prices, power and policy to point the same way.
+"""
+
+[[question]]
+id = "gs3-heatwaves"
+paper = "gs3"
+topics = ["mains.gs3.disaster.disasters.heat-waves-and-cold-waves"]
+source = "Civil Mentor sample"
+marks = 15
+words = 250
+question = "Heatwaves are becoming one of India's deadliest hazards. Discuss why, and how India can prepare for them."
+points = [
+    "IMD's definition of a heatwave",
+    "Why heat is getting deadlier: climate change, humidity, urban heat islands",
+    "Who is most exposed, and why deaths are under-counted",
+    "Heat action plans, starting with Ahmedabad's in 2013",
+    "Early warning, labour protection, the health system and cooler cities",
+    "Funding: heatwaves as a notified calamity for disaster funds",
+]
+model = """
+The India Meteorological Department declares a heatwave in the plains when the maximum temperature is at least 40°C and 4.5°C or more above normal, or when it reaches 45°C whatever the normal. Such spells are growing longer, more frequent and more intense.
+
+**Why they are deadlier**
+
+- **Climate change** raises baseline temperatures and the odds of extreme heat.
+- **Humidity** on the coasts and in the Indo-Gangetic plain stops sweat from cooling the body, so moderate heat can kill.
+- **Urban heat islands:** concrete, traffic and lost green cover keep cities hot at night.
+- **Exposure:** outdoor workers, street vendors, the elderly and people under tin roofs in slums get little relief.
+- **Under-counting:** heat deaths are often recorded under other causes.
+
+**How to prepare**
+
+- **Heat action plans.** Ahmedabad's plan of 2013, the first in South Asia, showed that warnings, cooling centres and ready hospitals save lives. NDMA guidelines help states and cities draw up theirs.
+- **Early warning:** IMD's colour-coded forecasts, sent to phones and through local media.
+- **Labour protection:** moving outdoor work out of afternoon hours, with water and shade at worksites.
+- **Health system:** staff trained to recognise heatstroke, with cooling equipment and ORS.
+- **Cooler cities:** cool roofs, urban forests, water bodies and building codes that cut heat gain.
+- **Funding:** since August 2026 heatwaves are a notified calamity for the state and national disaster response funds; counting heat deaths properly will help use them well.
+
+Treating heat as a disaster rather than a season is the first step to reducing its toll.
+"""

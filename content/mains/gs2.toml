@@ -1,0 +1,111 @@
+# Sample Mains questions written for Civil Mentor. They are not UPSC previous-year
+# questions, and the model answers are ours. The format is described in gs1.toml.
+
+[[question]]
+id = "gs2-governor-discretion"
+paper = "gs2"
+topics = ["mains.gs2.polity.federalism.challenges", "mains.gs2.polity.executive-judiciary.executive"]
+source = "Civil Mentor sample"
+marks = 15
+words = 250
+question = "The Governor is meant to be a link between the Union and the states, but the office has often become a source of friction. Examine with reference to the Governor's discretionary powers."
+points = [
+    "The constitutional position: Articles 153, 155, 156 and 163",
+    "Flashpoints: choosing a Chief Minister, assent to bills under Article 200, reports under Article 356",
+    "Appointment at the Union's pleasure and the charge of partisanship",
+    "Judgments that limit discretion, such as S.R. Bommai and Nabam Rebia",
+    "Commission advice: Sarkaria and Punchhi",
+    "A way forward that keeps the office a link",
+]
+model = """
+The Governor is the constitutional head of a state (Article 153), appointed by the President (Article 155) and holding office during the President's pleasure (Article 156). The Governor acts on the advice of the council of ministers, except where the Constitution allows discretion (Article 163).
+
+**Where friction arises**
+
+- **Choosing a Chief Minister.** In a hung assembly the Governor's choice can decide who governs.
+- **Assent to bills.** Under Article 200 the Governor may assent, withhold assent, return a bill or reserve it for the President. Bills left pending for long periods have taken states to the Supreme Court.
+- **President's Rule.** A report under Article 356 can lead to the dismissal of an elected government.
+- **Partisanship.** Serving at the Union's pleasure, Governors are often seen as agents of the party in power at the Centre.
+- **Universities.** As chancellors, Governors have clashed with states over appointing vice-chancellors.
+
+**Limits already set**
+
+- **S.R. Bommai (1994):** a majority is tested on the floor of the House, and a proclamation under Article 356 is open to judicial review.
+- **Nabam Rebia (2016):** discretion under Article 163 is narrow; the Governor cannot summon the House against the advice of the council of ministers.
+- **Sarkaria (1988) and Punchhi (2010) Commissions:** appoint eminent persons from outside the state and away from active politics, after consulting the Chief Minister.
+
+**Way forward**
+
+Time limits for decisions on bills, a secure tenure and appointments that follow the commissions' advice would let the Governor be the link the Constitution intended.
+"""
+
+[[question]]
+id = "gs2-self-help-groups"
+paper = "gs2"
+topics = ["mains.gs2.governance.development.self-help-groups", "mains.gs1.society.women.self-help-groups-and-empowerment"]
+source = "Civil Mentor sample"
+marks = 10
+words = 150
+question = "Self-help groups have given rural women more than access to credit. Discuss."
+points = [
+    "What a self-help group is, and the SHG–Bank Linkage Programme and DAY-NRLM",
+    "Livelihoods and enterprise beyond loans",
+    "Voice in the gram sabha and the panchayat",
+    "Social change and a role in delivering public services",
+    "The limits that remain",
+]
+model = """
+A self-help group (SHG) is a group of 10 to 20 people, mostly women, who save together and lend to one another. NABARD's SHG–Bank Linkage Programme (1992) is often called the world's largest microfinance programme, and the Deendayal Antyodaya Yojana–National Rural Livelihoods Mission (DAY-NRLM) has spread SHGs nationwide.
+
+**Beyond credit**
+
+- **Livelihoods.** Loans fund dairying, tailoring, shops and farm enterprises; federations market products together.
+- **Voice.** Meetings build the confidence to speak in the gram sabha, and many members contest panchayat elections.
+- **Social change.** Groups take on alcoholism, dowry and domestic violence, and spread awareness of health and sanitation.
+- **Public services.** Members serve as banking correspondents and community resource persons, and Kerala's Kudumbashree works with local governments.
+
+**Limits**
+
+Loans are small and often spent on consumption, coverage is uneven, and the double burden of work and home remains.
+
+SHGs have become a base for women's empowerment, not only credit.
+"""
+
+[[question]]
+id = "gs2-indian-ocean"
+paper = "gs2"
+topics = ["mains.gs2.ir.groupings.foreign-policy-doctrines", "mains.gs2.ir.groupings.regional"]
+source = "Civil Mentor sample"
+marks = 15
+words = 250
+question = "Why is the Indian Ocean central to India's strategic interests? Discuss the steps India has taken to secure them."
+points = [
+    "India's position astride the sea lanes",
+    "Trade and energy through chokepoints",
+    "Resources of the exclusive economic zone and the seabed",
+    "Security threats and the presence of extra-regional navies",
+    "Steps: SAGAR, naval deployments, the Information Fusion Centre, groupings",
+    "Challenges that remain and a forward-looking conclusion",
+]
+model = """
+With a long coastline, two island chains and a central position on the sea lanes between the Gulf, Africa and East Asia, India's security and prosperity depend on the Indian Ocean.
+
+**Why it matters**
+
+- **Trade and energy.** Most of India's trade by volume and most of its crude oil imports travel by sea, through chokepoints such as the Strait of Hormuz, Bab-el-Mandeb and the Strait of Malacca.
+- **Resources.** The exclusive economic zone holds fisheries and offshore oil and gas, and India holds rights to explore polymetallic nodules in the Central Indian Ocean Basin.
+- **Security.** Piracy, terrorism (the 2008 Mumbai attackers came by sea) and the growing presence of extra-regional navies, China's above all, make the ocean contested.
+- **Neighbours.** Sri Lanka, Maldives, Mauritius and Seychelles lie on India's doorstep.
+
+**What India has done**
+
+- **SAGAR (2015):** Security and Growth for All in the Region, a vision of shared security and development.
+- **The Navy:** mission-based deployments, anti-piracy patrols and evacuation operations, and the Information Fusion Centre–Indian Ocean Region at Gurugram.
+- **Groupings:** the Indian Ocean Rim Association, the Indian Ocean Naval Symposium, the Colombo Security Conclave and the Quad, with exercises such as Malabar.
+- **Capacity building:** coastal radars, patrol vessels and hydrographic surveys for island states.
+- **Connectivity:** Sagarmala at home and the Chabahar port abroad.
+
+**Challenges** remain: Chinese port projects in the region, a limited naval budget and slow delivery of projects.
+
+A strong and cooperative maritime policy can make India the first responder and preferred partner in its own ocean.
+"""

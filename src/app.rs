@@ -23,13 +23,13 @@ use crate::analysis::AnalysisScreen;
 use crate::content::Target;
 use crate::current_affairs::CurrentAffairsScreen;
 use crate::exam::ExamScreen;
+use crate::mains::MainsScreen;
 use crate::mentor::TestPlan;
 use crate::notebook::NotebookScreen;
 use crate::notes::NotesScreen;
 use crate::practice::PracticeScreen;
 use crate::review::ReviewScreen;
 use crate::revision::RevisionScreen;
-use crate::screens;
 use crate::settings::SettingsScreen;
 use crate::store::Study;
 use crate::store::ThemeChoice;
@@ -314,6 +314,7 @@ pub struct Shell {
     review: Entity<ReviewScreen>,
     revision: Entity<RevisionScreen>,
     notebook: Entity<NotebookScreen>,
+    mains: Entity<MainsScreen>,
     syllabus: Entity<SyllabusScreen>,
     /// The focus block the student is sitting, if any.
     focus: Option<Focus>,
@@ -344,6 +345,7 @@ impl Shell {
             review: cx.new(|_| ReviewScreen::new(shell.clone())),
             revision: cx.new(|_| RevisionScreen::new(shell.clone())),
             notebook: cx.new(|_| NotebookScreen::new(shell.clone())),
+            mains: cx.new(|_| MainsScreen::new()),
             syllabus: cx.new(|_| SyllabusScreen::new(shell)),
             focus: None,
             settings: cx.new(|cx| SettingsScreen::new(window, cx)),
@@ -424,6 +426,18 @@ impl Shell {
     pub fn start_review(&mut self, cx: &mut Context<Self>) {
         self.revision.update(cx, |revision, cx| revision.start(cx));
         self.go(Screen::Revision, cx);
+    }
+
+    /// Opens the Mains screen at one question, by index into the library.
+    pub fn open_mains(&mut self, question: usize, cx: &mut Context<Self>) {
+        self.mains
+            .update(cx, |mains, cx| mains.open_question(question, cx));
+        self.go(Screen::Mains, cx);
+    }
+
+    /// The Mains answer being written, if the editor is open.
+    pub fn mains_draft(&self, cx: &App) -> Option<crate::store::MainsAnswer> {
+        self.mains.read(cx).writing().cloned()
     }
 
     /// How many highlights are painted in the reader on screen, which the UI
@@ -531,6 +545,9 @@ impl Shell {
             self.current_affairs
                 .update(cx, |screen, cx| screen.stop_clock(cx));
         }
+        if place != Place::Screen(Screen::Mains) {
+            self.mains.update(cx, |mains, cx| mains.stop_clock(cx));
+        }
         match place {
             Place::Note(ix) => self.notes.update(cx, |notes, cx| notes.show(ix, cx)),
             Place::Story(target) => self
@@ -539,6 +556,7 @@ impl Shell {
             Place::Screen(Screen::CurrentAffairs) => self
                 .current_affairs
                 .update(cx, |screen, cx| screen.show_day(cx)),
+            Place::Screen(Screen::Mains) => self.mains.update(cx, |mains, cx| mains.show(cx)),
             Place::Question(ix) => self
                 .review
                 .update(cx, |review, cx| review.show_question(ix, cx)),
@@ -861,14 +879,12 @@ impl Render for Shell {
                     Place::Screen(Screen::Notebook) => {
                         (self.notebook.clone().into_any_element(), 9)
                     }
+                    Place::Screen(Screen::Mains) => (self.mains.clone().into_any_element(), 10),
                     Place::Result(_) => (self.review.clone().into_any_element(), 3),
                     Place::Paper(_) => (self.review.clone().into_any_element(), 4),
                     Place::Question(_) => (self.review.clone().into_any_element(), 5),
-                    place => {
-                        let screen = place.screen();
-                        let page = screens::placeholder(screen, cx).into_any_element();
-                        (page, 10 + screen as usize)
-                    }
+                    // Notes, Current affairs and the exam room are drawn above.
+                    _ => (div().into_any_element(), 11usize),
                 };
                 div()
                     .flex_1()

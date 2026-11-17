@@ -11,7 +11,9 @@ use std::time::Duration;
 
 use civil_mentor::content::Target;
 use civil_mentor::mentor::{self, SUBJECTS};
-use civil_mentor::store::{Attempt, Mark, MarkKind, Reading, Review, Settings, Store, ThemeChoice};
+use civil_mentor::store::{
+    Attempt, MainsAnswer, Mark, MarkKind, Reading, Review, Settings, Store, ThemeChoice,
+};
 use civil_mentor::syllabus::{coverage, statuses};
 use civil_mentor::{AppAssets, AppState, Screen, Shell};
 use gpui_kit::component::{Theme, WindowExt as _};
@@ -113,6 +115,25 @@ impl Harness {
             );
         }
         panic!("{id:?} never came into view");
+    }
+
+    /// Scrolls until `id` is near the middle of the window. `reveal` stops
+    /// as soon as any part of an element shows, so a click at its centre can
+    /// land past the edge of the window.
+    fn centre(&mut self, id: impl Into<ElementId>, anchors: &[ElementId]) {
+        let id = id.into();
+        self.reveal(id.clone(), anchors);
+        let (bounds, anchor) = self.act(|window, _| {
+            let anchor = anchors
+                .iter()
+                .find(|a| window.try_find((*a).clone()).is_some_and(|e| e.visible()))
+                .cloned();
+            (window.find(id.clone()).bounds(), anchor)
+        });
+        let by = f32::from(bounds.origin.y + bounds.size.height / 2.) - 410.;
+        if by.abs() > 300. {
+            self.scroll_down(anchor.expect("something on the page is in view"), by);
+        }
     }
 
     fn topic_ix(&mut self, id: &str) -> usize {
@@ -350,6 +371,24 @@ impl Harness {
             window.pointer_move(end, Some(MouseButton::Left), cx);
             window.pointer_up(end, MouseButton::Left, cx);
         });
+    }
+
+    /// The Mains answer being written, checked against the data file.
+    fn mains_draft(&mut self) -> MainsAnswer {
+        let shell = self.shell.clone();
+        self.cx.update(|cx| {
+            let draft = shell
+                .read(cx)
+                .mains_draft(cx)
+                .expect("an answer is being written");
+            let saved = AppState::get(cx).store.mains_answers().unwrap();
+            assert_eq!(
+                saved.iter().find(|answer| answer.id == draft.id),
+                Some(&draft),
+                "every keystroke and second is saved"
+            );
+            draft
+        })
     }
 
     fn analysis_tab(&mut self, ix: usize) {
@@ -613,6 +652,7 @@ fn main() {
     current_affairs();
     revision();
     highlighting();
+    mains();
 
     let mut unsaved = Harness::new(
         Store::in_memory(),
@@ -957,15 +997,20 @@ fn today_and_analysis() {
     app.shot("settings-demo");
 
     // Today: the plan, remade with the demo record, has the brief, the
-    // reviews the demo left due, a note and a drill, and the mentor gives
-    // advice with Open note and Drill buttons.
+    // reviews the demo left due, a note, a drill and a Mains answer (the
+    // demo writes none), and the mentor gives advice with Open note and
+    // Drill buttons.
     app.press("secondary-1");
     app.shot("today-plan");
     let plan = app
         .store(|s| s.plan(today).unwrap())
         .expect("today's plan is saved");
     let kinds: Vec<&str> = plan.iter().map(|t| t.kind.as_str()).collect();
-    assert_eq!(kinds, ["brief", "review", "note", "drill"], "{plan:?}");
+    assert_eq!(
+        kinds,
+        ["brief", "review", "note", "drill", "mains"],
+        "{plan:?}"
+    );
     assert!(app.shows(("task", 1usize)) && app.shows(("task", 3usize)));
     for ix in 0..3usize {
         assert!(app.shows(("insight", ix)), "insight card {ix}");
@@ -1251,6 +1296,7 @@ fn current_affairs() {
             &state.reading,
             &[],
             &state.reviews,
+            &[],
         )
     });
     assert!(done, "all five stories are read");
@@ -1597,4 +1643,283 @@ fn highlighting() {
     app.shot("focus-done");
 
     std::fs::remove_dir_all(&dir).expect("the temp folder can go");
+}
+
+/// Phase 6: Today plans a Mains answer, which is written against the clock,
+/// survives a restart, runs past its time, is submitted, scored and found in
+/// the history with its trend; the next day has no Mains task and the day
+/// after has one again.
+fn mains() {
+    let today = chrono::Local::now().date_naive();
+    let day = |n: i64| today + chrono::Duration::days(n);
+    let dir = std::env::temp_dir().join(format!("civil-mentor-mains-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let db = dir.join("civil-mentor.db");
+    let store = Store::open(&db).expect("the data file opens");
+    store
+        .save_settings(&Settings {
+            daily_minutes: 240,
+            ..Settings::default()
+        })
+        .unwrap();
+    let mut app = Harness::new(store, None);
+    app.click("decline-diagnostic");
+    let (ghats, governor) = app.cx.update(|cx| {
+        let library = &AppState::get(cx).library;
+        (
+            library.mains_ix("gs1-western-ghats-rainfall").unwrap(),
+            library.mains_ix("gs2-governor-discretion").unwrap(),
+        )
+    });
+    let today_page: Vec<ElementId> = ["plan", "mentor", "this-week", "question-of-the-day"]
+        .into_iter()
+        .map(ElementId::from)
+        .collect();
+
+    // Nothing written yet, so today's plan ends with a Mains answer: 7
+    // minutes for a 10-mark question and 5 to score it.
+    let plan = app
+        .store(|s| s.plan(today).unwrap())
+        .expect("today's plan is saved");
+    let task = plan
+        .iter()
+        .position(|t| t.kind == "mains")
+        .unwrap_or_else(|| panic!("a Mains task in {plan:?}"));
+    assert_eq!(task, plan.len() - 1, "the Mains answer comes last");
+    assert_eq!(
+        (plan[task].title.as_str(), plan[task].minutes),
+        ("Write one Mains answer: GS-1, 10 marks", 12)
+    );
+    app.reveal(("task", task), &today_page);
+    app.shot("today-mains-task");
+
+    // The task opens its question, with the model answer hidden.
+    app.click(("task", task));
+    assert_eq!(app.screen(), Screen::Mains);
+    assert!(app.shows("mains-question-card") && !app.shows("model-answer"));
+    app.shot("mains-question");
+
+    // The list, by paper and topic, filtered by paper and by answered.
+    app.click("mains-back");
+    assert!(app.shows(("mains-question", ghats)) && app.shows(("mains-question", governor)));
+    app.shot("mains-list");
+    app.click("paper-gs2");
+    assert!(
+        app.shows(("mains-question", governor)) && !app.shows(("mains-question", ghats)),
+        "only GS-2"
+    );
+    app.shot("mains-list-gs2");
+    app.click("status-answered");
+    assert!(
+        !app.shows(("mains-question", governor)),
+        "nothing answered yet"
+    );
+    app.click("status-unanswered");
+    assert!(app.shows(("mains-question", governor)));
+    app.click("status-all");
+
+    // Writing: the clock counts down from 11 minutes for 15 marks, and every
+    // keystroke is saved.
+    let studied = |app: &mut Harness| app.store(|s| s.study_days().unwrap().values().sum::<u32>());
+    let before = studied(&mut app);
+    app.click(("mains-question", governor));
+    app.click("start-writing");
+    assert!(app.shows("mains-editor"));
+    app.click("mains-editor");
+    let opening = "The Governor is the constitutional head of a state under Article 153, \
+                   appointed by the President.";
+    app.act(|window, cx| window.input(opening, cx));
+    let draft = app.mains_draft();
+    assert!(
+        draft.id > 0 && draft.text.contains("Article 153"),
+        "{draft:?}"
+    );
+    assert_eq!(draft.submitted, None);
+    app.wait(90);
+    assert_eq!(app.mains_draft().seconds, 90);
+    assert!(app.shows("mains-clock") && !app.shows("time-up"));
+    app.shot("mains-editor");
+
+    // The app is closed mid-answer and opened again: the draft is there, with
+    // its words and its clock.
+    drop(app);
+    let mut app = Harness::new(Store::open(&db).expect("the data file reopens"), None);
+    app.click("1-0-1");
+    assert_eq!(app.screen(), Screen::Mains);
+    app.click("paper-gs2");
+    app.click(("mains-question", governor));
+    app.click("start-writing");
+    let resumed = app.mains_draft();
+    assert_eq!(resumed.id, draft.id, "the same answer, not a new one");
+    assert!(resumed.text.contains(opening), "{:?}", resumed.text);
+    assert_eq!(resumed.seconds, 90, "the clock stands where it stopped");
+
+    // Time runs out. Left alone, the clock stops at zero; typing on runs it
+    // into the overrun, which is kept.
+    app.click("mains-editor");
+    app.act(|window, cx| {
+        window.input(
+            " It acts on ministerial advice except under Article 163.",
+            cx,
+        )
+    });
+    app.wait(600);
+    assert_eq!(
+        app.mains_draft().seconds,
+        660,
+        "an idle overrun is not counted"
+    );
+    assert!(app.shows("time-up"));
+    app.act(|window, cx| window.input(" Sarkaria and Punchhi asked for restraint.", cx));
+    app.wait(45);
+    let written = app.mains_draft();
+    assert_eq!(written.seconds, 705, "45 seconds over");
+    app.shot("mains-time-up");
+
+    // Submitted, the answer sits beside the model answer and its points.
+    // The sheet is taller than the window, so every click scrolls to its
+    // button first, by whichever small element is in view.
+    app.click("mains-submit");
+    assert!(app.shows("mains-scoring") && app.shows("your-answer") && app.shows("model-answer"));
+    let sheet: Vec<ElementId> = ["mains-back", "mains-total", "scoring-done"]
+        .into_iter()
+        .map(ElementId::from)
+        .chain((0..8usize).map(|point| ElementId::from(("point", point))))
+        .chain((0..7).map(|d| ElementId::from(SharedString::from(format!("score-{d}-0")))))
+        .collect();
+    let press = |app: &mut Harness, id: ElementId| {
+        app.centre(id.clone(), &sheet);
+        app.click(id);
+    };
+    app.shot("mains-scoring");
+    press(&mut app, ("point", 0usize).into());
+    press(&mut app, ("point", 4usize).into());
+    app.shot("mains-scoring-points");
+    for (dimension, score) in [3, 2, 3, 2, 1, 3, 4].into_iter().enumerate() {
+        press(
+            &mut app,
+            SharedString::from(format!("score-{dimension}-{score}")).into(),
+        );
+    }
+    app.shot("mains-scored");
+    let scored = app.store(|s| s.mains_answers().unwrap())[0].clone();
+    assert_eq!(scored.id, written.id);
+    assert!(scored.submitted.is_some_and(|s| s.date() == today));
+    assert_eq!(scored.points, [0, 4]);
+    assert_eq!(scored.total(), Some(18), "{:?}", scored.scores);
+    assert_eq!(
+        studied(&mut app) - before,
+        705,
+        "the writing time, before and after the restart, is study time"
+    );
+
+    // Done goes to the history; one scored answer is not yet a trend.
+    press(&mut app, "scoring-done".into());
+    assert!(app.shows(("history", scored.id as usize)));
+    assert!(!app.shows(("trend-chart", 0usize)));
+
+    // The next day has no Mains task; the day after has one, from the
+    // paper with no answer yet.
+    app.days_ahead(1);
+    app.press("secondary-1");
+    let plan = app
+        .store(|s| s.plan(day(1)).unwrap())
+        .expect("the plan is saved");
+    assert!(plan.iter().all(|t| t.kind != "mains"), "{plan:?}");
+    app.days_ahead(2);
+    app.press("secondary-1");
+    let plan = app
+        .store(|s| s.plan(day(2)).unwrap())
+        .expect("the plan is saved");
+    let task = plan
+        .iter()
+        .position(|t| t.kind == "mains")
+        .unwrap_or_else(|| panic!("a Mains task in {plan:?}"));
+    assert_eq!(plan[task].target, "gs1-western-ghats-rainfall");
+    app.reveal(("task", task), &today_page);
+    app.click(("task", task));
+
+    // Asked for, the model answer shows before writing.
+    let question_page: Vec<ElementId> = ["mains-back", "start-writing", "show-model"]
+        .into_iter()
+        .map(ElementId::from)
+        .collect();
+    app.reveal("show-model", &question_page);
+    app.click("show-model");
+    assert!(app.shows("model-answer"));
+    app.reveal("mains-back", &question_page);
+    app.shot("mains-model-shown");
+    app.reveal("start-writing", &question_page);
+    app.click("start-writing");
+    assert!(app.shows("mains-editor"), "the editor opens");
+    app.click("mains-editor");
+    app.act(|window, cx| window.input("The Western Ghats catch the south-west monsoon.", cx));
+    app.wait(200);
+    let second = app.mains_draft();
+    app.shot("mains-second");
+    assert!(second.text.contains("Western Ghats"), "{second:?}");
+    assert_eq!(second.seconds, 200);
+    app.click("mains-submit");
+    assert!(app.shows("mains-scoring"), "submitted");
+    for (dimension, score) in [4, 3, 3, 3, 2, 3, 4].into_iter().enumerate() {
+        press(
+            &mut app,
+            SharedString::from(format!("score-{dimension}-{score}")).into(),
+        );
+    }
+    press(&mut app, "scoring-done".into());
+    let plan = app.store(|s| s.plan(day(2)).unwrap()).unwrap();
+    assert!(
+        app.cx.update(|cx| {
+            let state = AppState::get(cx);
+            mentor::task_done(
+                &state.library,
+                &plan[task],
+                day(2),
+                &state.reading,
+                &[],
+                &state.reviews,
+                &state.mains,
+            )
+        }),
+        "the Mains task is done once an answer is submitted"
+    );
+
+    // The history lists both, newest first, with a chart per dimension.
+    let answers = app.store(|s| s.mains_answers().unwrap());
+    assert_eq!(answers.len(), 2);
+    assert!(answers.iter().all(|a| a.total().is_some()));
+    let history: Vec<ElementId> = ["mains-trend", "mains-history"]
+        .into_iter()
+        .map(ElementId::from)
+        .chain((0..7usize).map(|d| ElementId::from(("trend-chart", d))))
+        .chain(
+            answers
+                .iter()
+                .map(|a| ElementId::from(("history", a.id as usize))),
+        )
+        .collect();
+    for answer in &answers {
+        assert!(app.shows(("history", answer.id as usize)));
+    }
+    app.reveal("mains-trend", &history);
+    for dimension in 0..7usize {
+        app.reveal(("trend-chart", dimension), &history);
+        let drawn = app.coloured_pixels(("trend-chart", dimension));
+        assert!(
+            drawn > 20,
+            "the chart for dimension {dimension} drew its line: {drawn} pixels"
+        );
+    }
+    app.reveal("mains-trend", &history);
+    app.shot("mains-history");
+
+    // A history entry opens its scoring sheet again.
+    let first = ("history", answers[0].id as usize);
+    app.reveal(first, &history);
+    app.click(first);
+    assert!(app.shows("mains-scoring"));
+
+    drop(app);
+    std::fs::remove_dir_all(&dir).unwrap();
 }

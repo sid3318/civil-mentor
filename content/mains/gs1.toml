@@ -1,0 +1,103 @@
+# Sample Mains questions written for Civil Mentor. They are not UPSC previous-year
+# questions, and the model answers are ours.
+#
+# Each [[question]] needs: id, paper (gs1 to gs4), topics, marks (10 or 15), words
+# (150 for 10 marks, 250 for 15), question, points (what a good answer covers) and
+# model (the model answer in Markdown, within the word limit). Optional: source.
+
+[[question]]
+id = "gs1-western-ghats-rainfall"
+paper = "gs1"
+topics = ["mains.gs1.geography.india.climate-and-the-monsoon", "mains.gs1.geography.india.physiography"]
+source = "Civil Mentor sample"
+marks = 10
+words = 150
+question = "Explain how the Western Ghats shape the distribution of rainfall in peninsular India."
+points = [
+    "Where the Ghats lie: parallel to the west coast, across the path of the south-west monsoon",
+    "Orographic rain on the windward western slopes and the coast",
+    "Rain shadow on the leeward side over the Deccan interior",
+    "The sharp fall in rainfall over a short distance east of the crest, with an example",
+    "Effects on rivers, or on the dry Coromandel coast in summer",
+]
+model = """
+The Western Ghats run for about 1,600 km along the west coast, across the path of the south-west monsoon, so they decide where the peninsula's rain falls.
+
+- **Windward side.** Moist Arabian Sea winds rise up the slopes, cool and shed heavy orographic rain, more than 250 cm a year on the coast and western slopes.
+- **Leeward side.** Drained of moisture, the winds descend and warm, leaving interior Maharashtra and Karnataka in a rain shadow.
+- **Gradient.** Mahabaleshwar, on the crest, is among India's wettest places; Pune, just to the north-east, gets a fraction of its rain.
+- **Rivers.** The rain feeds swift west-flowing streams and the sources of the Godavari, Krishna and Kaveri.
+- **East coast.** In the rain shadow, the Tamil Nadu coast stays dry in summer and gets most of its rain from the retreating monsoon.
+
+The Ghats make the peninsula wet in the west and dry in the interior.
+"""
+
+[[question]]
+id = "gs1-non-cooperation"
+paper = "gs1"
+topics = ["mains.gs1.freedom-struggle.mass.khilafat-and-non-cooperation-movements"]
+source = "Civil Mentor sample"
+marks = 15
+words = 250
+question = "The Non-Cooperation Movement was called off before it reached its goal, yet it changed the national movement for good. Discuss."
+points = [
+    "The aims: the Punjab and Khilafat wrongs, and swaraj within a year",
+    "Why it fell short: withdrawal after Chauri Chaura in February 1922",
+    "The mass base it created beyond the educated middle class",
+    "Non-violent mass action and boycott as the Congress's method",
+    "The Nagpur reorganisation of the Congress and constructive work",
+    "A balanced conclusion linking it to later movements",
+]
+model = """
+Launched by the Congress in 1920 together with the Khilafat agitation, the Non-Cooperation Movement sought redress for the Punjab and Khilafat wrongs and swaraj within a year. Gandhi called it off in February 1922 after the violence at Chauri Chaura, with none of these aims met. Its lasting effects were larger than its stated goals.
+
+**What it did not achieve**
+
+- Swaraj did not come, and the Khilafat question was settled by events in Turkey, not by the movement.
+- The sudden withdrawal disheartened many workers and split the Congress over council entry, which gave rise to the Swaraj Party.
+
+**How it changed the movement**
+
+- **A mass base.** Peasants, workers, students, traders and women joined in large numbers, carrying nationalism beyond the educated middle class.
+- **A method.** The boycott of foreign cloth, courts, schools and councils made non-violent mass action the Congress's chief weapon.
+- **An organisation.** The Nagpur session of 1920 reorganised the Congress, with provincial committees on linguistic lines and a mass membership.
+- **Constructive work.** National institutions such as Jamia Millia Islamia and Kashi Vidyapith, khadi and the Tilak Swaraj Fund gave the movement roots beyond agitation.
+- **Fearlessness.** Thousands courted arrest, and the fear of jail and of the Raj weakened.
+- **Unity.** The joint Khilafat and non-cooperation programme brought Hindus and Muslims together on a scale rarely seen again.
+
+The movement fell short of its target but proved its method: Civil Disobedience and Quit India built on the mass base and organisation it created.
+"""
+
+[[question]]
+id = "gs1-urbanisation-joint-family"
+paper = "gs1"
+topics = ["mains.gs1.society.features.family-marriage-and-kinship", "mains.gs1.society.urbanisation.trends-and-drivers-of-urbanisation"]
+source = "Civil Mentor sample"
+marks = 10
+words = 150
+question = "How has urbanisation changed the joint family in India? Is the joint family disappearing or adapting?"
+points = [
+    "What the joint family is and its roots in agrarian life",
+    "Changes: smaller households, economic independence, women's work",
+    "Costs, such as weaker care for the elderly",
+    "Adaptation: functionally joint families across cities",
+    "A clear answer to the second part of the question",
+]
+model = """
+The joint family, with several generations sharing a home, a kitchen and property, grew out of settled agrarian life. Urbanisation has loosened it but not ended it.
+
+**Changes**
+
+- **Smaller households.** Migration for jobs and the cost of city housing favour nuclear homes.
+- **Economic independence.** Salaried work weakens the authority of the head of the family over property and choices.
+- **Changing roles.** Women's education and paid work change the division of labour and decision-making at home.
+- **Care gaps.** Elderly parents left in villages, or living alone in cities, have less support.
+
+**Adaptation**
+
+- Many families stay **functionally joint**: separate homes, but shared rituals, money and care across cities.
+- Grandparents often move in to look after children where both parents work.
+- Kin networks still matter for marriage, jobs and crises.
+
+The joint family is changing its form rather than disappearing.
+"""
