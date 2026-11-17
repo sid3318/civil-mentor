@@ -3,7 +3,7 @@
 //! reader in Full and Rapid modes, the daily quiz, and the monthly issue
 //! with its own quiz.
 
-use chrono::{Datelike as _, Local, NaiveDate};
+use chrono::{Datelike as _, NaiveDate};
 use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonGroup, ButtonVariants as _};
 use gpui_kit::component::scroll::ScrollableElement as _;
@@ -19,11 +19,12 @@ use crate::AppState;
 use crate::app::{Screen, Shell};
 use crate::content::{Brief, Story, Target};
 use crate::exam::LETTERS;
+use crate::marks::{Blocks, Marking, Selection};
 use crate::mentor::{self, SUBJECTS, TestKind, TestPlan};
 use crate::notes::ReadingClock;
 use crate::review::marks;
 use crate::screens::count;
-use crate::store::{Attempt, Study};
+use crate::store::{Attempt, MarkKind, NewMark, Study};
 
 /// The reading column, as wide as the notes reader's narrow one.
 const COLUMN: f32 = 720.;
@@ -51,6 +52,36 @@ pub struct CurrentAffairsScreen {
     answer: bool,
     scroll: ScrollHandle,
     clock: Option<ReadingClock>,
+    /// The open story or editorial, as text views a highlight can be made on.
+    blocks: Blocks,
+    /// The reading key of the item those blocks belong to.
+    marked: Option<String>,
+    /// The selection waiting for a highlight's comment.
+    marking: Marking,
+    /// The last passage the student selected in the item.
+    selected: Option<Selection>,
+}
+
+/// The story as the parts the reader marks, in the order it shows them.
+fn story_parts(story: &Story) -> Vec<(&'static str, String)> {
+    let mut parts = vec![
+        ("context", story.context.clone()),
+        ("why", story.why.clone()),
+    ];
+    if !story.facts.is_empty() {
+        let facts: Vec<String> = story.facts.iter().map(|fact| format!("- {fact}")).collect();
+        parts.push(("facts", facts.join("\n")));
+    }
+    if let Some(trap) = &story.trap {
+        parts.push(("trap", trap.clone()));
+    }
+    if let Some(pyq) = &story.pyq {
+        parts.push(("pyq", pyq.clone()));
+    }
+    if let Some(mains) = &story.mains {
+        parts.push(("mains", mains.clone()));
+    }
+    parts
 }
 
 /// The subject a story is listed under: the first of its topics in a
@@ -145,7 +176,7 @@ fn bullet(text: &str) -> Div {
 
 impl CurrentAffairsScreen {
     pub fn new(shell: WeakEntity<Shell>, cx: &App) -> Self {
-        let today = Local::now().date_naive();
+        let today = AppState::today(cx);
         CurrentAffairsScreen {
             shell,
             brief: AppState::get(cx).library.todays_brief(today),
@@ -155,6 +186,10 @@ impl CurrentAffairsScreen {
             answer: false,
             scroll: ScrollHandle::new(),
             clock: None,
+            blocks: Blocks::default(),
+            marked: None,
+            marking: Marking::default(),
+            selected: None,
         }
     }
 
@@ -624,7 +659,7 @@ impl CurrentAffairsScreen {
             )
     }
 
-    fn reader(&self, brief: usize, cx: &mut Context<Self>) -> impl IntoElement {
+    fn reader(&mut self, brief: usize, cx: &mut Context<Self>) -> impl IntoElement {
         let page = match self.view {
             View::Month => self.month(brief, cx).into_any_element(),
             _ if self.rapid => self.rapid_page(brief, cx).into_any_element(),
@@ -855,16 +890,150 @@ impl CurrentAffairsScreen {
             }))
     }
 
-    fn story(&self, brief: usize, ix: usize, cx: &mut Context<Self>) -> impl IntoElement {
+    /// How many of the item's highlights are painted, which the UI test
+    /// checks.
+    pub fn painted(&self) -> usize {
+        self.blocks.painted()
+    }
+
+    /// Makes the open story or editorial a set of text views the student can
+    /// select text in, with their highlights painted.
+    fn prepare_blocks(&mut self, brief: usize, cx: &mut Context<Self>) {
+        let (key, parts, marks, colour) = {
+            let state = AppState::get(cx);
+            let day = &state.library.briefs[brief];
+            let (key, parts) = match self.view {
+                View::Story(ix) => {
+                    let story = &day.stories[ix];
+                    (story.reading_key(), story_parts(story))
+                }
+                View::Editorial(ix) => {
+                    let editorial = &day.editorials[ix];
+                    (editorial.reading_key(), vec![("", editorial.body.clone())])
+                }
+                View::Day | View::Month => return,
+            };
+            let marks = state.marks_of(&key).to_vec();
+            (key, parts, marks, crate::marks::highlight(cx))
+        };
+        if self.marked.as_deref() != Some(key.as_str()) {
+            self.blocks.clear();
+            self.marking.close();
+            self.selected = None;
+            self.marked = Some(key);
+        }
+        for (part, text) in &parts {
+            self.blocks.prepare(part, part, text, &marks, colour, cx);
+        }
+        for state in self.blocks.take_new() {
+            cx.observe(&state, |this, _, cx| this.follow(cx)).detach();
+        }
+    }
+
+    /// Keeps the last selection on hand: marking a passage must not depend on
+    /// the click that starts it, which clears the selection first.
+    fn follow(&mut self, cx: &mut Context<Self>) {
+        if let Some(selection) = self.blocks.selection(cx) {
+            self.selected = Some(selection);
+            cx.notify();
+        }
+    }
+
+    /// Highlights the selected text, or clips it.
+    fn start_mark(&mut self, kind: MarkKind, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(selection) = self.blocks.selection(cx).or_else(|| self.selected.take()) else {
+            return;
+        };
+        if let Some(clip) = self.marking.start(kind, selection, window, cx) {
+            self.keep_mark(kind, clip, None, cx);
+        }
+        cx.notify();
+    }
+
+    /// Saves a highlight or clip of the item on screen.
+    fn keep_mark(
+        &mut self,
+        kind: MarkKind,
+        selection: Selection,
+        comment: Option<String>,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(item) = self.marked.clone() else {
+            return;
+        };
+        AppState::add_mark(
+            cx,
+            NewMark {
+                item,
+                part: selection.part,
+                kind,
+                range: selection.range,
+                quote: selection.quote,
+                comment,
+            },
+        );
+    }
+
+    /// The buttons that mark the selected text, and the bar where a
+    /// highlight waits for its comment.
+    fn mark_tools(&self, cx: &Context<Self>) -> impl IntoElement {
+        let button = |label: &'static str, icon: IconName, kind: MarkKind, cx: &Context<Self>| {
+            Button::new(label)
+                .ghost()
+                .xsmall()
+                .icon(Icon::new(icon))
+                .tooltip("Select some text first, then mark it")
+                .on_click(cx.listener(move |this, _, window, cx| this.start_mark(kind, window, cx)))
+        };
+        v_flex()
+            .gap_2()
+            .child(
+                h_flex()
+                    .pt_2()
+                    .gap_1()
+                    .child(
+                        button(
+                            "story-highlight",
+                            IconName::PenLine,
+                            MarkKind::Highlight,
+                            cx,
+                        )
+                        .label("Highlight"),
+                    )
+                    .child(
+                        button("story-clip", IconName::NotebookText, MarkKind::Clip, cx)
+                            .label("Clip"),
+                    ),
+            )
+            .children(self.marking.bar(
+                cx.listener(|this, _, _, cx| {
+                    let comment = this.marking.comment(cx);
+                    if let Some(selection) = this.marking.take() {
+                        this.keep_mark(MarkKind::Highlight, selection, comment, cx);
+                    }
+                }),
+                cx.listener(|this, _, _, cx| {
+                    this.marking.close();
+                    cx.notify();
+                }),
+                cx,
+            ))
+    }
+
+    fn story(&mut self, brief: usize, ix: usize, cx: &mut Context<Self>) -> impl IntoElement {
+        self.prepare_blocks(brief, cx);
         let state = AppState::get(cx);
         let library = &state.library;
         let day = &library.briefs[brief];
         let story = &day.stories[ix];
         let theme = cx.theme();
-        let text = |label: &str, body: &str| {
-            v_flex()
-                .child(heading(label, cx))
-                .child(div().child(body.to_string()))
+        let text = |label: &str, part: &str| {
+            v_flex().child(heading(label, cx)).child(
+                div()
+                    .id(SharedString::from(format!("story-{part}")))
+                    .test_support()
+                    .child(self.blocks.view(part)),
+            )
         };
         let question = story
             .question
@@ -901,16 +1070,17 @@ impl CurrentAffairsScreen {
                     .font_semibold()
                     .child(story.title.clone()),
             )
-            .child(text("Context", &story.context))
-            .child(text("Why it matters", &story.why))
+            .child(self.mark_tools(cx))
+            .child(text("Context", "context"))
+            .child(text("Why it matters", "why"))
             .child(
                 v_flex()
                     .id("key-facts")
                     .test_support()
                     .child(heading("Key facts", cx))
-                    .children(story.facts.iter().map(|fact| bullet(fact))),
+                    .child(div().child(self.blocks.view("facts"))),
             )
-            .when_some(story.trap.clone(), |this, trap| {
+            .when(story.trap.is_some(), |this| {
                 this.child(
                     v_flex()
                         .mt_4()
@@ -919,11 +1089,11 @@ impl CurrentAffairsScreen {
                         .rounded(theme.radius_lg)
                         .bg(theme.muted)
                         .child(div().text_xs().font_semibold().child("THE TRAP"))
-                        .child(div().child(trap)),
+                        .child(div().child(self.blocks.view("trap"))),
                 )
             })
-            .when_some(story.pyq.clone(), |this, pyq| {
-                this.child(text("PYQ pattern", &pyq))
+            .when(story.pyq.is_some(), |this| {
+                this.child(text("PYQ pattern", "pyq"))
             })
             .when_some(question, |this, question| {
                 let options = question.options.iter().enumerate().map(|(option, text)| {
@@ -970,9 +1140,9 @@ impl CurrentAffairsScreen {
                         ),
                 )
             })
-            .when_some(story.mains.clone(), |this, mains| {
+            .when(story.mains.is_some(), |this| {
                 this.child(heading("Mains question", cx))
-                    .child(div().font_medium().child(mains))
+                    .child(div().font_medium().child(self.blocks.view("mains")))
                     .when(!story.frame.is_empty(), |this| {
                         this.child(muted("Answer frame", cx).pt_2()).children(
                             story.frame.iter().enumerate().map(|(k, point)| {
@@ -1009,7 +1179,8 @@ impl CurrentAffairsScreen {
             )
     }
 
-    fn editorial(&self, brief: usize, ix: usize, cx: &Context<Self>) -> impl IntoElement {
+    fn editorial(&mut self, brief: usize, ix: usize, cx: &mut Context<Self>) -> impl IntoElement {
+        self.prepare_blocks(brief, cx);
         let library = &AppState::get(cx).library;
         let day = &library.briefs[brief];
         let editorial = &day.editorials[ix];
@@ -1030,10 +1201,13 @@ impl CurrentAffairsScreen {
                 "Editorial: our own analysis of an issue in the news.",
                 cx,
             ))
-            .child(TextView::markdown(
-                SharedString::from(format!("editorial-{}", editorial.id)),
-                editorial.body.clone(),
-            ))
+            .child(self.mark_tools(cx))
+            .child(
+                div()
+                    .id("editorial-body")
+                    .test_support()
+                    .child(self.blocks.view("")),
+            )
             .child(
                 h_flex()
                     .py_8()

@@ -11,14 +11,14 @@ use std::time::Duration;
 
 use civil_mentor::content::Target;
 use civil_mentor::mentor::{self, SUBJECTS};
-use civil_mentor::store::{Attempt, Reading, Settings, Store, ThemeChoice};
+use civil_mentor::store::{Attempt, Mark, MarkKind, Reading, Review, Settings, Store, ThemeChoice};
 use civil_mentor::syllabus::{coverage, statuses};
 use civil_mentor::{AppAssets, AppState, Screen, Shell};
 use gpui_kit::component::{Theme, WindowExt as _};
-use gpui_kit::test::TestWindowExt as _;
+use gpui_kit::test::{TestEventExt as _, TestWindowExt as _};
 use gpui_kit::{
-    AnyWindowHandle, App, Bounds, ElementId, Entity, HeadlessAppContext, Pixels, ScrollDelta,
-    SharedString, Window, WindowBounds, WindowOptions, point, px, size,
+    AnyWindowHandle, App, Bounds, ElementId, Entity, HeadlessAppContext, MouseButton, Pixels,
+    ScrollDelta, SharedString, Window, WindowBounds, WindowOptions, point, px, size,
 };
 
 struct Harness {
@@ -123,6 +123,24 @@ impl Harness {
                 .position(|topic| topic.id == id)
                 .expect("the topic exists")
         })
+    }
+
+    /// Clicks something on a scrolling page, bringing it into view first.
+    fn tap(&mut self, id: impl Into<ElementId>, anchors: &[&str]) {
+        let id = id.into();
+        let visible = self.act(|window, _| {
+            window
+                .try_find(id.clone())
+                .is_some_and(|found| found.visible())
+        });
+        if !visible {
+            let anchors: Vec<ElementId> = anchors
+                .iter()
+                .map(|id| ElementId::from(SharedString::from(*id)))
+                .collect();
+            self.reveal(id.clone(), &anchors);
+        }
+        self.click(id);
     }
 
     fn shows(&mut self, id: impl Into<ElementId>) -> bool {
@@ -264,6 +282,76 @@ impl Harness {
         self.cx.update(|cx| read(&AppState::get(cx).store))
     }
 
+    /// Where a review item stands, checked against the data file.
+    fn review(&mut self, key: &str) -> Option<Review> {
+        self.cx.update(|cx| {
+            let state = AppState::get(cx);
+            let saved = state.store.reviews().expect("reviews load");
+            assert_eq!(
+                saved.get(key),
+                state.reviews.get(key),
+                "every answer is saved"
+            );
+            state.reviews.get(key).copied()
+        })
+    }
+
+    /// The review key on screen in the review session.
+    fn review_item(&mut self) -> Option<String> {
+        let shell = self.shell.clone();
+        self.cx.update(|cx| shell.read(cx).review_item(cx))
+    }
+
+    /// Moves the app's date on by `days` from the real one.
+    fn days_ahead(&mut self, days: i64) {
+        self.cx
+            .update(|cx| cx.global_mut::<AppState>().days_ahead = days);
+        self.act(|_, _| {});
+    }
+
+    /// The student's highlights and clips, oldest first.
+    fn marks(&mut self) -> Vec<Mark> {
+        let mut marks: Vec<Mark> = self.cx.update(|cx| {
+            AppState::get(cx)
+                .marks
+                .values()
+                .flatten()
+                .cloned()
+                .collect()
+        });
+        marks.sort_by_key(|mark| mark.id);
+        marks
+    }
+
+    /// How many highlights the readers are painting.
+    fn painted(&mut self) -> usize {
+        let shell = self.shell.clone();
+        self.cx.update(|cx| shell.read(cx).painted(cx))
+    }
+
+    /// Drags across the text of an element, to select part of it.
+    fn select(&mut self, id: impl Into<ElementId>) {
+        let id = id.into();
+        let (start, end) = self.act(|window, _| {
+            let bounds = window.find(id).bounds();
+            let y = bounds.origin.y + px(8.);
+            (
+                point(bounds.origin.x + px(4.), y),
+                point(bounds.origin.x + bounds.size.width - px(30.), y),
+            )
+        });
+        self.act(|window, cx| {
+            window.pointer_down(start, MouseButton::Left, cx);
+            window.pointer_move(
+                point(start.x + px(20.), start.y),
+                Some(MouseButton::Left),
+                cx,
+            );
+            window.pointer_move(end, Some(MouseButton::Left), cx);
+            window.pointer_up(end, MouseButton::Left, cx);
+        });
+    }
+
     fn analysis_tab(&mut self, ix: usize) {
         self.act(|window, cx| window.within("analysis-tabs").click(ix, cx));
         let shell = self.shell.clone();
@@ -301,7 +389,7 @@ fn main() {
         .into_iter()
         .enumerate()
         .map(|(ix, s)| (format!("1-0-{ix}"), s));
-    let footer = [("sidebar-footer-0".to_string(), Screen::Settings)];
+    let footer = [("sidebar-footer-1".to_string(), Screen::Settings)];
     let items: Vec<(String, Screen)> = primary.chain(secondary).chain(footer).collect();
     assert_eq!(
         items.len(),
@@ -523,6 +611,8 @@ fn main() {
     practice();
     today_and_analysis();
     current_affairs();
+    revision();
+    highlighting();
 
     let mut unsaved = Harness::new(
         Store::in_memory(),
@@ -866,16 +956,17 @@ fn today_and_analysis() {
     assert!(app.shows("remove-demo"), "and can be removed");
     app.shot("settings-demo");
 
-    // Today: the plan, remade with the demo record, has a note and a drill,
-    // and the mentor gives advice with Open note and Drill buttons.
+    // Today: the plan, remade with the demo record, has the brief, the
+    // reviews the demo left due, a note and a drill, and the mentor gives
+    // advice with Open note and Drill buttons.
     app.press("secondary-1");
     app.shot("today-plan");
     let plan = app
         .store(|s| s.plan(today).unwrap())
         .expect("today's plan is saved");
     let kinds: Vec<&str> = plan.iter().map(|t| t.kind.as_str()).collect();
-    assert_eq!(kinds, ["brief", "note", "drill"], "{plan:?}");
-    assert!(app.shows(("task", 1usize)) && app.shows(("task", 2usize)));
+    assert_eq!(kinds, ["brief", "review", "note", "drill"], "{plan:?}");
+    assert!(app.shows(("task", 1usize)) && app.shows(("task", 3usize)));
     for ix in 0..3usize {
         assert!(app.shows(("insight", ix)), "insight card {ix}");
     }
@@ -891,18 +982,22 @@ fn today_and_analysis() {
     app.reveal("qotd-answer", &today_page);
     app.click("qotd-answer");
     app.shot("today-question");
-    app.reveal(("task-done", 1usize), &today_page);
+    app.reveal(("task-done", 2usize), &today_page);
 
     // Ticking a task saves it; the plan stays frozen for the day.
-    app.click(("task-done", 1usize));
-    assert!(app.store(|s| s.plan(today).unwrap().unwrap()[1].done));
-    // The note task opens its note, the drill task its drill.
+    app.click(("task-done", 2usize));
+    assert!(app.store(|s| s.plan(today).unwrap().unwrap()[2].done));
+    // The review task opens the review session, the note task its note,
+    // the drill task its drill.
     app.click(("task", 1usize));
-    assert_eq!(app.screen(), Screen::Notes);
+    assert_eq!(app.screen(), Screen::Revision);
     app.press("secondary-1");
     app.click(("task", 2usize));
+    assert_eq!(app.screen(), Screen::Notes);
+    app.press("secondary-1");
+    app.click(("task", 3usize));
     assert!(app.in_exam(), "the drill task opens the exam room");
-    assert_eq!(app.exam().kind, format!("topic:{}", plan[2].target));
+    assert_eq!(app.exam().kind, format!("topic:{}", plan[3].target));
     app.click("leave");
     let after = app.store(|s| s.plan(today).unwrap().unwrap());
     assert_eq!(
@@ -1149,7 +1244,14 @@ fn current_affairs() {
     let done = app.cx.update(|cx| {
         let state = AppState::get(cx);
         let plan = state.store.plan(today).unwrap().unwrap();
-        mentor::task_done(&state.library, &plan[0], today, &state.reading, &[])
+        mentor::task_done(
+            &state.library,
+            &plan[0],
+            today,
+            &state.reading,
+            &[],
+            &state.reviews,
+        )
     });
     assert!(done, "all five stories are read");
     app.shot("today-brief-read");
@@ -1216,4 +1318,283 @@ fn current_affairs() {
 
     drop(app);
     std::fs::remove_dir_all(&dir).unwrap();
+}
+
+/// Phase 5: a question answered wrong in a test joins the mistake book and
+/// comes back in the review session on its due day, where answering it
+/// moves it up a box; flashcards are flipped and marked.
+fn revision() {
+    let today = chrono::Local::now().date_naive();
+    let day = |n: i64| today + chrono::Duration::days(n);
+    let dir = std::env::temp_dir().join(format!("civil-mentor-revision-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let db = dir.join("civil-mentor.db");
+    let mut app = Harness::new(Store::open(&db).expect("the data file opens"), None);
+
+    // A short test with one question answered wrong.
+    app.press("secondary-3");
+    app.click("start-micro");
+    let test = app.exam();
+    let (cell, question, right, wrong) = app.cx.update(|cx| {
+        let library = &AppState::get(cx).library;
+        test.answers
+            .iter()
+            .enumerate()
+            .find_map(|(cell, answer)| {
+                let question = library.question(&answer.question)?;
+                let right = question.answer?;
+                let wrong = (right + 1) % question.options.len();
+                let ix = library.question_ix(&question.id)?;
+                Some((cell, ix, right, wrong))
+            })
+            .expect("a question with an answer")
+    });
+    let key = app
+        .cx
+        .update(|cx| mentor::mistake_key(&AppState::get(cx).library.questions[question].id));
+    app.click(("cell", cell));
+    app.click(("option", wrong));
+    app.click("submit");
+    app.click("submit-anyway");
+    assert!(!app.in_exam());
+    let entry = app
+        .review(&key)
+        .expect("the wrong answer joins the mistake book");
+    assert_eq!(
+        (entry.level, entry.due),
+        (1, Some(day(1))),
+        "due the next day"
+    );
+
+    // The mistake book lists it by subject. Today only new flashcards are
+    // due, so the mistake is not in today's session.
+    app.click("1-0-0");
+    assert_eq!(app.screen(), Screen::Revision);
+    assert!(app.shows("mistake-book") && app.shows(("mistake", question)));
+    assert!(app.shows("start-review"), "new flashcards are due today");
+    app.shot("revision-book");
+    let queue = app.cx.update(|cx| {
+        let state = AppState::get(cx);
+        mentor::review_queue(&state.library, &state.reviews, today)
+    });
+    assert_eq!(queue.len(), mentor::NEW_CARDS, "{queue:?}");
+    assert!(!queue.contains(&key));
+
+    // The next day, Today's plan has the review task, which opens the
+    // session with the mistake first.
+    app.days_ahead(1);
+    app.press("secondary-1");
+    let plan = app
+        .store(|s| s.plan(day(1)).unwrap())
+        .expect("tomorrow's plan is saved");
+    let task = plan
+        .iter()
+        .position(|t| t.kind == "review")
+        .unwrap_or_else(|| panic!("a review task in {plan:?}"));
+    assert!(plan[task].minutes <= mentor::REVIEW_MINUTES);
+    let today_page: Vec<ElementId> = ["plan", "mentor", "this-week", "question-of-the-day"]
+        .into_iter()
+        .map(ElementId::from)
+        .collect();
+    app.reveal(("task", task), &today_page);
+    app.shot("today-review-task");
+    app.click(("task", task));
+    assert_eq!(app.screen(), Screen::Revision);
+    assert_eq!(
+        app.review_item(),
+        Some(key.clone()),
+        "the mistake comes back"
+    );
+    assert!(app.shows("review-mistake"));
+    app.shot("review-mistake");
+
+    // Answering it right moves it to box 2, due three days on.
+    app.tap(("review-option", right), &["review-mistake"]);
+    let entry = app.review(&key).unwrap();
+    assert_eq!((entry.level, entry.due), (2, Some(day(4))));
+    app.shot("review-answered");
+
+    // Then the flashcards due today, after any other mistake in the queue.
+    app.tap("review-next", &["review-mistake"]);
+    for _ in 0..4 {
+        let item = app.review_item().expect("the session goes on");
+        if item.starts_with("card:") {
+            break;
+        }
+        assert!(item.starts_with("question:"), "{item}");
+        app.tap("review-next", &["review-mistake"]);
+    }
+    let card = app.review_item().expect("a flashcard follows");
+    assert!(card.starts_with("card:"), "{card}");
+    assert!(app.shows("review-card") && !app.shows("card-back"));
+    app.tap("flip", &["review-card"]);
+    assert!(app.shows("card-back"));
+    app.shot("review-card");
+    app.tap("got-it", &["review-card"]);
+    let entry = app.review(&card).unwrap();
+    assert_eq!((entry.level, entry.due), (2, Some(day(4))));
+    assert_ne!(app.review_item(), Some(card), "the session moves on");
+
+    // A card marked Missed goes back to box 1, due the next day. The time
+    // spent on the session counts as study.
+    let next = app.review_item().expect("another flashcard");
+    app.wait(20);
+    app.tap("flip", &["review-card"]);
+    app.tap("missed", &["review-card"]);
+    let missed = app.review(&next).unwrap();
+    assert_eq!((missed.level, missed.due), (1, Some(day(2))));
+    let studied = app.store(|s| s.study_days().unwrap());
+    assert!(
+        studied.get(&day(1)).is_some_and(|&s| s >= 20),
+        "{studied:?}"
+    );
+
+    // Finishing returns to the mistake book, which shows the new box.
+    app.click("stop-review");
+    assert!(app.shows("mistake-book"));
+    app.shot("revision");
+
+    drop(app);
+    std::fs::remove_dir_all(&dir).unwrap();
+}
+fn highlighting() {
+    let dir = std::env::temp_dir().join(format!("civil-mentor-marks-{}", std::process::id()));
+    let db = dir.join("civil-mentor.db");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("the temp folder can be made");
+    let mut app = Harness::new(Store::open(&db).expect("the data file opens"), None);
+    app.click("decline-diagnostic");
+
+    // A passage of a note, highlighted with a comment.
+    let rights = app.note_ix("gs2-polity-fundamental-rights");
+    app.click("0-0-1");
+    app.click(("note", rights));
+    app.select(("note-section", 0usize));
+    app.click("highlight");
+    assert!(app.shows("highlight-bar"), "the comment bar opens");
+    app.act(|window, cx| window.input("Where is this article quoted?", cx));
+    app.shot("note-highlight-bar");
+    app.click("highlight-save");
+    let marks = app.marks();
+    assert_eq!(marks.len(), 1, "one highlight was saved: {marks:?}");
+    assert_eq!(marks[0].kind, MarkKind::Highlight);
+    assert_eq!(
+        marks[0].comment.as_deref(),
+        Some("Where is this article quoted?")
+    );
+    assert_eq!(marks[0].item, "gs2-polity-fundamental-rights");
+    assert!(marks[0].quote.trim().len() > 8, "{:?}", marks[0].quote);
+    assert_eq!(app.painted(), 1, "the highlight paints on the note");
+    app.shot("note-highlight");
+
+    // A clip keeps a passage with no comment.
+    app.select(("note-section", 1usize));
+    app.click("clip");
+    let marks = app.marks();
+    assert_eq!(marks.len(), 2, "the clip was saved: {marks:?}");
+    assert_eq!(marks[1].kind, MarkKind::Clip);
+    assert!(marks[1].comment.is_none());
+    assert!(marks[1].quote.trim().len() > 8, "{:?}", marks[1].quote);
+    app.shot("note-clip");
+
+    // The highlight is still there after a restart.
+    drop(app);
+    let mut app = Harness::new(Store::open(&db).expect("the data file reopens"), None);
+    let rights = app.note_ix("gs2-polity-fundamental-rights");
+    app.click("0-0-1");
+    app.click(("note", rights));
+    assert_eq!(app.marks().len(), 2, "both marks were saved");
+    assert_eq!(
+        app.painted(),
+        1,
+        "the highlight paints again on the reopened note"
+    );
+    app.shot("note-reopened");
+
+    // And a story can be marked the same way.
+    app.click("0-0-3");
+    app.click(("story", 0usize));
+    app.select("story-context");
+    app.click("story-highlight");
+    assert!(
+        app.shows("highlight-bar"),
+        "the story highlight waits for its comment"
+    );
+    app.click("highlight-save");
+    let marks = app.marks();
+    assert_eq!(marks.len(), 3, "the story highlight was saved: {marks:?}");
+    assert!(marks[2].item.starts_with("story:"), "{}", marks[2].item);
+    assert_eq!(marks[2].part, "context");
+    assert_eq!(app.painted(), 2, "the story highlight paints");
+    app.shot("story-highlight");
+
+    // The Notebook lists what was kept, filters it, and opens its source.
+    app.click("1-0-3");
+    assert_eq!(app.screen(), Screen::Notebook);
+    let highlight = app
+        .marks()
+        .into_iter()
+        .find(|mark| mark.kind == MarkKind::Highlight)
+        .expect("a highlight to list");
+    let clip = app
+        .marks()
+        .into_iter()
+        .find(|mark| mark.kind == MarkKind::Clip)
+        .expect("a clip to list");
+    assert!(
+        app.shows(("mark", highlight.id as usize)) && app.shows(("mark", clip.id as usize)),
+        "both marks are listed"
+    );
+    app.shot("notebook-all");
+    app.click("nb-highlights");
+    assert!(
+        app.shows(("mark", highlight.id as usize)) && !app.shows(("mark", clip.id as usize)),
+        "clips are filtered out of the highlights"
+    );
+    app.click(("mark", highlight.id as usize));
+    app.shot("notebook-highlight");
+    app.click("open-mark");
+    assert_eq!(app.screen(), Screen::Notes, "a highlight opens its note");
+    assert_eq!(
+        app.note(),
+        Some(app.note_ix("gs2-polity-fundamental-rights"))
+    );
+
+    // A note of the student's own, saved and found by search.
+    app.click("1-0-3");
+    app.click("new-note");
+    app.act(|window, cx| window.input("Drainage of the Ganga plain", cx));
+    app.click("note-body");
+    app.act(|window, cx| window.input("svadharma2026: the plain is khadar and bhangar.", cx));
+    app.shot("notebook-editor");
+    app.click("save-note");
+    let mine = app.cx.update(|cx| AppState::get(cx).my_notes.clone());
+    assert_eq!(mine.len(), 1, "the note was saved: {mine:?}");
+    assert!(mine[0].title.contains("Drainage of the Ganga plain"));
+    assert!(mine[0].body.contains("svadharma2026"));
+    assert!(app.shows(("my-note", mine[0].id as usize)));
+    app.shot("notebook-own-note");
+    app.press("secondary-k");
+    app.act(|window, cx| window.input("svadharma2026", cx));
+    app.shot("notebook-search");
+    app.press("enter");
+    assert_eq!(
+        app.screen(),
+        Screen::Notebook,
+        "search finds the student's own note"
+    );
+
+    // The focus timer counts a 25-minute block down and records it as study.
+    let before = app.store(|s| s.study_days().unwrap().values().sum::<u32>());
+    app.click("sidebar-footer-0");
+    app.wait(1500);
+    let after = app.store(|s| s.study_days().unwrap().values().sum::<u32>());
+    assert_eq!(
+        after,
+        before + 25 * 60,
+        "the block is a quarter of an hour of focus study: {before} -> {after}"
+    );
+    app.shot("focus-done");
+
+    std::fs::remove_dir_all(&dir).expect("the temp folder can go");
 }

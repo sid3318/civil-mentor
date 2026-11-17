@@ -3,7 +3,7 @@
 //! the mentor's advice. Until the student takes or declines it, it also
 //! offers the first-launch diagnostic.
 
-use chrono::{Datelike as _, Duration, Local, NaiveDate};
+use chrono::{Datelike as _, Duration, NaiveDate};
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::checkbox::Checkbox;
 use gpui_kit::component::text::TextView;
@@ -42,6 +42,7 @@ pub(crate) fn todays_plan(cx: &mut App, today: NaiveDate) -> Plan {
                 &state.library,
                 &state.reading,
                 &history,
+                &state.reviews,
                 state.settings.daily_minutes,
                 today,
             );
@@ -156,7 +157,16 @@ impl TodayScreen {
         let done: Vec<bool> = plan
             .tasks
             .iter()
-            .map(|task| mentor::task_done(library, task, plan.day, &state.reading, &tests))
+            .map(|task| {
+                mentor::task_done(
+                    library,
+                    task,
+                    plan.day,
+                    &state.reading,
+                    &tests,
+                    &state.reviews,
+                )
+            })
             .collect();
         let title = format!(
             "Today's plan · {} of {} done · {} min",
@@ -220,6 +230,9 @@ impl TodayScreen {
                                     let _ =
                                         this.shell.update(cx, |shell, cx| shell.open_brief(ix, cx));
                                 }
+                            }
+                            Some(TaskKind::Review) => {
+                                let _ = this.shell.update(cx, |shell, cx| shell.start_review(cx));
                             }
                             Some(TaskKind::Note) => {
                                 if let Some(note) = note {
@@ -496,7 +509,7 @@ impl TodayScreen {
 
 impl Render for TodayScreen {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let today = Local::now().date_naive();
+        let today = AppState::today(cx);
         let plan = todays_plan(cx, today);
         let state = AppState::get(cx);
         let days = (state.settings.exam_date - today).num_days();

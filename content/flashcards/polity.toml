@@ -1,0 +1,50 @@
+# Sample flashcards written for Civil Mentor.
+#
+# Each [[card]] needs: id, topics, front (the prompt) and back (the answer).
+# Optional: source, note (the id of the note the card comes from).
+
+[[card]]
+id = "polity-art17"
+topics = ["pre.gs.polity.rights.fundamental-rights.right-to-equality"]
+source = "Civil Mentor sample"
+front = "Which Article abolishes untouchability?"
+back = "Article 17. It abolishes untouchability and forbids its practice in any form. Enforcing any disability that arises from it is an offence punishable by law; the Protection of Civil Rights Act, 1955 does this."
+note = "gs2-polity-fundamental-rights"
+
+[[card]]
+id = "polity-quo-warranto"
+topics = ["pre.gs.polity.rights.writs.quo-warranto"]
+source = "Civil Mentor sample"
+front = "Which writ asks a person by what authority they hold a public office?"
+back = "Quo warranto (\"by what authority\"). It stops someone from holding a substantive public office they are not entitled to. Unlike most writs, any person can seek it, not only the one aggrieved."
+note = "gs2-polity-fundamental-rights"
+
+[[card]]
+id = "polity-money-bill"
+topics = ["pre.gs.polity.parliament.bills.money-bills"]
+source = "Civil Mentor sample"
+front = "Where can a Money Bill be introduced, and who decides that a bill is a Money Bill?"
+back = "Only in the Lok Sabha, and only on the President's recommendation. The Speaker's decision on whether a bill is a Money Bill is final (Article 110). The Rajya Sabha can hold it for at most 14 days and can only recommend changes."
+note = "gs2-polity-parliament"
+
+[[card]]
+id = "polity-42nd"
+topics = ["pre.gs.polity.constitution.preamble", "pre.gs.polity.amendment.important-amendments"]
+source = "Civil Mentor sample"
+front = "Which amendment added \"socialist\", \"secular\" and \"integrity\" to the Preamble?"
+back = "The 42nd Amendment Act, 1976. It is the only amendment so far to change the Preamble."
+
+[[card]]
+id = "polity-21a"
+topics = ["pre.gs.polity.rights.fundamental-rights.right-to-freedom"]
+source = "Civil Mentor sample"
+front = "What does Article 21A guarantee, and which amendment added it?"
+back = "Free and compulsory education for every child aged 6 to 14, in the manner the State decides by law. The 86th Amendment Act, 2002 added it; the Right to Education Act, 2009 puts it into effect."
+note = "gs2-polity-fundamental-rights"
+
+[[card]]
+id = "polity-isc"
+topics = ["pre.gs.polity.system.inter-state-relations"]
+source = "Civil Mentor sample"
+front = "Under which Article is the Inter-State Council set up, and when was it first constituted?"
+back = "Article 263 lets the President set up an Inter-State Council. It was first constituted in 1990, on the recommendation of the Sarkaria Commission. Its recommendations are advisory."

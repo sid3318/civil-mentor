@@ -17,8 +17,9 @@ use gpui_kit::*;
 use crate::AppState;
 use crate::app::Shell;
 use crate::content::{Target, sections};
+use crate::marks::{self, Blocks, Marking, Selection};
 use crate::screens::count;
-use crate::store::Study;
+use crate::store::{MarkKind, NewMark, Study};
 use crate::syllabus::Status;
 
 /// Reader text sizes, in pixels.
@@ -46,6 +47,12 @@ pub struct NotesScreen {
     scroll: ScrollHandle,
     /// Counts the time the note on screen is open, while the student is active.
     clock: Option<ReadingClock>,
+    /// The note's sections, as text views a highlight can be made on.
+    blocks: Blocks,
+    /// The selection waiting for a highlight's comment.
+    marking: Marking,
+    /// The last passage the student selected in the note.
+    selected: Option<Selection>,
 }
 
 /// Counts the time something is open in a reader, while the student is
@@ -138,6 +145,9 @@ impl NotesScreen {
             answers: HashSet::new(),
             scroll: ScrollHandle::new(),
             clock: None,
+            blocks: Blocks::default(),
+            marking: Marking::default(),
+            selected: None,
         }
     }
 
@@ -152,6 +162,9 @@ impl NotesScreen {
             self.note = Some(ix);
             self.answers.clear();
             self.scroll.set_offset(Point::default());
+            self.blocks.clear();
+            self.marking.close();
+            self.selected = None;
         }
         let id = AppState::get(cx).library.notes[ix].id.clone();
         AppState::update_reading(cx, &id, |reading, today| reading.last = today);
@@ -203,6 +216,8 @@ impl NotesScreen {
         if self.distilled != distilled {
             self.distilled = distilled;
             self.scroll.set_offset(Point::default());
+            self.blocks.clear();
+            self.marking.close();
             cx.notify();
         }
     }
@@ -308,8 +323,99 @@ impl NotesScreen {
             })
     }
 
+    /// How many of the note's highlights are painted, which the UI test
+    /// checks.
+    pub fn painted(&self) -> usize {
+        self.blocks.painted()
+    }
+
+    /// Makes each section a text view the student can select text in, with
+    /// their highlights already painted.
+    fn prepare_blocks(&mut self, cx: &mut Context<Self>) {
+        let Some(ix) = self.note else {
+            return;
+        };
+        let (sections, marks, colour) = {
+            let state = AppState::get(cx);
+            let note = &state.library.notes[ix];
+            let text = if self.distilled && !note.distilled.is_empty() {
+                &note.distilled
+            } else {
+                &note.body
+            };
+            let sections: Vec<(String, String)> = sections(text)
+                .into_iter()
+                .map(|section| {
+                    (
+                        section.heading.unwrap_or_default().to_string(),
+                        section.text.to_string(),
+                    )
+                })
+                .collect();
+            (
+                sections,
+                state.marks_of(&note.id).to_vec(),
+                marks::highlight(cx),
+            )
+        };
+        for (k, (part, text)) in sections.iter().enumerate() {
+            self.blocks
+                .prepare(&k.to_string(), part, text, &marks, colour, cx);
+        }
+        for state in self.blocks.take_new() {
+            cx.observe(&state, |this, _, cx| this.follow(cx)).detach();
+        }
+    }
+
+    /// Keeps the last selection on hand: marking a passage must not depend on
+    /// the click that starts it, which clears the selection first.
+    fn follow(&mut self, cx: &mut Context<Self>) {
+        if let Some(selection) = self.blocks.selection(cx) {
+            self.selected = Some(selection);
+            cx.notify();
+        }
+    }
+
+    /// Highlights the selected text, or clips it, once the angle is on it.
+    fn start_mark(&mut self, kind: MarkKind, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(selection) = self.blocks.selection(cx).or_else(|| self.selected.take()) else {
+            return;
+        };
+        if let Some(clip) = self.marking.start(kind, selection, window, cx) {
+            self.keep_mark(kind, clip, None, cx);
+        }
+        cx.notify();
+    }
+
+    /// Saves a highlight or clip of the note on screen.
+    fn keep_mark(
+        &mut self,
+        kind: MarkKind,
+        selection: Selection,
+        comment: Option<String>,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(ix) = self.note else {
+            return;
+        };
+        let item = AppState::get(cx).library.notes[ix].id.clone();
+        AppState::add_mark(
+            cx,
+            NewMark {
+                item,
+                part: selection.part,
+                kind,
+                range: selection.range,
+                quote: selection.quote,
+                comment,
+            },
+        );
+        cx.notify();
+    }
+
     /// The open note with its toolbar, and the outline beside it.
-    fn reader(&self, cx: &Context<Self>) -> AnyElement {
+    fn reader(&mut self, cx: &mut Context<Self>) -> AnyElement {
+        self.prepare_blocks(cx);
         let state = AppState::get(cx);
         let library = &state.library;
         let Some(ix) = self.note else {
@@ -435,6 +541,26 @@ impl NotesScreen {
                             });
                         }
                     }),
+            )
+            .child(
+                Button::new("highlight")
+                    .ghost()
+                    .small()
+                    .icon(Icon::new(IconName::PenLine))
+                    .tooltip("Highlight the selected text")
+                    .on_click(cx.listener(|this, _, window, cx| {
+                        this.start_mark(MarkKind::Highlight, window, cx)
+                    })),
+            )
+            .child(
+                Button::new("clip")
+                    .ghost()
+                    .small()
+                    .icon(Icon::new(IconName::NotebookText))
+                    .tooltip("Keep the selected text as a clip")
+                    .on_click(cx.listener(|this, _, window, cx| {
+                        this.start_mark(MarkKind::Clip, window, cx)
+                    })),
             );
 
         // Every child of the reader is one of these, so the outline can find
@@ -529,11 +655,15 @@ impl NotesScreen {
         };
 
         let section_views = sections.iter().enumerate().map(|(k, section)| {
-            let id = SharedString::from(format!("{}-{}", note.id, distilled));
             column(
                 div()
                     .when(section.heading.is_some(), |this| this.pt_6())
-                    .child(TextView::markdown((id, k), section.text.to_string()))
+                    .child(
+                        div()
+                            .id(("note-section", k))
+                            .test_support()
+                            .child(self.blocks.view(&k.to_string())),
+                    )
                     .into_any_element(),
             )
         });
@@ -552,6 +682,20 @@ impl NotesScreen {
             .when(!questions.is_empty(), |reader| {
                 reader.child(column(self.questions(&questions, cx).into_any_element()))
             });
+
+        let bar = self.marking.bar(
+            cx.listener(|this, _, _, cx| {
+                let comment = this.marking.comment(cx);
+                if let Some(selection) = this.marking.take() {
+                    this.keep_mark(MarkKind::Highlight, selection, comment, cx);
+                }
+            }),
+            cx.listener(|this, _, _, cx| {
+                this.marking.close();
+                cx.notify();
+            }),
+            cx,
+        );
 
         // The outline: each heading, then the questions, as reader positions.
         let mut outline: Vec<(SharedString, usize)> = sections
@@ -613,14 +757,20 @@ impl NotesScreen {
             .min_w_0()
             .h_full()
             .child(
-                v_flex().flex_1().min_w_0().h_full().child(toolbar).child(
-                    div()
-                        .relative()
-                        .flex_1()
-                        .min_h_0()
-                        .child(reader)
-                        .vertical_scrollbar(&self.scroll),
-                ),
+                v_flex()
+                    .flex_1()
+                    .min_w_0()
+                    .h_full()
+                    .child(toolbar)
+                    .children(bar)
+                    .child(
+                        div()
+                            .relative()
+                            .flex_1()
+                            .min_h_0()
+                            .child(reader)
+                            .vertical_scrollbar(&self.scroll),
+                    ),
             )
             .child(panel)
             .into_any_element()

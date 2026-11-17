@@ -1,0 +1,47 @@
+# Sample flashcards written for Civil Mentor.
+#
+# Each [[card]] needs: id, topics, front (the prompt) and back (the answer).
+# Optional: source, note (the id of the note the card comes from).
+
+[[card]]
+id = "history-gokhale"
+topics = ["pre.gs.modern.nationalism.moderates"]
+source = "Civil Mentor sample"
+front = "Who founded the Servants of India Society?"
+back = "Gopal Krishna Gokhale, in Pune in 1905. It trained volunteers to serve the country through social work and education."
+
+[[card]]
+id = "history-purna-swaraj"
+topics = ["pre.gs.modern.gandhian.purna-swaraj-and-the-civil"]
+source = "Civil Mentor sample"
+front = "At which Congress session was Purna Swaraj adopted as the goal?"
+back = "The Lahore session of December 1929, presided over by Jawaharlal Nehru. 26 January 1930 was then observed as Independence Day."
+note = "gs1-history-gandhian-phase"
+
+[[card]]
+id = "history-buland-darwaza"
+topics = ["pre.gs.medieval.mughals.mughal-art-architecture-and-painting"]
+source = "Civil Mentor sample"
+front = "Who built the Buland Darwaza, and what does it celebrate?"
+back = "Akbar built it in the 1570s as the gateway to the Jama Masjid at Fatehpur Sikri, to mark his conquest of Gujarat."
+
+[[card]]
+id = "history-sanchi"
+topics = ["pre.gs.culture.architecture.stupa-chaitya-and-vihara"]
+source = "Civil Mentor sample"
+front = "Who began the Great Stupa at Sanchi, and who added its carved gateways?"
+back = "Ashoka began it in the 3rd century BCE. The four carved gateways (toranas), showing the Jataka tales and the Buddha's life, were added under the Satavahanas in the 1st century BCE."
+
+[[card]]
+id = "history-ryotwari"
+topics = ["pre.gs.modern.economy.land-revenue.ryotwari-system"]
+source = "Civil Mentor sample"
+front = "What was the Ryotwari system, and where did it begin?"
+back = "A land revenue settlement made directly with the cultivator (the ryot), with no zamindar in between. Thomas Munro and Alexander Read introduced it in the Madras Presidency; it later spread to Bombay."
+
+[[card]]
+id = "history-gita-rahasya"
+topics = ["pre.gs.modern.extremism.extremists-and-the-surat-split"]
+source = "Civil Mentor sample"
+front = "Who wrote Gita Rahasya, and where?"
+back = "Bal Gangadhar Tilak, while imprisoned in Mandalay jail in Burma (1908 to 1914). It reads the Gita as a call to selfless action (karma yoga)."

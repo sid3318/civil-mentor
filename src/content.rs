@@ -62,6 +62,19 @@ pub struct Question {
     search: String,
 }
 
+/// A flashcard: a prompt on the front and the answer on the back.
+#[derive(Debug, Clone)]
+pub struct Flashcard {
+    pub id: String,
+    pub topics: Vec<String>,
+    pub front: String,
+    pub back: String,
+    /// Id of the note the card comes from.
+    pub note: Option<String>,
+    /// Who wrote it, such as "Civil Mentor sample".
+    pub source: String,
+}
+
 /// The prefix of `source` on a question from a real UPSC paper, followed by its year.
 pub const PAPER_SOURCE: &str = "UPSC Prelims ";
 
@@ -147,6 +160,8 @@ pub struct Library {
     pub topics: Vec<Topic>,
     pub notes: Vec<Note>,
     pub questions: Vec<Question>,
+    /// In file order: files by name, cards as written.
+    pub cards: Vec<Flashcard>,
     /// Newest first.
     pub briefs: Vec<Brief>,
     /// Everything wrong with the content files, as "path: message".
@@ -154,6 +169,7 @@ pub struct Library {
     topic_index: HashMap<String, usize>,
     note_index: HashMap<String, usize>,
     question_index: HashMap<String, usize>,
+    card_index: HashMap<String, usize>,
     /// Story and editorial ids, which must be unique across every brief.
     item_ids: std::collections::HashSet<String>,
 }
@@ -210,6 +226,23 @@ struct RawQuestion {
     explanation: String,
     trap: Option<String>,
     note: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CardsFile {
+    card: Vec<RawCard>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawCard {
+    id: String,
+    topics: Vec<String>,
+    front: String,
+    back: String,
+    note: Option<String>,
+    source: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -290,10 +323,17 @@ impl Library {
                 library.load_brief(path, text);
             }
         }
+        for (path, text) in &files {
+            if path.starts_with("flashcards/") && path.ends_with(".toml") {
+                library.load_cards(path, text);
+            }
+        }
         for (path, _) in &files {
             let known = path == "syllabus.toml"
                 || (path.starts_with("notes/") && path.ends_with(".md"))
-                || ((path.starts_with("questions/") || path.starts_with("current-affairs/"))
+                || ((path.starts_with("questions/")
+                    || path.starts_with("current-affairs/")
+                    || path.starts_with("flashcards/"))
                     && path.ends_with(".toml"));
             // Editors and Finder leave dotfiles behind; those are not content.
             let hidden = path
@@ -473,6 +513,36 @@ impl Library {
         Some(id)
     }
 
+    fn load_cards(&mut self, path: &str, text: &str) {
+        let file: CardsFile = match toml::from_str(text) {
+            Ok(file) => file,
+            Err(err) => return self.problem(path, toml_error(text, &err)),
+        };
+        for raw in file.card {
+            let id = raw.id;
+            if id.is_empty() || self.card_index.contains_key(&id) {
+                self.problem(path, format!("card id `{id}` is empty or already used"));
+                continue;
+            }
+            if raw.front.trim().is_empty() || raw.back.trim().is_empty() {
+                self.problem(path, format!("card `{id}` needs a front and a back"));
+                continue;
+            }
+            if raw.topics.is_empty() {
+                self.problem(path, format!("card `{id}` has no topics"));
+            }
+            self.card_index.insert(id.clone(), self.cards.len());
+            self.cards.push(Flashcard {
+                id,
+                topics: raw.topics,
+                front: raw.front.trim().to_string(),
+                back: raw.back.trim().to_string(),
+                note: raw.note,
+                source: raw.source.unwrap_or_default(),
+            });
+        }
+    }
+
     fn load_brief(&mut self, path: &str, text: &str) {
         let name = path
             .rsplit('/')
@@ -574,6 +644,18 @@ impl Library {
                 found.push(format!("question `{}`: unknown note `{note}`", question.id));
             }
         }
+        for card in &self.cards {
+            for topic in &card.topics {
+                if !self.topic_index.contains_key(topic) {
+                    found.push(format!("card `{}`: unknown topic `{topic}`", card.id));
+                }
+            }
+            if let Some(note) = &card.note
+                && !self.note_index.contains_key(note)
+            {
+                found.push(format!("card `{}`: unknown note `{note}`", card.id));
+            }
+        }
         for brief in &self.briefs {
             let items = brief
                 .stories
@@ -612,6 +694,10 @@ impl Library {
 
     pub fn question(&self, id: &str) -> Option<&Question> {
         self.question_index.get(id).map(|&ix| &self.questions[ix])
+    }
+
+    pub fn card(&self, id: &str) -> Option<&Flashcard> {
+        self.card_index.get(id).map(|&ix| &self.cards[ix])
     }
 
     /// Where a question sits in [`Library::questions`].
@@ -962,6 +1048,11 @@ note = "rights"
             .filter(|q| q.source == "Civil Mentor sample")
             .count();
         assert!(samples >= 96, "about 100 sample questions, found {samples}");
+        assert_eq!(library.cards.len(), 30, "every sample flashcard loads");
+        for card in &library.cards {
+            assert_eq!(card.source, "Civil Mentor sample", "{}", card.id);
+            assert!(!card.topics.is_empty(), "{} has a topic", card.id);
+        }
         for question in &library.questions {
             assert!(
                 question.year().is_some() || !question.source.contains("UPSC"),
@@ -1146,6 +1237,69 @@ note = "no-such-note"
         assert_eq!(notes, ["a", "d"]);
         let questions: Vec<&str> = library.questions.iter().map(|q| q.id.as_str()).collect();
         assert_eq!(questions, ["missing-note"]);
+    }
+
+    #[test]
+    fn flashcards_load_and_bad_ones_are_reported() {
+        let library = Library::from_files(files(&[
+            ("syllabus.toml", SYLLABUS),
+            ("notes/rights.md", NOTE),
+            (
+                "flashcards/polity.toml",
+                r#"
+[[card]]
+id = "art17"
+topics = ["mains.gs2.polity.rights"]
+source = "Civil Mentor sample"
+front = "  Which Article abolishes untouchability?  "
+back = "Article 17."
+note = "rights"
+
+[[card]]
+id = "art17"
+topics = ["mains.gs2.polity"]
+front = "Again?"
+back = "Again."
+
+[[card]]
+id = "no-back"
+topics = ["mains.gs2.polity"]
+front = "Where is the back?"
+back = " "
+
+[[card]]
+id = "lost"
+topics = ["gs9.nowhere"]
+front = "Front"
+back = "Back"
+note = "no-such-note"
+"#,
+            ),
+            ("flashcards/broken.toml", "[[card]]\nid = 3\n"),
+        ]));
+
+        let problems = library.problems.join("\n");
+        for expected in [
+            "card id `art17` is empty or already used",
+            "card `no-back` needs a front and a back",
+            "card `lost`: unknown topic `gs9.nowhere`",
+            "card `lost`: unknown note `no-such-note`",
+            "flashcards/broken.toml:",
+        ] {
+            assert!(
+                problems.contains(expected),
+                "missing {expected:?} in:\n{problems}"
+            );
+        }
+        assert_eq!(library.problems.len(), 5, "{problems}");
+
+        let ids: Vec<&str> = library.cards.iter().map(|card| card.id.as_str()).collect();
+        assert_eq!(ids, ["art17", "lost"]);
+        let card = library.card("art17").unwrap();
+        assert_eq!(card.front, "Which Article abolishes untouchability?");
+        assert_eq!(card.note.as_deref(), Some("rights"));
+        assert_eq!(card.source, "Civil Mentor sample");
+        assert_eq!(library.card("lost").unwrap().source, "");
     }
 
     #[test]

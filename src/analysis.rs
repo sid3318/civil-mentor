@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use chrono::{Datelike as _, Duration, Local, NaiveDate};
+use chrono::{Datelike as _, Duration, NaiveDate};
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::chart::{BarChart, LineChart};
 use gpui_kit::component::progress::Progress;
@@ -828,7 +828,7 @@ fn days(n: u32) -> String {
 
 impl Render for AnalysisScreen {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let today = Local::now().date_naive();
+        let today = AppState::today(cx);
         let state = AppState::get(cx);
         let tests = state.store.finished(RECENT_TESTS).unwrap_or_default();
         let history = state.store.answered().unwrap_or_default();

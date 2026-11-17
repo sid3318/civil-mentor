@@ -1,0 +1,39 @@
+# Sample flashcards written for Civil Mentor.
+#
+# Each [[card]] needs: id, topics, front (the prompt) and back (the answer).
+# Optional: source, note (the id of the note the card comes from).
+
+[[card]]
+id = "geography-western-disturbances"
+topics = ["pre.gs.indian-geography.climate.seasons-and-rainfall-distribution"]
+source = "Civil Mentor sample"
+front = "What are western disturbances, and why do they matter to Indian farming?"
+back = "Low-pressure systems that form over the Mediterranean region and travel east with the westerly jet stream. They bring winter rain to north-west India, which helps the rabi crop, especially wheat, and snow to the Himalaya."
+
+[[card]]
+id = "geography-godavari"
+topics = ["pre.gs.indian-geography.drainage.peninsular.east-flowing-rivers"]
+source = "Civil Mentor sample"
+front = "Which is the longest river of peninsular India?"
+back = "The Godavari, often called the Dakshin Ganga. It rises at Trimbakeshwar near Nashik in Maharashtra and flows east into the Bay of Bengal."
+
+[[card]]
+id = "geography-loo"
+topics = ["pre.gs.indian-geography.climate.seasons-and-rainfall-distribution"]
+source = "Civil Mentor sample"
+front = "What is the loo?"
+back = "A hot, dry and dusty wind that blows from the west over the plains of north and north-west India on summer afternoons, in May and June. It can cause heatstroke."
+
+[[card]]
+id = "geography-tropic"
+topics = ["pre.gs.indian-geography.location.latitudinal-and-longitudinal-extent-standard"]
+source = "Civil Mentor sample"
+front = "Through how many Indian states does the Tropic of Cancer pass?"
+back = "Eight: Gujarat, Rajasthan, Madhya Pradesh, Chhattisgarh, Jharkhand, West Bengal, Tripura and Mizoram."
+
+[[card]]
+id = "geography-black-soil"
+topics = ["pre.gs.indian-geography.soils.soil-types-of-india"]
+source = "Civil Mentor sample"
+front = "What is black (regur) soil made from, and what is it good for?"
+back = "It forms from the weathering of the basalt of the Deccan Traps. It holds moisture well, cracks when dry so it is called self-ploughing, and is rich in lime, iron and magnesium but poor in nitrogen and phosphorus. It suits cotton."

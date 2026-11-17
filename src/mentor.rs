@@ -1,15 +1,15 @@
 //! The mentor: plain, deterministic rules over the content and the student's
 //! record: how a test is marked and which questions it asks (Phase 2), and
-//! today's plan, the insights and the streak (Phase 3). Review dates come
-//! with Phase 5. Rules that depend on the date take it as an argument.
+//! today's plan, the insights and the streak (Phase 3), and the review dates
+//! (Phase 5). Rules that depend on the date take it as an argument.
 
 use std::cmp::{Ordering, Reverse};
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use chrono::{Datelike as _, NaiveDate, NaiveDateTime};
+use chrono::{Datelike as _, Duration, NaiveDate, NaiveDateTime};
 
-use crate::content::{Library, Note, Question, Story, within};
-use crate::store::{Answer, Attempt, Confidence, Past, PlanTask, Reading};
+use crate::content::{Flashcard, Library, Note, Question, Story, within};
+use crate::store::{Answer, Attempt, Confidence, Past, PlanTask, Reading, Review};
 use crate::syllabus::{self, Status};
 
 /// Prelims allows 2 hours for 100 questions.
@@ -561,6 +561,206 @@ impl Score {
     }
 }
 
+// ---- review dates ----------------------------------------------------------
+
+/// Days until an item is asked again in each box: a day in box 1, five
+/// weeks in box 5.
+pub const REVIEW_GAPS: [i64; 5] = [1, 3, 7, 16, 35];
+/// New flashcards brought into the reviews each day.
+pub const NEW_CARDS: usize = 5;
+/// The most time the plan gives to reviews.
+pub const REVIEW_MINUTES: u32 = 15;
+/// Time planned for asking a mistake again, and for flipping a flashcard.
+const MISTAKE_SECONDS: u32 = 60;
+const CARD_SECONDS: u32 = 30;
+/// Mistakes made before the reviews existed fall due at most this many a
+/// day, so they do not all land on one day.
+pub const BACKFILL_PER_DAY: usize = 10;
+
+/// The review key of a question in the mistake book.
+pub fn mistake_key(question: &str) -> String {
+    format!("question:{question}")
+}
+
+/// The review key of a flashcard.
+pub fn card_key(card: &str) -> String {
+    format!("card:{card}")
+}
+
+/// What a review key points at.
+#[derive(Debug, Clone, Copy)]
+pub enum ReviewItem<'a> {
+    Mistake(&'a Question),
+    Card(&'a Flashcard),
+}
+
+/// The question or flashcard behind a review key, if the content still has it.
+pub fn review_item<'a>(library: &'a Library, key: &str) -> Option<ReviewItem<'a>> {
+    if let Some(id) = key.strip_prefix("question:") {
+        return library.question(id).map(ReviewItem::Mistake);
+    }
+    library
+        .card(key.strip_prefix("card:")?)
+        .map(ReviewItem::Card)
+}
+
+/// Where an item stands after it is answered on `today`. Right moves it up
+/// one box, due after that box's gap; wrong sends it back to box 1, due the
+/// next day; right in box 5 retires it. A new item starts in box 1.
+pub fn review(previous: Option<&Review>, right: bool, today: NaiveDate) -> Review {
+    let from = previous.map_or(1, |r| r.level);
+    let retired = previous.is_some_and(|r| r.due.is_none());
+    let (level, due) = if !right {
+        (1, Some(today + Duration::days(REVIEW_GAPS[0])))
+    } else if retired || from >= 5 {
+        (5, None)
+    } else {
+        let level = from.max(1) + 1;
+        (
+            level,
+            Some(today + Duration::days(REVIEW_GAPS[level as usize - 1])),
+        )
+    };
+    Review {
+        level,
+        due,
+        added: previous.map_or(today, |r| r.added),
+        reviewed: Some(today),
+        demo: false,
+    }
+}
+
+/// What a test submitted on `day` adds to the mistake book: every question
+/// answered wrong goes to box 1, due the next day. When it was last
+/// answered in a review session is kept.
+pub fn mistakes(
+    attempt: &Attempt,
+    reviews: &HashMap<String, Review>,
+    day: NaiveDate,
+) -> Vec<(String, Review)> {
+    let mut seen = HashSet::new();
+    attempt
+        .answers
+        .iter()
+        .filter(|answer| answer.correct == Some(false))
+        .map(|answer| mistake_key(&answer.question))
+        .filter(|key| seen.insert(key.clone()))
+        .map(|key| {
+            let previous = reviews.get(&key);
+            let entry = Review {
+                reviewed: previous.and_then(|r| r.reviewed),
+                ..review(previous, false, day)
+            };
+            (key, entry)
+        })
+        .collect()
+}
+
+/// Mistakes made before the reviews existed, given most recent first, put
+/// in box 1 at [`BACKFILL_PER_DAY`] a day from tomorrow on. Questions
+/// already in the reviews keep where they stand.
+pub fn backfill(
+    questions: &[String],
+    reviews: &HashMap<String, Review>,
+    today: NaiveDate,
+) -> Vec<(String, Review)> {
+    questions
+        .iter()
+        .map(|question| mistake_key(question))
+        .filter(|key| !reviews.contains_key(key))
+        .enumerate()
+        .map(|(n, key)| {
+            let wait = 1 + (n / BACKFILL_PER_DAY) as i64;
+            let entry = Review {
+                level: 1,
+                due: Some(today + Duration::days(wait)),
+                added: today,
+                reviewed: None,
+                demo: false,
+            };
+            (key, entry)
+        })
+        .collect()
+}
+
+/// Today's review session, in order: the mistakes due by `today`, the
+/// longest due first, then the flashcards due, then new flashcards, up to
+/// [`NEW_CARDS`] a day. Items whose question or card has left the content
+/// are skipped.
+pub fn review_queue(
+    library: &Library,
+    reviews: &HashMap<String, Review>,
+    today: NaiveDate,
+) -> Vec<String> {
+    let mut due: Vec<(bool, NaiveDate, &String)> = reviews
+        .iter()
+        .filter_map(|(key, review)| {
+            let date = review.due.filter(|&due| due <= today)?;
+            let card = matches!(review_item(library, key)?, ReviewItem::Card(_));
+            Some((card, date, key))
+        })
+        .collect();
+    due.sort();
+    let started = reviews
+        .iter()
+        .filter(|(key, review)| key.starts_with("card:") && review.added == today)
+        .count();
+    let new = library
+        .cards
+        .iter()
+        .map(|card| card_key(&card.id))
+        .filter(|key| !reviews.contains_key(key))
+        .take(NEW_CARDS.saturating_sub(started));
+    due.into_iter()
+        .map(|(_, _, key)| key.clone())
+        .chain(new)
+        .collect()
+}
+
+fn review_task(
+    library: &Library,
+    reviews: &HashMap<String, Review>,
+    today: NaiveDate,
+    left: u32,
+) -> Option<PlanTask> {
+    if left < MIN_TASK_MINUTES {
+        return None;
+    }
+    let budget = left.min(REVIEW_MINUTES) * 60;
+    let (mut seconds, mut mistakes, mut cards) = (0, 0, 0);
+    for key in review_queue(library, reviews, today) {
+        let card = key.starts_with("card:");
+        let cost = if card { CARD_SECONDS } else { MISTAKE_SECONDS };
+        if seconds + cost > budget {
+            break;
+        }
+        seconds += cost;
+        if card {
+            cards += 1;
+        } else {
+            mistakes += 1;
+        }
+    }
+    let count = crate::screens::count;
+    let what = match (mistakes, cards) {
+        (0, 0) => return None,
+        (0, cards) => count(cards, "flashcard", "flashcards"),
+        (mistakes, 0) => count(mistakes, "mistake", "mistakes"),
+        (mistakes, cards) => format!(
+            "{} and {}",
+            count(mistakes, "mistake", "mistakes"),
+            count(cards, "flashcard", "flashcards")
+        ),
+    };
+    Some(PlanTask {
+        kind: TaskKind::Review.key().into(),
+        target: (mistakes + cards).to_string(),
+        title: format!("Review {what}"),
+        minutes: seconds.div_ceil(60).max(MIN_TASK_MINUTES).min(left),
+        done: false,
+    })
+}
+
 // ---- today's plan ----------------------------------------------------------
 
 /// The questions in a drill on the plan, and in a drill a Drill button starts.
@@ -573,12 +773,14 @@ const MIN_TASK_MINUTES: u32 = 5;
 pub const STORY_MINUTES: u32 = 5;
 
 /// The kinds of task in a day's plan, in the order the plan fills them.
-/// Due reviews (Phase 5) and a Mains answer (Phase 6) become variants
-/// here, each with its step in [`today_plan`].
+/// A Mains answer (Phase 6) becomes a variant here, with its step in
+/// [`today_plan`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TaskKind {
     /// Read the stories of today's brief. The target is the brief's date.
     Brief,
+    /// Go through the review session. The target is how many items it plans.
+    Review,
     /// Continue the note in progress, or start the next unread one.
     Note,
     /// A drill on the weakest topic.
@@ -590,6 +792,7 @@ impl TaskKind {
     pub fn key(self) -> &'static str {
         match self {
             TaskKind::Brief => "brief",
+            TaskKind::Review => "review",
             TaskKind::Note => "note",
             TaskKind::Drill => "drill",
         }
@@ -598,6 +801,7 @@ impl TaskKind {
     pub fn parse(key: &str) -> Option<TaskKind> {
         match key {
             "brief" => Some(TaskKind::Brief),
+            "review" => Some(TaskKind::Review),
             "note" => Some(TaskKind::Note),
             "drill" => Some(TaskKind::Drill),
             _ => None,
@@ -620,7 +824,8 @@ impl Plan {
 
 /// The plan for `today`, sized to `daily_minutes`. It fills the time in the
 /// order of "Mentor rules": today's brief if any of its stories is unread
-/// (see [`Library::todays_brief`]); the note in progress, or else the next
+/// (see [`Library::todays_brief`]); the reviews due, [`REVIEW_MINUTES`] at
+/// most (see [`review_queue`]); the note in progress, or else the next
 /// unread note in the least-covered subject; then a drill on the weakest topic
 /// with at least [`WEAK_AFTER`] answers. Each task takes what is left of the
 /// day and is shortened to fit, or left out below its least useful size.
@@ -629,13 +834,15 @@ pub fn today_plan(
     library: &Library,
     reading: &HashMap<String, Reading>,
     history: &[Past],
+    reviews: &HashMap<String, Review>,
     daily_minutes: u32,
     today: NaiveDate,
 ) -> Plan {
     let mut left = daily_minutes;
     let mut tasks = Vec::new();
-    let steps: [&dyn Fn(u32) -> Option<PlanTask>; 3] = [
+    let steps: [&dyn Fn(u32) -> Option<PlanTask>; 4] = [
         &|left| brief_task(library, reading, today, left),
+        &|left| review_task(library, reviews, today, left),
         &|left| note_task(library, reading, left),
         &|left| drill_task(library, history, left),
     ];
@@ -826,13 +1033,16 @@ pub fn topic_title(library: &Library, id: &str) -> String {
 /// Whether a task in the plan for `day` is done: ticked by the student, or
 /// done another way. A note is done once it is marked read, and a drill
 /// once a drill on its topic is submitted that day, and the brief once
-/// every one of its stories is read. `tests` are finished sittings.
+/// every one of its stories is read. Reviews are done once as many items
+/// as planned are answered that day, or none is left. `tests` are
+/// finished sittings.
 pub fn task_done(
     library: &Library,
     task: &PlanTask,
     day: NaiveDate,
     reading: &HashMap<String, Reading>,
     tests: &[Attempt],
+    reviews: &HashMap<String, Review>,
 ) -> bool {
     task.done
         || match TaskKind::parse(&task.kind) {
@@ -847,6 +1057,14 @@ pub fn task_done(
                         .iter()
                         .all(|story| story_read(reading, story))
                 }),
+            Some(TaskKind::Review) => {
+                let planned: usize = task.target.parse().unwrap_or(0);
+                let answered = reviews
+                    .values()
+                    .filter(|review| review.reviewed == Some(day))
+                    .count();
+                answered >= planned || review_queue(library, reviews, day).is_empty()
+            }
             Some(TaskKind::Note) => reading.get(&task.target).is_some_and(|r| r.done.is_some()),
             Some(TaskKind::Drill) => {
                 let key = TestKind::Topic(task.target.clone()).key();
@@ -1494,6 +1712,293 @@ topic = [
         assert_eq!(streak(&study(&[(15, 0), (16, 30)]), day(16)), 1);
     }
 
+    // ---- review dates ------------------------------------------------------
+
+    fn date(y: i32, m: u32, d: u32) -> NaiveDate {
+        NaiveDate::from_ymd_opt(y, m, d).unwrap()
+    }
+
+    #[test]
+    fn review_dates_follow_the_five_boxes() {
+        // A mistake made on 16 Nov joins box 1, due the next day.
+        let first = review(None, false, day(16));
+        assert_eq!(
+            (first.level, first.due, first.added),
+            (1, Some(day(17)), day(16))
+        );
+        // Right each time it comes due: 1 → 2 after 3 days, → 3 after 7,
+        // → 4 after 16, → 5 after 35.
+        let second = review(Some(&first), true, day(17));
+        assert_eq!((second.level, second.due), (2, Some(day(20))));
+        let third = review(Some(&second), true, day(20));
+        assert_eq!((third.level, third.due), (3, Some(day(27))));
+        let fourth = review(Some(&third), true, day(27));
+        assert_eq!((fourth.level, fourth.due), (4, Some(date(2026, 12, 13))));
+        let fifth = review(Some(&fourth), true, date(2026, 12, 13));
+        assert_eq!((fifth.level, fifth.due), (5, Some(date(2027, 1, 17))));
+        // Right in box 5 retires it, and a retired item stays retired.
+        let retired = review(Some(&fifth), true, date(2027, 1, 17));
+        assert_eq!((retired.level, retired.due), (5, None));
+        let again = review(Some(&retired), true, date(2027, 2, 1));
+        assert_eq!((again.level, again.due), (5, None));
+        assert_eq!(retired.added, day(16), "the day it joined is kept");
+        assert_eq!(retired.reviewed, Some(date(2027, 1, 17)));
+
+        // Wrong from box 4, or after retiring: back to box 1, due the next day.
+        let slipped = review(Some(&fourth), false, date(2026, 12, 13));
+        assert_eq!((slipped.level, slipped.due), (1, Some(date(2026, 12, 14))));
+        assert_eq!(slipped.added, day(16));
+        let forgotten = review(Some(&retired), false, date(2027, 3, 31));
+        assert_eq!(
+            (forgotten.level, forgotten.due),
+            (1, Some(date(2027, 4, 1)))
+        );
+        // Late is fine: the gap counts from the day it was answered.
+        let late = review(Some(&first), true, day(25));
+        assert_eq!((late.level, late.due), (2, Some(day(28))));
+        // A new flashcard starts in box 1, so "Got it" moves it to box 2.
+        let card = review(None, true, day(16));
+        assert_eq!(
+            (card.level, card.due, card.added),
+            (2, Some(day(19)), day(16))
+        );
+        assert!(!card.demo);
+    }
+
+    #[test]
+    fn a_wrong_answer_in_a_test_joins_the_mistake_book_due_the_next_day() {
+        let question = |id: &str, correct| Answer {
+            question: id.into(),
+            correct,
+            ..Answer::default()
+        };
+        let sat = attempt(
+            vec![
+                question("q1", Some(false)),
+                question("q2", Some(true)),
+                question("q3", None),
+                question("q4", Some(false)),
+            ],
+            2.0,
+            GS_WRONG,
+        );
+        let high = Review {
+            level: 4,
+            due: Some(date(2026, 12, 1)),
+            added: day(1),
+            reviewed: Some(day(15)),
+            demo: false,
+        };
+        let reviews = HashMap::from([("question:q4".to_string(), high)]);
+        let added = mistakes(&sat, &reviews, day(16));
+        let keys: Vec<&str> = added.iter().map(|(key, _)| key.as_str()).collect();
+        assert_eq!(
+            keys,
+            ["question:q1", "question:q4"],
+            "only the wrong answers"
+        );
+        let (_, q1) = &added[0];
+        assert_eq!(
+            (q1.level, q1.due, q1.added, q1.reviewed),
+            (1, Some(day(17)), day(16), None)
+        );
+        let (_, q4) = &added[1];
+        assert_eq!((q4.level, q4.due), (1, Some(day(17))), "back to box 1");
+        assert_eq!(
+            (q4.added, q4.reviewed),
+            (day(1), Some(day(15))),
+            "its history is kept"
+        );
+    }
+
+    #[test]
+    fn old_mistakes_are_spread_over_the_days_ahead() {
+        let questions: Vec<String> = (0..23).map(|n| format!("q{n:02}")).collect();
+        let kept = Review {
+            level: 3,
+            due: Some(day(30)),
+            added: day(2),
+            reviewed: Some(day(9)),
+            demo: false,
+        };
+        let reviews = HashMap::from([("question:q05".to_string(), kept)]);
+        let rows = backfill(&questions, &reviews, day(16));
+        assert_eq!(rows.len(), 22, "q05 is already in the reviews");
+        assert!(rows.iter().all(|(key, _)| key != "question:q05"));
+        let due = |n: usize| rows[n].1.due;
+        assert_eq!(rows[0].0, "question:q00", "the most recent first");
+        assert_eq!((due(0), due(9)), (Some(day(17)), Some(day(17))));
+        assert_eq!((due(10), due(19)), (Some(day(18)), Some(day(18))));
+        assert_eq!((due(20), due(21)), (Some(day(19)), Some(day(19))));
+        assert!(
+            rows.iter()
+                .all(|(_, r)| r.level == 1 && r.added == day(16) && r.reviewed.is_none())
+        );
+    }
+
+    /// One brief story on the 16th, a 30-minute note, 20 sample questions
+    /// and 7 flashcards, all on Polity.
+    fn review_library() -> Library {
+        let mut questions = String::new();
+        for n in 0..20 {
+            questions.push_str(&format!(
+                "[[question]]\nid = \"q{n:02}\"\ntopics = [\"pre.gs.polity\"]\nstem = \"?\"\n\
+                 options = [\"1\", \"2\", \"3\", \"4\"]\nanswer = \"A\"\nexplanation = \".\"\n\n"
+            ));
+        }
+        let mut cards = String::new();
+        for n in 1..=7 {
+            cards.push_str(&format!(
+                "[[card]]\nid = \"c{n}\"\ntopics = [\"pre.gs.polity\"]\nfront = \"?\"\nback = \".\"\n\n"
+            ));
+        }
+        let mut library = Library::from_files([
+            (
+                "syllabus.toml".to_string(),
+                "topic = [{ id = \"pre\", title = \"Prelims\" }, { id = \"pre.gs\", title = \"GS\" }, \
+                 { id = \"pre.gs.polity\", title = \"Polity\" }]"
+                    .to_string(),
+            ),
+            (
+                "notes/rights.md".to_string(),
+                "---\nid: rights\ntitle: rights\ntopics: [pre.gs.polity]\n---\n## One\nText.\n"
+                    .to_string(),
+            ),
+            (
+                "current-affairs/2026-11-16.toml".to_string(),
+                "[[story]]\nid = \"s1\"\ntitle = \"Story 1\"\ntopics = [\"pre.gs.polity\"]\n\
+                 context = \".\"\nwhy = \".\"\nfacts = [\".\"]\n\n[story.question]\nstem = \"?\"\n\
+                 options = [\"1\", \"2\", \"3\", \"4\"]\nanswer = \"B\"\nexplanation = \".\"\n"
+                    .to_string(),
+            ),
+            ("questions/bank.toml".to_string(), questions),
+            ("flashcards/polity.toml".to_string(), cards),
+        ]);
+        assert_eq!(library.problems, Vec::<String>::new());
+        library.notes[0].minutes = 30;
+        library
+    }
+
+    fn due_on(level: u8, due: Option<NaiveDate>) -> Review {
+        Review {
+            level,
+            due,
+            added: day(1),
+            reviewed: None,
+            demo: false,
+        }
+    }
+
+    #[test]
+    fn the_session_asks_due_mistakes_then_due_cards_then_new_cards() {
+        let library = review_library();
+        let mut reviews = HashMap::from([
+            ("question:q01".to_string(), due_on(1, Some(day(16)))),
+            ("question:q02".to_string(), due_on(2, Some(day(15)))),
+            ("question:q03".to_string(), due_on(1, Some(day(17)))),
+            ("question:gone".to_string(), due_on(1, Some(day(15)))),
+            ("card:c1".to_string(), due_on(3, Some(day(16)))),
+            ("card:c2".to_string(), due_on(5, None)),
+        ]);
+        assert_eq!(
+            review_queue(&library, &reviews, day(16)),
+            [
+                "question:q02",
+                "question:q01",
+                "card:c1",
+                "card:c3",
+                "card:c4",
+                "card:c5",
+                "card:c6",
+                "card:c7"
+            ],
+            "the longest due first; not yet due, retired and missing items are left out"
+        );
+        // A new card started today counts against the day's five.
+        reviews.insert("card:c3".to_string(), review(None, true, day(16)));
+        let queue = review_queue(&library, &reviews, day(16));
+        assert_eq!(&queue[3..], ["card:c4", "card:c5", "card:c6", "card:c7"]);
+        // The next day five more could start, but only four are left.
+        let tomorrow = review_queue(&library, &reviews, day(17));
+        assert_eq!(
+            tomorrow
+                .iter()
+                .filter(|key| key.starts_with("card:c") && *key != "card:c1")
+                .count(),
+            4
+        );
+        assert!(
+            tomorrow.contains(&"question:q03".to_string()),
+            "due on the 17th"
+        );
+    }
+
+    #[test]
+    fn reviews_come_after_the_brief_and_before_the_note_for_15_minutes_at_most() {
+        let library = review_library();
+        // 20 mistakes due: a minute each, so 15 fit.
+        let mut reviews: HashMap<String, Review> = (0..20)
+            .map(|n| (format!("question:q{n:02}"), due_on(1, Some(day(16)))))
+            .collect();
+        let plan = today_plan(&library, &HashMap::new(), &[], &reviews, 90, day(16));
+        assert_eq!(
+            titles(&plan),
+            [
+                ("Read today's brief: 1 story".to_string(), 5),
+                ("Review 15 mistakes".to_string(), 15),
+                ("Read: rights".to_string(), 30)
+            ]
+        );
+        let task = plan.tasks[1].clone();
+        assert_eq!((task.kind.as_str(), task.target.as_str()), ("review", "15"));
+        // Shortened to what is left of the day.
+        let short = today_plan(&library, &HashMap::new(), &[], &reviews, 12, day(16));
+        assert_eq!(titles(&short)[1], ("Review 7 mistakes".to_string(), 7));
+
+        // Done once 15 are answered that day, or once nothing is left.
+        for n in 0..14 {
+            let key = format!("question:q{n:02}");
+            let next = review(reviews.get(&key), true, day(16));
+            reviews.insert(key, next);
+        }
+        assert!(!task_done(
+            &library,
+            &task,
+            day(16),
+            &HashMap::new(),
+            &[],
+            &reviews
+        ));
+        let next = review(reviews.get("question:q14"), false, day(16));
+        reviews.insert("question:q14".into(), next);
+        assert!(task_done(
+            &library,
+            &task,
+            day(16),
+            &HashMap::new(),
+            &[],
+            &reviews
+        ));
+        assert!(
+            !task_done(&library, &task, day(17), &HashMap::new(), &[], &reviews),
+            "answered on the 16th"
+        );
+
+        // Two mistakes and the day's five new cards: 2 + 2.5 minutes, so 5.
+        let reviews = HashMap::from([
+            ("question:q00".to_string(), due_on(1, Some(day(16)))),
+            ("question:q01".to_string(), due_on(2, Some(day(14)))),
+        ]);
+        let plan = today_plan(&library, &HashMap::new(), &[], &reviews, 90, day(16));
+        assert_eq!(
+            titles(&plan)[1],
+            ("Review 2 mistakes and 5 flashcards".to_string(), 5)
+        );
+        // Only new cards, nothing due.
+        let plan = today_plan(&library, &HashMap::new(), &[], &HashMap::new(), 90, day(16));
+        assert_eq!(titles(&plan)[1], ("Review 5 flashcards".to_string(), 5));
+    }
+
     /// Polity (rights and courts) and economy (inflation), a note on each
     /// chapter, 10 sample questions each on courts and rights, and a 2025
     /// paper with 3 questions on inflation and 2 on courts.
@@ -1586,7 +2091,7 @@ topic = [
         // Polity has 0 of 3 topics read and economy 0 of 1: a tie, so the
         // subject first in the syllabus, and its first note. No topic has
         // 8 answers, so no drill.
-        let plan = today_plan(&library, &HashMap::new(), &[], 90, day(16));
+        let plan = today_plan(&library, &HashMap::new(), &[], &HashMap::new(), 90, day(16));
         assert_eq!(plan.day, day(16));
         assert_eq!(titles(&plan), [("Read: rights".to_string(), 30)]);
         assert_eq!(plan.tasks[0].kind, "note");
@@ -1604,7 +2109,7 @@ topic = [
         // weakest topic with 8 answers. 10 questions at 72 s is 12 minutes.
         let mut history = answers_on("pre.gs.polity.courts.supreme", 2, 8);
         history.extend(answers_on("pre.gs.polity.rights.writs", 6, 10));
-        let plan = today_plan(&library, &reading, &history, 90, day(16));
+        let plan = today_plan(&library, &reading, &history, &HashMap::new(), 90, day(16));
         assert_eq!(
             titles(&plan),
             [
@@ -1632,10 +2137,10 @@ topic = [
         let history = answers_on("pre.gs.polity.courts.supreme", 2, 8);
         // 15 minutes: the note takes 10, and 5 minutes fit 4 questions,
         // under the 5 a drill needs. No drill.
-        let plan = today_plan(&library, &reading, &history, 15, day(16));
+        let plan = today_plan(&library, &reading, &history, &HashMap::new(), 15, day(16));
         assert_eq!(titles(&plan), [("Continue: courts".to_string(), 10)]);
         // 20 minutes: 10 left fit 8 questions, 576 s, which is 10 minutes.
-        let plan = today_plan(&library, &reading, &history, 20, day(16));
+        let plan = today_plan(&library, &reading, &history, &HashMap::new(), 20, day(16));
         assert_eq!(
             titles(&plan),
             [
@@ -1646,7 +2151,7 @@ topic = [
         assert_eq!(task_drill(&library, &plan.tasks[1]).count, 8);
         // 4 minutes is under the shortest task: nothing is planned.
         assert_eq!(
-            today_plan(&library, &reading, &history, 4, day(16)).tasks,
+            today_plan(&library, &reading, &history, &HashMap::new(), 4, day(16)).tasks,
             []
         );
     }
@@ -1663,7 +2168,14 @@ topic = [
         let none = Library::default();
         let note = task(TaskKind::Note, "courts");
         let mut reading = HashMap::from([("courts".to_string(), opened(16, 60, false))]);
-        assert!(!task_done(&none, &note, day(16), &reading, &[]));
+        assert!(!task_done(
+            &none,
+            &note,
+            day(16),
+            &reading,
+            &[],
+            &HashMap::new()
+        ));
         assert!(task_done(
             &none,
             &PlanTask {
@@ -1672,11 +2184,12 @@ topic = [
             },
             day(16),
             &reading,
-            &[]
+            &[],
+            &HashMap::new()
         ));
         reading.insert("courts".into(), opened(16, 60, true));
         assert!(
-            task_done(&none, &note, day(16), &reading, &[]),
+            task_done(&none, &note, day(16), &reading, &[], &HashMap::new()),
             "marked read"
         );
 
@@ -1685,12 +2198,19 @@ topic = [
         sat.kind = "topic:pre.gs.polity.courts".into();
         sat.finished = Some(day(15).and_hms_opt(20, 0, 0).unwrap());
         assert!(
-            !task_done(&none, &drill, day(16), &reading, &[sat.clone()]),
+            !task_done(
+                &none,
+                &drill,
+                day(16),
+                &reading,
+                &[sat.clone()],
+                &HashMap::new()
+            ),
             "sat yesterday"
         );
         sat.finished = Some(day(16).and_hms_opt(20, 0, 0).unwrap());
         assert!(
-            task_done(&none, &drill, day(16), &reading, &[sat]),
+            task_done(&none, &drill, day(16), &reading, &[sat], &HashMap::new()),
             "sat today"
         );
     }
@@ -1721,7 +2241,7 @@ topic = [
         let mut reading = HashMap::new();
 
         // On the 16th there is no brief of its own, so the newest before it is read.
-        let plan = today_plan(&library, &reading, &[], 90, day(16));
+        let plan = today_plan(&library, &reading, &[], &HashMap::new(), 90, day(16));
         assert_eq!(
             titles(&plan),
             [("Read the brief for 14 Nov: 2 stories".to_string(), 10)]
@@ -1732,11 +2252,18 @@ topic = [
             ("brief", "2026-11-14")
         );
         assert_eq!(
-            titles(&today_plan(&library, &reading, &[], 90, day(14))),
+            titles(&today_plan(
+                &library,
+                &reading,
+                &[],
+                &HashMap::new(),
+                90,
+                day(14)
+            )),
             [("Read today's brief: 2 stories".to_string(), 10)]
         );
         assert_eq!(
-            today_plan(&library, &reading, &[], 7, day(16)).tasks[0].minutes,
+            today_plan(&library, &reading, &[], &HashMap::new(), 7, day(16)).tasks[0].minutes,
             7,
             "shortened to fit the day"
         );
@@ -1744,19 +2271,43 @@ topic = [
         // One story read: one left, and the task is not done yet.
         reading.insert("story:s1".to_string(), opened(16, 0, true));
         assert_eq!(
-            titles(&today_plan(&library, &reading, &[], 90, day(16))),
+            titles(&today_plan(
+                &library,
+                &reading,
+                &[],
+                &HashMap::new(),
+                90,
+                day(16)
+            )),
             [("Read the brief for 14 Nov: 1 story".to_string(), 5)]
         );
-        assert!(!task_done(&library, &brief, day(16), &reading, &[]));
+        assert!(!task_done(
+            &library,
+            &brief,
+            day(16),
+            &reading,
+            &[],
+            &HashMap::new()
+        ));
         // Opened but not read does not count.
         reading.insert("story:s2".to_string(), opened(16, 0, false));
-        assert!(!task_done(&library, &brief, day(16), &reading, &[]));
+        assert!(!task_done(
+            &library,
+            &brief,
+            day(16),
+            &reading,
+            &[],
+            &HashMap::new()
+        ));
         reading.insert("story:s2".to_string(), opened(16, 0, true));
         assert!(
-            task_done(&library, &brief, day(16), &reading, &[]),
+            task_done(&library, &brief, day(16), &reading, &[], &HashMap::new()),
             "all read"
         );
-        assert_eq!(today_plan(&library, &reading, &[], 90, day(16)).tasks, []);
+        assert_eq!(
+            today_plan(&library, &reading, &[], &HashMap::new(), 90, day(16)).tasks,
+            []
+        );
 
         // Before the first brief, the oldest one is offered.
         let early = NaiveDate::from_ymd_opt(2026, 10, 1).unwrap();

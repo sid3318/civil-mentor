@@ -2,8 +2,8 @@
 
 use std::cell::Cell;
 use std::rc::Rc;
+use std::time::Duration;
 
-use chrono::Local;
 use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::command::{Command, CommandGroup, CommandItem, CommandState};
@@ -24,11 +24,14 @@ use crate::content::Target;
 use crate::current_affairs::CurrentAffairsScreen;
 use crate::exam::ExamScreen;
 use crate::mentor::TestPlan;
+use crate::notebook::NotebookScreen;
 use crate::notes::NotesScreen;
 use crate::practice::PracticeScreen;
 use crate::review::ReviewScreen;
+use crate::revision::RevisionScreen;
 use crate::screens;
 use crate::settings::SettingsScreen;
+use crate::store::Study;
 use crate::store::ThemeChoice;
 use crate::syllabus::SyllabusScreen;
 use crate::today::{TodayScreen, streak_label};
@@ -281,6 +284,17 @@ fn toggle_theme(cx: &mut App) {
     });
 }
 
+/// How long a focus block is, in minutes.
+const FOCUS_MINUTES: u32 = 25;
+
+/// A focus block, counted down in the sidebar one second at a time.
+struct Focus {
+    left: Duration,
+    /// The day's study seconds when the block started, so it adds only the
+    /// minutes nothing else counted.
+    studied: u32,
+}
+
 pub struct Shell {
     /// Every place visited, oldest first, and which one is current. Back and
     /// forward move `at`; going somewhere new drops the places ahead of it.
@@ -298,7 +312,11 @@ pub struct Shell {
     practice: Entity<PracticeScreen>,
     exam: Entity<ExamScreen>,
     review: Entity<ReviewScreen>,
+    revision: Entity<RevisionScreen>,
+    notebook: Entity<NotebookScreen>,
     syllabus: Entity<SyllabusScreen>,
+    /// The focus block the student is sitting, if any.
+    focus: Option<Focus>,
     settings: Entity<SettingsScreen>,
     _appearance: Subscription,
 }
@@ -324,7 +342,10 @@ impl Shell {
             practice: cx.new(|_| PracticeScreen::new(shell.clone())),
             exam: cx.new(|cx| ExamScreen::new(shell.clone(), cx)),
             review: cx.new(|_| ReviewScreen::new(shell.clone())),
+            revision: cx.new(|_| RevisionScreen::new(shell.clone())),
+            notebook: cx.new(|_| NotebookScreen::new(shell.clone())),
             syllabus: cx.new(|_| SyllabusScreen::new(shell)),
+            focus: None,
             settings: cx.new(|cx| SettingsScreen::new(window, cx)),
             _appearance: appearance,
         }
@@ -399,12 +420,36 @@ impl Shell {
         self.go(Screen::CurrentAffairs, cx);
     }
 
+    /// Opens Revision and starts today's review session.
+    pub fn start_review(&mut self, cx: &mut Context<Self>) {
+        self.revision.update(cx, |revision, cx| revision.start(cx));
+        self.go(Screen::Revision, cx);
+    }
+
+    /// How many highlights are painted in the reader on screen, which the UI
+    /// test checks.
+    pub fn painted(&self, cx: &App) -> usize {
+        self.notes.read(cx).painted() + self.current_affairs.read(cx).painted()
+    }
+
+    /// The review key on screen in the review session, if one is under way.
+    pub fn review_item(&self, cx: &App) -> Option<String> {
+        self.revision.read(cx).current().map(str::to_string)
+    }
+
     pub fn open_paper(&mut self, year: u16, cx: &mut Context<Self>) {
         self.visit(Place::Paper(year), cx);
     }
 
     pub fn open_result(&mut self, id: i64, cx: &mut Context<Self>) {
         self.visit(Place::Result(id), cx);
+    }
+
+    /// Opens the Notebook at one of the student's own notes.
+    pub fn open_my_note(&mut self, id: i64, window: &mut Window, cx: &mut Context<Self>) {
+        self.notebook
+            .update(cx, |notebook, cx| notebook.open_note(id, window, cx));
+        self.go(Screen::Notebook, cx);
     }
 
     /// Starts a new test in the exam room.
@@ -517,6 +562,88 @@ impl Shell {
         cx.notify();
     }
 
+    /// The focus item in the sidebar: the block's time left, or its length.
+    fn focus_label(&self) -> String {
+        let left = match &self.focus {
+            Some(focus) => focus.left.as_secs(),
+            None => u64::from(FOCUS_MINUTES) * 60,
+        };
+        format!("Focus {:02}:{:02}", left / 60, left % 60)
+    }
+
+    /// Starts a focus block, or ends the one running.
+    fn toggle_focus(&mut self, cx: &mut Context<Self>) {
+        if self.focus.is_some() {
+            self.stop_focus(cx);
+            return;
+        }
+        let today = AppState::today(cx);
+        let studied = AppState::get(cx)
+            .store
+            .study_days()
+            .ok()
+            .and_then(|days| days.get(&today).copied())
+            .unwrap_or(0);
+        self.focus = Some(Focus {
+            left: Duration::from_secs(u64::from(FOCUS_MINUTES) * 60),
+            studied,
+        });
+        cx.spawn(async move |this, cx| {
+            loop {
+                cx.background_executor().timer(Duration::from_secs(1)).await;
+                let running = this
+                    .update(cx, |this, cx| this.tick_focus(cx))
+                    .unwrap_or(false);
+                if !running {
+                    break;
+                }
+            }
+        })
+        .detach();
+        cx.notify();
+    }
+
+    /// Counts one second off the block, and records it when it runs out.
+    /// Returns whether the block is still running.
+    fn tick_focus(&mut self, cx: &mut Context<Self>) -> bool {
+        let Some(focus) = &mut self.focus else {
+            return false;
+        };
+        focus.left = focus.left.saturating_sub(Duration::from_secs(1));
+        if !focus.left.is_zero() {
+            cx.notify();
+            return true;
+        }
+        let focus = self.focus.take().expect("it was running");
+        let today = AppState::today(cx);
+        let studied = AppState::get(cx)
+            .store
+            .study_days()
+            .ok()
+            .and_then(|days| days.get(&today).copied())
+            .unwrap_or(0);
+        let counted = studied.saturating_sub(focus.studied);
+        let seconds = (FOCUS_MINUTES * 60).saturating_sub(counted);
+        if seconds > 0 {
+            let mut block = None;
+            AppState::record_study(
+                cx,
+                Study::Focus,
+                &FOCUS_MINUTES.to_string(),
+                &mut block,
+                seconds,
+            );
+        }
+        cx.notify();
+        false
+    }
+
+    /// Ends the running block without recording anything.
+    fn stop_focus(&mut self, cx: &mut Context<Self>) {
+        self.focus = None;
+        cx.notify();
+    }
+
     pub fn toggle_sidebar(&mut self, cx: &mut Context<Self>) {
         self.sidebar_collapsed = !self.sidebar_collapsed;
         // The student's own choice stays as they set it.
@@ -547,7 +674,7 @@ impl Shell {
     }
 
     fn title_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let today = Local::now().date_naive();
+        let today = AppState::today(cx);
         let state = AppState::get(cx);
         let days = (state.settings.exam_date - today).num_days();
         let study = state.store.study_days().unwrap_or_default();
@@ -653,6 +780,12 @@ impl Shell {
         let secondary = Screen::SECONDARY.map(|screen| item(screen, cx));
         let footer = SidebarMenu::new()
             .w_full()
+            .child(
+                SidebarMenuItem::new(self.focus_label())
+                    .icon(Icon::new(IconName::Timer))
+                    .active(self.focus.is_some())
+                    .on_click(cx.listener(|this, _, _, cx| this.toggle_focus(cx))),
+            )
             .child(item(Screen::Settings, cx))
             .collapsed(self.sidebar_collapsed)
             .render("sidebar-footer", window, cx);
@@ -722,6 +855,12 @@ impl Render for Shell {
                     Place::Screen(Screen::Analysis) => {
                         (self.analysis.clone().into_any_element(), 7)
                     }
+                    Place::Screen(Screen::Revision) => {
+                        (self.revision.clone().into_any_element(), 8)
+                    }
+                    Place::Screen(Screen::Notebook) => {
+                        (self.notebook.clone().into_any_element(), 9)
+                    }
                     Place::Result(_) => (self.review.clone().into_any_element(), 3),
                     Place::Paper(_) => (self.review.clone().into_any_element(), 4),
                     Place::Question(_) => (self.review.clone().into_any_element(), 5),
@@ -784,6 +923,8 @@ struct Entry {
 enum Go {
     Screen(Screen),
     Target(Target),
+    /// A note the student wrote, by its id.
+    MyNote(i64),
 }
 
 impl SearchPalette {
@@ -821,6 +962,21 @@ fn results(query: &str, cx: &App) -> Vec<(&'static str, Vec<Entry>)> {
         })
         .collect();
 
+    let mine: Vec<Entry> = AppState::get(cx)
+        .my_notes
+        .iter()
+        .filter(|note| {
+            note.title.to_lowercase().contains(&needle)
+                || note.body.to_lowercase().contains(&needle)
+        })
+        .map(|note| Entry {
+            title: note.label().into(),
+            detail: crate::content::one_line(&note.body, 60).into(),
+            icon: Screen::Notebook.icon(),
+            go: Go::MyNote(note.id),
+        })
+        .collect();
+
     let (mut notes, mut stories, mut questions) = (Vec::new(), Vec::new(), Vec::new());
     for hit in AppState::get(cx).library.search(&needle, 30) {
         let (group, screen) = match hit.target {
@@ -840,6 +996,7 @@ fn results(query: &str, cx: &App) -> Vec<(&'static str, Vec<Entry>)> {
 
     [
         ("Go to", screens),
+        ("Your notes", mine),
         ("Notes", notes),
         ("Current affairs", stories),
         ("Questions", questions),
@@ -874,6 +1031,7 @@ impl Render for SearchPalette {
                 let _ = shell.update(cx, |shell, cx| match entry.go {
                     Go::Screen(screen) => shell.go(screen, cx),
                     Go::Target(target) => shell.open(target, cx),
+                    Go::MyNote(id) => shell.open_my_note(id, window, cx),
                 });
             });
 

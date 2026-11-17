@@ -43,13 +43,6 @@ pub(crate) fn count(n: usize, one: &str, many: &str) -> String {
 
 pub(crate) fn placeholder(screen: Screen, cx: &App) -> impl IntoElement {
     match screen {
-        Screen::Revision => {
-            page(screen.title(), "What is due for another look today", cx).child(coming(
-                5,
-                "the mistake book and flashcards on a spaced schedule",
-                cx,
-            ))
-        }
         Screen::Mains => page(screen.title(), "Answer writing against the clock", cx).child(
             coming(6, "model answers, a timed editor and self-evaluation", cx),
         ),
@@ -58,6 +51,7 @@ pub(crate) fn placeholder(screen: Screen, cx: &App) -> impl IntoElement {
         ),
         // The shell renders these itself; this arm only keeps the match total.
         Screen::Today
+        | Screen::Revision
         | Screen::Notes
         | Screen::CurrentAffairs
         | Screen::Practice

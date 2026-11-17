@@ -1,0 +1,33 @@
+# Sample flashcards written for Civil Mentor.
+#
+# Each [[card]] needs: id, topics, front (the prompt) and back (the answer).
+# Optional: source, note (the id of the note the card comes from).
+
+[[card]]
+id = "science-crispr"
+topics = ["pre.gs.science-tech.biotech.gene-editing"]
+source = "Civil Mentor sample"
+front = "How does CRISPR-Cas9 edit a gene?"
+back = "A guide RNA leads the Cas9 enzyme to the matching DNA sequence, where Cas9 cuts both strands. The cell's own repair then disables the gene or writes in a new sequence. The tool is adapted from a defence system bacteria use against viruses."
+
+[[card]]
+id = "science-geostationary"
+topics = ["pre.gs.science-tech.space.orbits-and-satellites"]
+source = "Civil Mentor sample"
+front = "What is a geostationary orbit?"
+back = "A circular orbit about 35,786 km above the equator, in which a satellite goes round once a day in the direction Earth turns. It stays over one spot, so it suits communication and weather satellites."
+note = "gs3-science-tech-space-programme"
+
+[[card]]
+id = "science-vitamins"
+topics = ["pre.gs.general-science.biology.vitamins-minerals-and-nutrition"]
+source = "Civil Mentor sample"
+front = "Which vitamin deficiencies cause scurvy and rickets?"
+back = "Scurvy comes from a lack of vitamin C. Rickets, the softening of bones in children, comes from a lack of vitamin D."
+
+[[card]]
+id = "science-antibiotics"
+topics = ["pre.gs.general-science.health.antimicrobial-resistance"]
+source = "Civil Mentor sample"
+front = "Why do antibiotics not cure viral infections?"
+back = "Antibiotics attack parts that bacteria have and viruses lack, such as cell walls and bacterial ribosomes. Using them for viral illness does nothing for the patient and helps antimicrobial resistance spread."

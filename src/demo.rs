@@ -1,14 +1,17 @@
 //! Made-up history for trying the app before there is any of one's own:
-//! 30 days of tests, reading and study time, so that Analysis and Today have
+//! 30 days of tests, reading, study time and reviews, so that Analysis,
+//! Today and Revision have
 //! something to show. It is built from the real content, so every question
 //! and note it names exists. The store saves every row with the demo mark,
 //! and removing the history deletes those rows and nothing else.
+
+use std::collections::HashMap;
 
 use chrono::{Duration, NaiveDate, NaiveTime};
 
 use crate::content::Library;
 use crate::mentor::{self, Random, TestKind, TestPlan, chapter_of};
-use crate::store::{Confidence, Demo, Reading, Study};
+use crate::store::{Attempt, Confidence, Demo, Reading, Review, Study};
 
 /// How many days back the history reaches.
 pub const DAYS: i64 = 30;
@@ -132,7 +135,50 @@ pub fn history(library: &Library, today: NaiveDate) -> Demo {
         };
         demo.readings.push((note.id.clone(), reading));
     }
+    demo.reviews = reviews(&demo.attempts, today);
     demo
+}
+
+/// The made-up student's review boxes. Each test's mistakes join on the day
+/// it was sat, and every studied day starts with the reviews due, seven in
+/// ten answered right.
+fn reviews(attempts: &[Attempt], today: NaiveDate) -> Vec<(String, Review)> {
+    let mut random = Random(0xB0C5);
+    let mut boxes: HashMap<String, Review> = HashMap::new();
+    for back in (1..=DAYS).rev().filter(|back| !RESTS.contains(back)) {
+        let day = today - Duration::days(back);
+        let mut due: Vec<String> = boxes
+            .iter()
+            .filter(|(_, review)| review.due.is_some_and(|due| due <= day))
+            .map(|(key, _)| key.clone())
+            .collect();
+        due.sort();
+        for key in due {
+            let next = mentor::review(boxes.get(&key), random.unit() < 0.7, day);
+            boxes.insert(key, next);
+        }
+        for attempt in attempts
+            .iter()
+            .filter(|attempt| attempt.finished.is_some_and(|f| f.date() == day))
+        {
+            let mistakes = mentor::mistakes(attempt, &boxes, day);
+            boxes.extend(mistakes);
+        }
+    }
+    let mut reviews: Vec<(String, Review)> = boxes
+        .into_iter()
+        .map(|(key, review)| {
+            (
+                key,
+                Review {
+                    demo: true,
+                    ..review
+                },
+            )
+        })
+        .collect();
+    reviews.sort_by(|a, b| a.0.cmp(&b.0));
+    reviews
 }
 
 #[cfg(test)]
@@ -191,5 +237,36 @@ mod tests {
         }
         assert_eq!(mentor::streak(&study, today), 9);
         assert_eq!(study.len(), DAYS as usize - RESTS.len());
+
+        // Every mistake is in the reviews, spread over the boxes, and some
+        // fall due today.
+        let wrong: std::collections::HashSet<String> = demo
+            .attempts
+            .iter()
+            .flat_map(|attempt| &attempt.answers)
+            .filter(|answer| answer.correct == Some(false))
+            .map(|answer| mentor::mistake_key(&answer.question))
+            .collect();
+        let keys: std::collections::HashSet<String> =
+            demo.reviews.iter().map(|(key, _)| key.clone()).collect();
+        assert_eq!(keys, wrong);
+        assert!(demo.reviews.iter().all(|(_, review)| review.demo));
+        let levels: std::collections::HashSet<u8> = demo
+            .reviews
+            .iter()
+            .map(|(_, review)| review.level)
+            .collect();
+        assert!(levels.len() >= 3, "{levels:?}");
+        let due_today = demo
+            .reviews
+            .iter()
+            .filter(|(_, review)| review.due == Some(today))
+            .count();
+        assert!(due_today > 0);
+        assert!(
+            demo.reviews
+                .iter()
+                .all(|(_, r)| r.due.is_none_or(|due| due >= today))
+        );
     }
 }

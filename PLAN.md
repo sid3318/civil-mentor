@@ -1,6 +1,6 @@
 # Civil Mentor: build plan
 
-Status: Phase 0 (the shell), Phase 1 (notes and the full UPSC syllabus), Phase 2 (practice: tests, the exam room, results and past papers), Phase 3 (Analysis, the Today plan, study time and demo history) and Phase 4 (current affairs: daily briefs, the story reader, the daily and monthly quizzes) are built and tested, which completes the first build. Phases 5 and 6 are not started. Plan written 14 Nov 2026, updated 16 Nov 2026.
+Status: Phase 0 (the shell), Phase 1 (notes and the full UPSC syllabus), Phase 2 (practice: tests, the exam room, results and past papers), Phase 3 (Analysis, the Today plan, study time and demo history), Phase 4 (current affairs: daily briefs, the story reader, the daily and monthly quizzes) and Phase 5 (revision: review dates, the mistake book and flashcards, the review session, highlights and clips, the Notebook and the focus timer) are built and tested, which completes the first build. Phase 6 is not started. Plan written 14 Nov 2026, updated 17 Nov 2026.
 
 A desktop study companion for UPSC CSE aspirants. It plans the student's day, gives them the notes and current affairs to read, tests them in an exam-like room, and turns the results into the next thing to study.
 
@@ -248,7 +248,7 @@ src/
   lib.rs                 start-up: app state, theme, icons, window
   app.rs                 shell: title bar, sidebar, shortcuts, search palette, open(target), back and forward
   content.rs             content types, loader, validation, search, note sections
-  store.rs               SQLite schema, migrations, settings, reading records, tests and answers, study time, plans, demo rows
+  store.rs               SQLite schema, migrations, settings, reading records, tests and answers, study time, plans, reviews, marks, own notes, demo rows
   mentor.rs              subjects, scoring, question choice, today's plan, insights, the streak
   today.rs               the Today screen: plan, continue reading, question of the day, mentor cards, this week
   analysis.rs            the Analysis screen: Overview, Subjects, Tests, Time and Coverage tabs
@@ -258,6 +258,9 @@ src/
   practice.rs            the Practice hub: every kind of test, unfinished tests, past papers, results
   exam.rs                the exam room: the clock, the question grid, keys, saving every change
   review.rs              the result and review, one question on its own, a past paper with answers
+  revision.rs            the Revision screen: the mistake book by subject and the review session
+  marks.rs               highlights and clips: markable text views, the selection, the comment bar
+  notebook.rs            the Notebook: highlights, clips, bookmarks and the student's own notes
   syllabus.rs            the Syllabus screen, topic status and coverage
   settings.rs            the Settings screen
   screens.rs             stand-in screens, replaced phase by phase
@@ -265,7 +268,7 @@ tests/
   screens.rs             drives the shell offscreen and saves a PNG of every screen
 ```
 
-Still to come, each with its phase: review dates in `mentor.rs`, one file per real screen, and `content/mains/` and `content/flashcards/`.
+Still to come, each with its phase: `src/mains.rs`, and `content/mains/`.
 
 One crate, no workspace. The app is a library plus a three-line `main.rs` so the tests can drive it.
 
@@ -506,15 +509,28 @@ Every phase below has a to-do list, so any agent can pick up the next open task.
 
 ### Phase 5: Revision and notebook
 
-- [ ] **5.1 Review dates and the mistake book.** Add `review` as a migration. `mentor::review()` moves an item through five boxes with gaps of 1, 3, 7, 16 and 35 days: right moves it up one box, wrong sends it back to box 1, and right in box 5 retires it. Every wrong answer in a test joins the mistake book, due the next day. Unit-test the dates.
-- [ ] **5.2 Flashcards.** A loader for `content/flashcards/` (front, back, topics, linked note), validated like questions, and 30 original sample cards.
-- [ ] **5.3 Review session.** `src/revision.rs`: the mistake book by subject, and a session with today's due items, where mistakes are asked again as questions and flashcards are flipped and marked "Got it" or "Missed". Each answer updates its box. Today's plan gains its review task (15 minutes at most), which opens the session.
-- [ ] **5.4 Highlights and clips.** Select text in the note or story reader to highlight it, with an optional comment, or to save it as a clip. Both go in `mark` (item, text range, comment) and show again when the item is reopened.
-- [ ] **5.5 Notebook screen.** `src/notebook.rs`: highlights, clips and bookmarks, each opening its source, and the student's own notes (`my_note`: a title and a Markdown body), which search also finds.
-- [ ] **5.6 Focus timer.** A 25-minute timer at the foot of the sidebar that records a focus `session` when it finishes.
-- [ ] **5.7 Tests.** The UI test answers a question wrong, moves the date to its due day and finds it in the review session, then makes a highlight, reopens the app on the same store and finds it again.
+- [x] **5.1 Review dates and the mistake book.** Add `review` as a migration. `mentor::review()` moves an item through five boxes with gaps of 1, 3, 7, 16 and 35 days: right moves it up one box, wrong sends it back to box 1, and right in box 5 retires it. Every wrong answer in a test joins the mistake book, due the next day. Unit-test the dates.
+- [x] **5.2 Flashcards.** A loader for `content/flashcards/` (front, back, topics, linked note), validated like questions, and 30 original sample cards.
+- [x] **5.3 Review session.** `src/revision.rs`: the mistake book by subject, and a session with today's due items, where mistakes are asked again as questions and flashcards are flipped and marked "Got it" or "Missed". Each answer updates its box. Today's plan gains its review task (15 minutes at most), which opens the session.
+- [x] **5.4 Highlights and clips.** Select text in the note or story reader to highlight it, with an optional comment, or to save it as a clip. Both go in `mark` (item, text range, comment) and show again when the item is reopened.
+- [x] **5.5 Notebook screen.** `src/notebook.rs`: highlights, clips and bookmarks, each opening its source, and the student's own notes (`my_note`: a title and a Markdown body), which search also finds.
+- [x] **5.6 Focus timer.** A 25-minute timer at the foot of the sidebar that records a focus `session` when it finishes.
+- [x] **5.7 Tests.** The UI test answers a question wrong, moves the date to its due day and finds it in the review session, then makes a highlight, reopens the app on the same store and finds it again.
 
 **Done when** a wrong answer comes back on its due date, and a highlight survives a restart.
+
+**As built.** The condition is met and checked by `cargo test`. The UI test answers a question wrong in a short test, finds it in the mistake book, moves the date to its due day and finds the review task on Today, sits the session and watches the mistake move from box 1 to box 2, due three days on, then flips a flashcard and marks it. A second test highlights a passage of a note with a comment, clips another, restarts the app on the same file and finds both marks still there and the highlight painted on the note again, highlights a story, then walks the Notebook, saves a note of its own, finds that note with ⌘K and runs a focus block through its 25 minutes. `mentor::tests` checks the box gaps and the plan's review task against hand-worked cases, and `store::tests` checks the two new tables, the upgrade from a Phase 5.1 file and that removing demo history leaves marks and own notes alone. What differs from the plan:
+
+- **The backfill of mistakes made before this phase.** An installation that has been used already holds wrong answers with no box. They join the book once, at start-up, ten a day starting the day after, taken from real tests only and never from the demo history, so the first session does not open on a hundred questions at once. The day it ran is kept in `setting`, so it never runs again. `mentor::BACKFILL_PER_DAY` sets the spread.
+- **A re-asked mistake is study time, not a test attempt.** Answering a mistake again or marking a flashcard records a `session` row of kind `review` with the item `session`, and nothing in `attempt` or `answer`. Analysis therefore keeps reporting only real sittings, and the minutes still count towards the day, the streak and the study-time charts. Time between two answers is capped at the same five idle minutes the readers use, so a session left open over lunch does not count.
+- **Highlights are true character ranges.** `TextViewState` records the source position of every character it renders, paints `RangeHighlight`s behind the glyphs without moving the layout, and reports a selection as a source range, which the offscreen test drives with a real pointer drag. So a highlight covers exactly the words selected, and it is painted on the note or story itself rather than in a list beside it. Each mark also stores the words it covered: when the item is reopened the stored range is checked against the text, and if the content has been edited the words are looked for near where they were, so a small edit does not lose a highlight. A mark whose words have gone stops painting but stays in the Notebook.
+- **A `part` column on `mark`.** A note is read as its sections and a story as its named parts (context, why it matters, key facts, the trap, PYQ pattern, the Mains question), each its own text view, so a mark is filed under the part it was made in and its range is measured in that part's text. Reopening in Distilled mode shows the Read mode's marks only where the words are the same.
+- **The story reader shows its prose as Markdown.** Context, Why it matters, Key facts, the trap, the PYQ pattern and the Mains question were one-line divs; they are Markdown text views now, with the key facts as a bullet list, so they can be selected and highlighted like a note. The headings, byline, practice question and answer frame are unchanged.
+- **A selection outlives the click that marks it.** A press clears the window's text selection before a button's click runs, so both readers watch their text views and keep the last selection; Highlight and Clip act on that.
+- **The Notebook** replaces its stand-in. Its filters are All, Highlights, Clips, Bookmarks and My notes. A mark shows the words, the comment and where it came from, and opens the source; a bookmark opens its note, story or editorial; a note of the student's own is written in the pane and saved with a button, and ⌘K searches its title and body and opens it. Bookmarks are still the `reading` row's flag, as in Phase 4, so a note or story bookmarked in its reader appears here without a second table.
+- **The focus timer** sits above Settings at the foot of the sidebar and counts 25:00 down a second at a time. When it finishes it records a `focus` session with only the minutes no other session counted during the block, so a note read while the timer ran is not counted twice. Stopping early records nothing.
+- **Content**: 30 cards, 6 polity, 6 history, 5 geography, 5 economy, 4 environment and 4 science and technology, one fact each, all original and marked as sample, each linked to a note that carries its fact. Every fact is a standard textbook one; the two that could drift (the inflation target and the number of WPA schedules) were checked against the record.
+- **Not built here, as planned**: decks the student makes, card editing, import and export, sync, cheatsheets as a new note kind, and the Mains work of Phase 6.
 
 ### Phase 6: Mains
 

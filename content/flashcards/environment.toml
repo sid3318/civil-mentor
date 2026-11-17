@@ -1,0 +1,34 @@
+# Sample flashcards written for Civil Mentor.
+#
+# Each [[card]] needs: id, topics, front (the prompt) and back (the answer).
+# Optional: source, note (the id of the note the card comes from).
+
+[[card]]
+id = "environment-ramsar"
+topics = ["pre.gs.environment.conventions.ramsar-convention-cites-and-cms"]
+source = "Civil Mentor sample"
+front = "What is the Ramsar Convention about?"
+back = "The conservation and wise use of wetlands. It was signed in 1971 at Ramsar in Iran, and India joined in 1982."
+note = "gs3-environment-biodiversity-conservation"
+
+[[card]]
+id = "environment-wpa-schedules"
+topics = ["pre.gs.environment.laws.wildlife-act"]
+source = "Civil Mentor sample"
+front = "How many schedules does the Wild Life (Protection) Act have since its 2022 amendment?"
+back = "Four, down from six. Schedule I covers the most protected animals, Schedule II other protected animals, Schedule III protected plants, and Schedule IV specimens listed under CITES. The vermin schedule was removed."
+
+[[card]]
+id = "environment-kigali"
+topics = ["pre.gs.environment.conventions.vienna-convention-montreal-protocol"]
+source = "Civil Mentor sample"
+front = "How does the Kigali Amendment differ from the Montreal Protocol it amends?"
+back = "The Montreal Protocol (1987) phases out substances that deplete the ozone layer, such as CFCs and halons. The Kigali Amendment (2016) adds a phase-down of HFCs, which do not harm the ozone layer but are powerful greenhouse gases."
+
+[[card]]
+id = "environment-hotspot"
+topics = ["pre.gs.environment.biodiversity.biodiversity-hotspots"]
+source = "Civil Mentor sample"
+front = "What makes a region a biodiversity hotspot?"
+back = "Under Norman Myers' criteria, it must have at least 1,500 endemic species of vascular plants and must have lost at least 70% of its original habitat. India has parts of four: the Himalaya, Indo-Burma, the Western Ghats and Sri Lanka, and Sundaland (the Nicobar Islands)."
+note = "gs3-environment-biodiversity-conservation"

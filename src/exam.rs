@@ -327,6 +327,9 @@ impl ExamScreen {
         if let Err(err) = AppState::get(cx).store.finish_attempt(&session.attempt) {
             AppState::report(cx, err);
         }
+        let state = AppState::get(cx);
+        let mistakes = mentor::mistakes(&session.attempt, &state.reviews, AppState::today(cx));
+        AppState::save_reviews(cx, mistakes);
         let id = session.attempt.id;
         let _ = self.shell.update(cx, |shell, cx| shell.show_result(id, cx));
         cx.notify();

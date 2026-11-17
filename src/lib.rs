@@ -16,10 +16,13 @@ pub mod content;
 mod current_affairs;
 pub mod demo;
 mod exam;
+mod marks;
 pub mod mentor;
+mod notebook;
 mod notes;
 mod practice;
 mod review;
+mod revision;
 mod screens;
 mod settings;
 pub mod store;
@@ -29,7 +32,7 @@ mod today;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-use chrono::{Local, NaiveDate};
+use chrono::{Duration, Local, NaiveDate};
 use gpui_kit::assets::Assets;
 use gpui_kit::component::{Theme, ThemeMode, ThemeRegistry, TitleBar};
 use gpui_kit::{
@@ -39,7 +42,7 @@ use gpui_kit::{
 
 pub use app::{Screen, Shell};
 use content::Library;
-use store::{Reading, Settings, Store, Study, ThemeChoice};
+use store::{Mark, MyNote, NewMark, Reading, Review, Settings, Store, Study, ThemeChoice};
 
 // Lucide icons the app uses beyond the set bundled with the components.
 gpui_kit::assets::icon_assets!(
@@ -93,6 +96,18 @@ pub struct AppState {
     /// What the student has done with each note, by note id. Kept in step
     /// with the store by [`AppState::update_reading`].
     pub reading: HashMap<String, Reading>,
+    /// Every mistake and flashcard in the review boxes, by review key. Kept
+    /// in step with the store by [`AppState::save_reviews`].
+    pub reviews: HashMap<String, Review>,
+    /// The student's highlights and clips, by the reading key of the item
+    /// they were made in. Kept in step with the store by add_mark.
+    pub marks: HashMap<String, Vec<Mark>>,
+    /// The notes the student wrote, newest first. Kept in step with the
+    /// store by save_my_note.
+    pub my_notes: Vec<MyNote>,
+    /// Days added to the system date. Always 0 in the app; the UI test
+    /// moves it forward to see a review fall due.
+    pub days_ahead: i64,
     /// Set when the data file cannot be used. The shell shows it as a banner,
     /// because from then on nothing the student does is being saved.
     pub store_error: Option<String>,
@@ -103,6 +118,76 @@ impl Global for AppState {}
 impl AppState {
     pub fn get(cx: &App) -> &AppState {
         cx.global::<AppState>()
+    }
+
+    /// The day the app works to: the local date, moved by `days_ahead`.
+    pub fn today(cx: &App) -> NaiveDate {
+        Local::now().date_naive() + Duration::days(AppState::get(cx).days_ahead)
+    }
+
+    /// Saves where review items stand and redraws every window.
+    pub fn save_reviews(cx: &mut App, reviews: Vec<(String, Review)>) {
+        let state = cx.global_mut::<AppState>();
+        if let Err(err) = state.store.save_reviews(&reviews) {
+            state.store_error = Some(format!("{err:#}"));
+        }
+        state.reviews.extend(reviews);
+        cx.refresh_windows();
+    }
+
+    /// The marks made in `item`, oldest first.
+    pub fn marks_of(&self, item: &str) -> &[Mark] {
+        self.marks.get(item).map(Vec::as_slice).unwrap_or_default()
+    }
+
+    /// Saves a highlight or clip and redraws every window.
+    pub fn add_mark(cx: &mut App, mark: NewMark) {
+        let today = AppState::today(cx);
+        let state = cx.global_mut::<AppState>();
+        let added = state.store.add_mark(mark, today);
+        match added {
+            Ok(mark) => state.marks.entry(mark.item.clone()).or_default().push(mark),
+            Err(err) => state.store_error = Some(format!("{err:#}")),
+        }
+        cx.refresh_windows();
+    }
+
+    /// Deletes one highlight or clip and redraws every window.
+    pub fn remove_mark(cx: &mut App, id: i64) {
+        let state = cx.global_mut::<AppState>();
+        if let Err(err) = state.store.remove_mark(id) {
+            state.store_error = Some(format!("{err:#}"));
+        }
+        for marks in state.marks.values_mut() {
+            marks.retain(|mark| mark.id != id);
+        }
+        cx.refresh_windows();
+    }
+
+    /// Saves a note of the student's own, and returns it as it was stored.
+    pub fn save_my_note(cx: &mut App, note: MyNote) -> Option<MyNote> {
+        let state = cx.global_mut::<AppState>();
+        let saved = match state.store.save_my_note(&note) {
+            Ok(saved) => saved,
+            Err(err) => {
+                state.store_error = Some(format!("{err:#}"));
+                return None;
+            }
+        };
+        state.my_notes.retain(|note| note.id != saved.id);
+        state.my_notes.insert(0, saved.clone());
+        cx.refresh_windows();
+        Some(saved)
+    }
+
+    /// Deletes a note of the student's own and redraws every window.
+    pub fn remove_my_note(cx: &mut App, id: i64) {
+        let state = cx.global_mut::<AppState>();
+        if let Err(err) = state.store.remove_my_note(id) {
+            state.store_error = Some(format!("{err:#}"));
+        }
+        state.my_notes.retain(|note| note.id != id);
+        cx.refresh_windows();
     }
 
     /// Changes the settings, saves them and redraws every window.
@@ -127,7 +212,7 @@ impl AppState {
     /// Changes what the student has done with a note, saves it and redraws
     /// every window. A note opened for the first time starts a fresh record.
     pub fn update_reading(cx: &mut App, note: &str, change: impl FnOnce(&mut Reading, NaiveDate)) {
-        let today = Local::now().date_naive();
+        let today = AppState::today(cx);
         let state = cx.global_mut::<AppState>();
         let reading = state
             .reading
@@ -153,10 +238,11 @@ impl AppState {
         block: &mut Option<i64>,
         seconds: u32,
     ) {
+        let today = AppState::today(cx);
         let store = &AppState::get(cx).store;
         let id = match *block {
             Some(id) => Ok(id),
-            None => store.start_session(Local::now().date_naive(), kind, item),
+            None => store.start_session(today, kind, item),
         };
         let added = id.and_then(|id| {
             *block = Some(id);
@@ -177,7 +263,7 @@ impl AppState {
         seconds: u32,
     ) {
         AppState::record_study(cx, kind, note, block, seconds);
-        let today = Local::now().date_naive();
+        let today = AppState::today(cx);
         let state = cx.global_mut::<AppState>();
         let reading = state
             .reading
@@ -195,7 +281,7 @@ impl AppState {
     /// Adds made-up history, or removes it, and redraws. Today's plan is
     /// made again to match, unless the student has ticked a task in it.
     pub fn set_demo(cx: &mut App, on: bool) {
-        let today = Local::now().date_naive();
+        let today = AppState::today(cx);
         let state = cx.global_mut::<AppState>();
         let changed = if on {
             state.store.add_demo(&demo::history(&state.library, today))
@@ -210,15 +296,26 @@ impl AppState {
                 true => state.store.clear_plan(today),
                 false => Ok(()),
             });
-        let reloaded = state
-            .store
-            .readings()
-            .map(|reading| state.reading = reading);
+        let reloaded = state.store.readings().and_then(|reading| {
+            state.reading = reading;
+            state.reviews = state.store.reviews()?;
+            state.marks = by_item(state.store.marks()?);
+            Ok(())
+        });
         if let Err(err) = changed.and(replan).and(reloaded) {
             state.store_error = Some(format!("{err:#}"));
         }
         cx.refresh_windows();
     }
+}
+
+/// The highlights and clips, grouped by the item they were made in.
+fn by_item(marks: Vec<Mark>) -> HashMap<String, Vec<Mark>> {
+    let mut by_item: HashMap<String, Vec<Mark>> = HashMap::new();
+    for mark in marks {
+        by_item.entry(mark.item.clone()).or_default().push(mark);
+    }
+    by_item
 }
 
 /// Makes the app's warm "Paper" palette the light theme. Dark stays the
@@ -258,16 +355,37 @@ pub fn init(mut store: Store, mut store_error: Option<String>, cx: &mut App) {
     apply_theme(settings.theme, cx);
     // Saving on top of rows that could not be read would overwrite them, so
     // carry on with a throwaway store instead and say so.
-    let reading = store.readings().unwrap_or_else(|err| {
+    let loaded = store
+        .readings()
+        .and_then(|reading| Ok((reading, store.reviews()?, store.marks()?, store.my_notes()?)));
+    let (reading, mut reviews, marks, my_notes) = loaded.unwrap_or_else(|err| {
         store_error = Some(format!("{err:#}"));
         store = Store::in_memory();
-        HashMap::new()
+        (HashMap::new(), HashMap::new(), Vec::new(), Vec::new())
     });
+    // Mistakes from tests sat before the reviews existed join them once,
+    // spread over the days ahead.
+    if !store.mistakes_backfilled() {
+        let today = Local::now().date_naive();
+        let backfilled = store.past_mistakes().and_then(|questions| {
+            let rows = mentor::backfill(&questions, &reviews, today);
+            store.backfill_mistakes(today, &rows)?;
+            Ok(rows)
+        });
+        match backfilled {
+            Ok(rows) => reviews.extend(rows),
+            Err(err) => store_error = Some(format!("{err:#}")),
+        }
+    }
     cx.set_global(AppState {
         library,
         store,
         settings,
         reading,
+        reviews,
+        marks: by_item(marks),
+        my_notes,
+        days_ahead: 0,
         store_error,
     });
     app::init(cx);

@@ -1,6 +1,7 @@
 //! Everything the student does, kept in one SQLite file in the OS app-data folder.
 
 use std::collections::{BTreeMap, HashMap};
+use std::ops::Range;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context as _, Result, bail};
@@ -77,6 +78,37 @@ const MIGRATIONS: &[&str] = &[
     "ALTER TABLE attempt ADD COLUMN demo INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE reading ADD COLUMN demo INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE session ADD COLUMN demo INTEGER NOT NULL DEFAULT 0",
+    // Spaced review: one row per mistake (`question:<id>`) or flashcard
+    // (`card:<id>`) in the five boxes. `due` is empty once it has left box 5.
+    "CREATE TABLE review (
+        item TEXT PRIMARY KEY,
+        box INTEGER NOT NULL,
+        due TEXT,
+        added TEXT NOT NULL,
+        reviewed TEXT,
+        demo INTEGER NOT NULL DEFAULT 0
+    ) STRICT",
+    // What the student marks and writes: a highlight or clip is a range of one
+    // part of a note, story or editorial, and `my_note` is a note of their own.
+    "CREATE TABLE mark (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item TEXT NOT NULL,
+        part TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        start INTEGER NOT NULL,
+        end INTEGER NOT NULL,
+        quote TEXT NOT NULL,
+        comment TEXT,
+        added TEXT NOT NULL
+    ) STRICT;
+    CREATE INDEX mark_by_item ON mark (item);
+    CREATE TABLE my_note (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL,
+        added TEXT NOT NULL,
+        updated TEXT NOT NULL
+    ) STRICT",
 ];
 
 const TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
@@ -163,6 +195,112 @@ impl Reading {
             seconds: 0,
             demo: false,
         }
+    }
+}
+
+/// Where a mistake or a flashcard stands in the five review boxes. Moved
+/// along by [`crate::mentor::review`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Review {
+    /// The box it is in, 1 to 5.
+    pub level: u8,
+    /// The day it is next asked, or `None` once it has left box 5.
+    pub due: Option<NaiveDate>,
+    /// The day it joined the reviews.
+    pub added: NaiveDate,
+    /// The day it was last answered in a review session.
+    pub reviewed: Option<NaiveDate>,
+    /// Made up by the demo history. Answering it makes it the student's own.
+    pub demo: bool,
+}
+
+/// A highlight or a clip: a piece of a note, story or editorial the student
+/// marked, with what they wrote about it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Mark {
+    pub id: i64,
+    /// The reading key of the item it was made in, such as `story:ca-1-2`.
+    pub item: String,
+    /// Which part of the item: a note section's heading, or a story part.
+    /// Empty for the part before a note's first heading, or a whole body.
+    pub part: String,
+    pub kind: MarkKind,
+    /// The byte range of the part's text as it rendered when it was marked.
+    pub range: Range<usize>,
+    /// The marked text itself, to find it again after the content is edited.
+    pub quote: String,
+    pub comment: Option<String>,
+    /// The day it was marked.
+    pub added: NaiveDate,
+}
+
+/// A highlight is a marked passage; a clip is one kept as a card to read on
+/// its own.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MarkKind {
+    Highlight,
+    Clip,
+}
+
+impl MarkKind {
+    pub fn key(self) -> &'static str {
+        match self {
+            MarkKind::Highlight => "highlight",
+            MarkKind::Clip => "clip",
+        }
+    }
+
+    fn parse(key: &str) -> Option<MarkKind> {
+        match key {
+            "highlight" => Some(MarkKind::Highlight),
+            "clip" => Some(MarkKind::Clip),
+            _ => None,
+        }
+    }
+}
+
+/// A highlight or clip that has not been saved yet.
+#[derive(Debug, Clone)]
+pub struct NewMark {
+    pub item: String,
+    pub part: String,
+    pub kind: MarkKind,
+    pub range: Range<usize>,
+    pub quote: String,
+    pub comment: Option<String>,
+}
+
+/// A note the student wrote themselves: a title and a Markdown body.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MyNote {
+    /// Zero for a note that has not been saved yet.
+    pub id: i64,
+    pub title: String,
+    pub body: String,
+    pub added: NaiveDate,
+    pub updated: NaiveDate,
+}
+
+impl MyNote {
+    /// A new note, empty, written today.
+    pub fn new(today: NaiveDate) -> MyNote {
+        MyNote {
+            id: 0,
+            title: String::new(),
+            body: String::new(),
+            added: today,
+            updated: today,
+        }
+    }
+
+    /// The first line of the body, for a list that has no title yet.
+    pub fn label(&self) -> String {
+        let title = self.title.trim();
+        if !title.is_empty() {
+            return title.to_string();
+        }
+        let first = self.body.lines().find(|line| !line.trim().is_empty());
+        first.unwrap_or("Untitled note").trim().to_string()
     }
 }
 
@@ -574,6 +712,30 @@ impl Store {
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
+    /// The questions whose latest answer in the student's own submitted tests
+    /// was wrong, the most recent first. Demo tests are left out.
+    pub fn past_mistakes(&self) -> Result<Vec<String>> {
+        let mut query = self.conn.prepare(
+            "SELECT answer.question, answer.correct FROM answer
+             JOIN attempt ON attempt.id = answer.attempt
+             WHERE attempt.demo = 0 AND attempt.finished IS NOT NULL
+                 AND answer.correct IS NOT NULL
+             ORDER BY attempt.finished DESC, attempt.id DESC, answer.position",
+        )?;
+        let rows = query.query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, bool>(1)?))
+        })?;
+        let mut seen = std::collections::HashSet::new();
+        let mut mistakes = Vec::new();
+        for row in rows {
+            let (question, correct) = row?;
+            if seen.insert(question.clone()) && !correct {
+                mistakes.push(question);
+            }
+        }
+        Ok(mistakes)
+    }
+
     /// Every answered question with a right or wrong outcome, oldest first.
     pub fn answered(&self) -> Result<Vec<Past>> {
         let mut query = self.conn.prepare(
@@ -593,6 +755,236 @@ impl Store {
 
 // ---- study time, the day's plan and demo history ------------------------------
 
+// ---- review boxes -----------------------------------------------------------
+
+impl Store {
+    /// Every mistake and flashcard in the reviews, by item key. A row whose
+    /// dates cannot be read is left out rather than stopping the rest loading.
+    pub fn reviews(&self) -> Result<HashMap<String, Review>> {
+        let mut query = self
+            .conn
+            .prepare("SELECT item, box, due, added, reviewed, demo FROM review")?;
+        let rows = query.query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, u8>(1)?,
+                row.get::<_, Option<String>>(2)?,
+                row.get::<_, String>(3)?,
+                row.get::<_, Option<String>>(4)?,
+                row.get::<_, bool>(5)?,
+            ))
+        })?;
+        let mut reviews = HashMap::new();
+        for row in rows {
+            let (item, level, due, added, reviewed, demo) = row?;
+            let Ok(added) = added.parse() else {
+                continue;
+            };
+            let due = match due.map(|due| due.parse()) {
+                Some(Ok(due)) => Some(due),
+                Some(Err(_)) => continue,
+                None => None,
+            };
+            reviews.insert(
+                item,
+                Review {
+                    level,
+                    due,
+                    added,
+                    reviewed: reviewed.and_then(|day| day.parse().ok()),
+                    demo,
+                },
+            );
+        }
+        Ok(reviews)
+    }
+
+    /// Saves where each item stands, in one transaction.
+    pub fn save_reviews(&self, reviews: &[(String, Review)]) -> Result<()> {
+        let tx = self.conn.unchecked_transaction()?;
+        for (item, review) in reviews {
+            write_review(&tx, item, review)?;
+        }
+        tx.commit()?;
+        Ok(())
+    }
+
+    /// Whether mistakes made before the reviews existed have been brought in.
+    pub fn mistakes_backfilled(&self) -> bool {
+        self.get("mistakes_backfilled").ok().flatten().is_some()
+    }
+
+    /// Brings in mistakes made before the reviews existed, once: saves
+    /// `reviews` and records the day, so it never runs again.
+    pub fn backfill_mistakes(&self, day: NaiveDate, reviews: &[(String, Review)]) -> Result<()> {
+        self.save_reviews(reviews)?;
+        self.set("mistakes_backfilled", &day.to_string())
+    }
+}
+
+fn write_review(conn: &Connection, item: &str, review: &Review) -> Result<()> {
+    conn.execute(
+        "INSERT INTO review (item, box, due, added, reviewed, demo)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+         ON CONFLICT (item) DO UPDATE SET box = excluded.box, due = excluded.due,
+             added = excluded.added, reviewed = excluded.reviewed, demo = excluded.demo",
+        params![
+            item,
+            review.level,
+            review.due.map(|due| due.to_string()),
+            review.added.to_string(),
+            review.reviewed.map(|day| day.to_string()),
+            review.demo
+        ],
+    )?;
+    Ok(())
+}
+
+// ---- marks and the student's own notes -------------------------------------
+
+impl Store {
+    /// Every highlight and clip, oldest first. A row whose day cannot be read
+    /// is left out rather than stopping the rest loading.
+    pub fn marks(&self) -> Result<Vec<Mark>> {
+        let mut query = self.conn.prepare(
+            "SELECT id, item, part, kind, start, end, quote, comment, added FROM mark ORDER BY id",
+        )?;
+        let rows = query.query_map([], |row| {
+            Ok((
+                row.get::<_, i64>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, String>(3)?,
+                row.get::<_, i64>(4)?,
+                row.get::<_, i64>(5)?,
+                row.get::<_, String>(6)?,
+                row.get::<_, Option<String>>(7)?,
+                row.get::<_, String>(8)?,
+            ))
+        })?;
+        let mut marks = Vec::new();
+        for row in rows {
+            let (id, item, part, kind, start, end, quote, comment, added) = row?;
+            let (Some(kind), Ok(added)) = (MarkKind::parse(&kind), added.parse()) else {
+                continue;
+            };
+            marks.push(Mark {
+                id,
+                item,
+                part,
+                kind,
+                range: usize::try_from(start).unwrap_or_default()
+                    ..usize::try_from(end).unwrap_or_default(),
+                quote,
+                comment,
+                added,
+            });
+        }
+        Ok(marks)
+    }
+
+    /// Saves a highlight or clip and returns it with its id.
+    pub fn add_mark(&self, mark: NewMark, added: NaiveDate) -> Result<Mark> {
+        self.conn.execute(
+            "INSERT INTO mark (item, part, kind, start, end, quote, comment, added)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![
+                mark.item,
+                mark.part,
+                mark.kind.key(),
+                mark.range.start as i64,
+                mark.range.end as i64,
+                mark.quote,
+                mark.comment,
+                added.to_string()
+            ],
+        )?;
+        Ok(Mark {
+            id: self.conn.last_insert_rowid(),
+            item: mark.item,
+            part: mark.part,
+            kind: mark.kind,
+            range: mark.range,
+            quote: mark.quote,
+            comment: mark.comment,
+            added,
+        })
+    }
+
+    /// Deletes one highlight or clip.
+    pub fn remove_mark(&self, id: i64) -> Result<()> {
+        self.conn.execute("DELETE FROM mark WHERE id = ?1", [id])?;
+        Ok(())
+    }
+
+    /// Every note the student wrote, newest first.
+    pub fn my_notes(&self) -> Result<Vec<MyNote>> {
+        let mut query = self
+            .conn
+            .prepare("SELECT id, title, body, added, updated FROM my_note ORDER BY id DESC")?;
+        let rows = query.query_map([], |row| {
+            Ok((
+                row.get::<_, i64>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, String>(3)?,
+                row.get::<_, String>(4)?,
+            ))
+        })?;
+        let mut notes = Vec::new();
+        for row in rows {
+            let (id, title, body, added, updated) = row?;
+            let (Ok(added), Ok(updated)) = (added.parse(), updated.parse()) else {
+                continue;
+            };
+            notes.push(MyNote {
+                id,
+                title,
+                body,
+                added,
+                updated,
+            });
+        }
+        Ok(notes)
+    }
+
+    /// Saves a note of the student's own and returns it with its id.
+    pub fn save_my_note(&self, note: &MyNote) -> Result<MyNote> {
+        let mut note = note.clone();
+        if note.id == 0 {
+            self.conn.execute(
+                "INSERT INTO my_note (title, body, added, updated) VALUES (?1, ?2, ?3, ?4)",
+                params![
+                    note.title,
+                    note.body,
+                    note.added.to_string(),
+                    note.updated.to_string()
+                ],
+            )?;
+            note.id = self.conn.last_insert_rowid();
+        } else {
+            self.conn.execute(
+                "UPDATE my_note SET title = ?2, body = ?3, added = ?4, updated = ?5 WHERE id = ?1",
+                params![
+                    note.id,
+                    note.title,
+                    note.body,
+                    note.added.to_string(),
+                    note.updated.to_string()
+                ],
+            )?;
+        }
+        Ok(note)
+    }
+
+    /// Deletes one note of the student's own.
+    pub fn remove_my_note(&self, id: i64) -> Result<()> {
+        self.conn
+            .execute("DELETE FROM my_note WHERE id = ?1", [id])?;
+        Ok(())
+    }
+}
+
 /// What a block of study time was spent on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Study {
@@ -603,6 +995,12 @@ pub enum Study {
     /// A story or editorial open in the current-affairs reader. The item is
     /// its reading key.
     Story,
+    /// Today's review session. The item is `session`.
+    Review,
+    /// A focus block from the sidebar timer, counted only where nothing
+    /// else counted the same minutes. The item is the block's length in
+    /// minutes.
+    Focus,
 }
 
 impl Study {
@@ -611,6 +1009,8 @@ impl Study {
             Study::Reading => "reading",
             Study::Test => "test",
             Study::Story => "story",
+            Study::Review => "review",
+            Study::Focus => "focus",
         }
     }
 }
@@ -636,6 +1036,8 @@ pub struct Demo {
     pub readings: Vec<(String, Reading)>,
     /// The day, what the time went on, the item and the seconds.
     pub sessions: Vec<(NaiveDate, Study, String, u32)>,
+    /// Mistakes and flashcards in the review boxes, by item key.
+    pub reviews: Vec<(String, Review)>,
 }
 
 impl Store {
@@ -732,8 +1134,8 @@ impl Store {
         Ok(())
     }
 
-    /// Saves made-up history with the demo mark. A note the student has a
-    /// reading record for keeps the student's own.
+    /// Saves made-up history with the demo mark. A note or review item the
+    /// student has a record for keeps the student's own.
     pub fn add_demo(&self, demo: &Demo) -> Result<()> {
         let tx = self.conn.unchecked_transaction()?;
         for attempt in &demo.attempts {
@@ -760,6 +1162,20 @@ impl Store {
                 params![day.to_string(), kind.key(), item, seconds],
             )?;
         }
+        for (item, review) in &demo.reviews {
+            tx.execute(
+                "INSERT INTO review (item, box, due, added, reviewed, demo)
+                 VALUES (?1, ?2, ?3, ?4, ?5, 1)
+                 ON CONFLICT (item) DO NOTHING",
+                params![
+                    item,
+                    review.level,
+                    review.due.map(|due| due.to_string()),
+                    review.added.to_string(),
+                    review.reviewed.map(|day| day.to_string())
+                ],
+            )?;
+        }
         tx.commit()?;
         Ok(())
     }
@@ -771,7 +1187,8 @@ impl Store {
             "DELETE FROM answer WHERE attempt IN (SELECT id FROM attempt WHERE demo = 1);
              DELETE FROM attempt WHERE demo = 1;
              DELETE FROM reading WHERE demo = 1;
-             DELETE FROM session WHERE demo = 1;",
+             DELETE FROM session WHERE demo = 1;
+             DELETE FROM review WHERE demo = 1;",
         )?;
         tx.commit()?;
         Ok(())
@@ -1180,6 +1597,219 @@ mod tests {
     }
 
     #[test]
+    fn a_phase_4_store_upgrades_without_losing_a_row() {
+        let dir = std::env::temp_dir().join(format!("civil-mentor-phase4-{}", std::process::id()));
+        let path = dir.join("civil-mentor.db");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        // A file as Phase 4 left it: real, demo and story reading rows, a
+        // real and a demo test with a wrong answer each, study time and a plan.
+        let conn = Connection::open(&path).unwrap();
+        for sql in &MIGRATIONS[..5] {
+            conn.execute_batch(sql).unwrap();
+        }
+        conn.pragma_update(None, "user_version", 5).unwrap();
+        conn.execute_batch(
+            "INSERT INTO setting VALUES ('diagnostic', 'declined');
+             INSERT INTO reading VALUES
+                 ('fr', '2026-11-10', '2026-11-12', '2026-11-12', 1, 900, 0),
+                 ('monsoon', '2026-11-01', '2026-11-03', NULL, 0, 600, 1),
+                 ('story:ca-1', '2026-11-14', '2026-11-14', '2026-11-14', 1, 120, 0);
+             INSERT INTO attempt (id, kind, title, started, finished, seconds_allowed,
+                 seconds_used, right_marks, wrong_marks, current, demo)
+             VALUES (7, 'micro', 'Micro test', '2026-11-12 09:00:00', '2026-11-12 09:10:00',
+                     720, 600, 2.0, 0.6666666666666666, 1, 0),
+                    (8, 'mini', 'Demo', '2026-11-02 19:00:00', '2026-11-02 19:20:00',
+                     1440, 1200, 2.0, 0.6666666666666666, 0, 1);
+             INSERT INTO answer (attempt, position, question, subject, topic, chosen, correct,
+                 confidence, visited, seconds)
+             VALUES (7, 0, 'polity-0001', 'polity', 'pre.gs.polity.rights', 2, 0, 'sure', 1, 40),
+                    (7, 1, 'polity-0002', 'polity', 'pre.gs.polity.rights', 1, 1, NULL, 1, 20),
+                    (8, 0, 'economy-0001', 'economy', 'pre.gs.economy', 0, 0, 'guess', 1, 30);
+             INSERT INTO session (day, kind, item, seconds, demo)
+             VALUES ('2026-11-12', 'test', '7', 600, 0), ('2026-11-02', 'test', 'demo-1', 1200, 1),
+                    ('2026-11-14', 'story', 'story:ca-1', 120, 0);
+             INSERT INTO plan_task VALUES ('2026-11-14', 0, 'note', 'fr', 'Read: fr', 30, 1);",
+        )
+        .unwrap();
+        drop(conn);
+
+        let store = Store::open(&path).expect("the Phase 4 file upgrades");
+        let version: u32 = store
+            .conn
+            .pragma_query_value(None, "user_version", |row| row.get(0))
+            .unwrap();
+        assert_eq!(version as usize, MIGRATIONS.len());
+        let readings = store.readings().unwrap();
+        assert_eq!(readings.len(), 3);
+        assert_eq!(
+            (
+                readings["fr"].seconds,
+                readings["fr"].bookmarked,
+                readings["fr"].demo
+            ),
+            (900, true, false)
+        );
+        assert!(readings["monsoon"].demo);
+        assert!(readings["story:ca-1"].bookmarked);
+        assert_eq!(store.finished(10).unwrap().len(), 2);
+        assert!(store.has_demo().unwrap() && store.has_own_tests().unwrap());
+        assert_eq!(store.study_days().unwrap().values().sum::<u32>(), 1920);
+        let day = |d| NaiveDate::from_ymd_opt(2026, 11, d).unwrap();
+        assert_eq!(store.plan(day(14)).unwrap().unwrap()[0].target, "fr");
+        assert!(store.diagnostic_settled());
+        assert_eq!(
+            store.reviews().unwrap(),
+            HashMap::new(),
+            "reviews start empty"
+        );
+        assert_eq!(
+            store.past_mistakes().unwrap(),
+            ["polity-0001"],
+            "the student's own wrong answer, not the demo's"
+        );
+        assert!(!store.mistakes_backfilled());
+        drop(store);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn marks_and_own_notes_are_saved_and_read_back() {
+        let store = Store::in_memory();
+        let day = |d| NaiveDate::from_ymd_opt(2026, 11, d).unwrap();
+        let mark = store
+            .add_mark(
+                NewMark {
+                    item: "gs2-polity-fundamental-rights".into(),
+                    part: "1. Quick anchor".into(),
+                    kind: MarkKind::Highlight,
+                    range: 4..21,
+                    quote: "Article 32 is itself".into(),
+                    comment: Some("Ask why it is called the soul".into()),
+                },
+                day(17),
+            )
+            .unwrap();
+        assert_eq!(mark.id, 1);
+        let clip = store
+            .add_mark(
+                NewMark {
+                    item: "story:ca-1-1".into(),
+                    part: "facts".into(),
+                    kind: MarkKind::Clip,
+                    range: 0..12,
+                    quote: "- The Act cut".into(),
+                    comment: None,
+                },
+                day(17),
+            )
+            .unwrap();
+        let marks = store.marks().unwrap();
+        assert_eq!(marks.len(), 2);
+        assert_eq!(marks[0], mark);
+        assert_eq!(marks[1], clip);
+        assert_eq!(marks[1].kind, MarkKind::Clip);
+        assert_eq!(marks[1].comment, None);
+        store.remove_mark(mark.id).unwrap();
+        assert_eq!(store.marks().unwrap(), [clip]);
+
+        let mut note = MyNote::new(day(17));
+        note.title = "Drainage".into();
+        note.body = "Khadar and bhangar.".into();
+        let saved = store.save_my_note(&note).unwrap();
+        assert!(saved.id > 0, "a new note is given an id");
+        let mut edited = saved.clone();
+        edited.body = "Khadar is the new alluvium.".into();
+        edited.updated = day(18);
+        store.save_my_note(&edited).unwrap();
+        assert_eq!(edited.label(), "Drainage");
+        assert_eq!(store.my_notes().unwrap(), [edited]);
+        store.remove_my_note(saved.id).unwrap();
+        assert!(store.my_notes().unwrap().is_empty());
+    }
+
+    #[test]
+    fn a_phase_5_store_upgrades_without_losing_a_row() {
+        let dir = std::env::temp_dir().join(format!("civil-mentor-phase5-{}", std::process::id()));
+        let path = dir.join("civil-mentor.db");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        // A file as Phase 5.1 and 5.2 left it: a review row and a note read.
+        let conn = Connection::open(&path).unwrap();
+        for sql in &MIGRATIONS[..6] {
+            conn.execute_batch(sql).unwrap();
+        }
+        conn.pragma_update(None, "user_version", 6).unwrap();
+        conn.execute_batch(
+            "INSERT INTO reading VALUES
+                 ('fr', '2026-11-10', '2026-11-12', '2026-11-12', 1, 900, 0);
+             INSERT INTO review VALUES
+                 ('question:polity-0001', 2, '2026-11-18', '2026-11-16', '2026-11-17', 0);",
+        )
+        .unwrap();
+        drop(conn);
+
+        let store = Store::open(&path).expect("the Phase 5 file upgrades");
+        let version: u32 = store
+            .conn
+            .pragma_query_value(None, "user_version", |row| row.get(0))
+            .unwrap();
+        assert_eq!(version as usize, MIGRATIONS.len());
+        assert_eq!(store.reviews().unwrap().len(), 1, "the boxes are kept");
+        assert_eq!(store.readings().unwrap().len(), 1, "the reading is kept");
+        assert!(store.marks().unwrap().is_empty(), "marks start empty");
+        assert!(
+            store.my_notes().unwrap().is_empty(),
+            "own notes start empty"
+        );
+        drop(store);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn reviews_are_saved_updated_and_backfilled_once() {
+        let store = Store::in_memory();
+        let day = |d| NaiveDate::from_ymd_opt(2026, 11, d).unwrap();
+        let first = Review {
+            level: 1,
+            due: Some(day(17)),
+            added: day(16),
+            reviewed: None,
+            demo: false,
+        };
+        let retired = Review {
+            level: 5,
+            due: None,
+            added: day(1),
+            reviewed: Some(day(16)),
+            demo: false,
+        };
+        store
+            .save_reviews(&[("question:a".into(), first), ("card:b".into(), retired)])
+            .unwrap();
+        let moved = Review {
+            level: 2,
+            due: Some(day(20)),
+            reviewed: Some(day(17)),
+            ..first
+        };
+        store.save_reviews(&[("question:a".into(), moved)]).unwrap();
+        let reviews = store.reviews().unwrap();
+        assert_eq!(reviews.len(), 2);
+        assert_eq!(reviews["question:a"], moved);
+        assert_eq!(reviews["card:b"], retired);
+
+        assert!(!store.mistakes_backfilled());
+        store.backfill_mistakes(day(16), &[]).unwrap();
+        assert!(
+            store.mistakes_backfilled(),
+            "recorded even with nothing to bring in"
+        );
+    }
+
+    #[test]
     fn removing_demo_history_never_touches_a_real_row() {
         let store = Store::in_memory();
         let day = |d| NaiveDate::from_ymd_opt(2026, 11, d).unwrap();
@@ -1198,11 +1828,40 @@ mod tests {
         let block = store.start_session(day(12), Study::Reading, "fr").unwrap();
         store.add_session_seconds(block, 900).unwrap();
         store.settle_diagnostic(false).unwrap();
+        let mistake = Review {
+            level: 3,
+            due: Some(day(20)),
+            added: day(5),
+            reviewed: Some(day(13)),
+            demo: false,
+        };
+        store
+            .save_reviews(&[("question:q0".into(), mistake)])
+            .unwrap();
+        let kept = store
+            .add_mark(
+                NewMark {
+                    item: "fr".into(),
+                    part: "".into(),
+                    kind: MarkKind::Highlight,
+                    range: 0..9,
+                    quote: "Federalism".into(),
+                    comment: None,
+                },
+                day(12),
+            )
+            .unwrap();
+        let mut mine = MyNote::new(day(12));
+        mine.title = "My own".into();
+        let mine = store.save_my_note(&mine).unwrap();
         let before = (
             store.finished(100).unwrap(),
             store.readings().unwrap(),
             store.study_days().unwrap(),
             store.answered().unwrap(),
+            store.reviews().unwrap(),
+            store.marks().unwrap(),
+            store.my_notes().unwrap(),
         );
         assert!(!store.has_demo().unwrap());
 
@@ -1215,10 +1874,21 @@ mod tests {
         made_up.finished = Some(made_up.started + chrono::Duration::minutes(3));
         let mut monsoon = Reading::new(day(8));
         monsoon.demo = true;
+        let made_up_mistake = Review {
+            level: 1,
+            due: Some(day(14)),
+            added: day(13),
+            reviewed: None,
+            demo: true,
+        };
         let demo = Demo {
             attempts: vec![made_up],
             readings: vec![("fr".into(), monsoon), ("monsoon".into(), monsoon)],
             sessions: vec![(day(12), Study::Test, "demo-1".into(), 300)],
+            reviews: vec![
+                ("question:q0".into(), made_up_mistake),
+                ("question:q2".into(), made_up_mistake),
+            ],
         };
         store.add_demo(&demo).unwrap();
         assert!(store.has_demo().unwrap());
@@ -1230,6 +1900,12 @@ mod tests {
         );
         assert!(readings["monsoon"].demo);
         assert_eq!(store.study_days().unwrap()[&day(12)], 1200);
+        let reviews = store.reviews().unwrap();
+        assert_eq!(
+            reviews["question:q0"], mistake,
+            "the student's own box stays"
+        );
+        assert!(reviews["question:q2"].demo);
 
         store.remove_demo().unwrap();
         let after = (
@@ -1237,8 +1913,17 @@ mod tests {
             store.readings().unwrap(),
             store.study_days().unwrap(),
             store.answered().unwrap(),
+            store.reviews().unwrap(),
+            store.marks().unwrap(),
+            store.my_notes().unwrap(),
         );
         assert_eq!(after, before, "every real row is back exactly");
+        assert_eq!(after.5, [kept], "the highlight is untouched");
+        assert_eq!(
+            after.6,
+            [mine],
+            "the note of the student's own is untouched"
+        );
         assert!(!store.has_demo().unwrap());
         assert!(store.has_own_tests().unwrap());
         assert!(store.diagnostic_settled());

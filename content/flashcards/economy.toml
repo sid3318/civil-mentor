@@ -1,0 +1,41 @@
+# Sample flashcards written for Civil Mentor.
+#
+# Each [[card]] needs: id, topics, front (the prompt) and back (the answer).
+# Optional: source, note (the id of the note the card comes from).
+
+[[card]]
+id = "economy-repo"
+topics = ["pre.gs.economy.money.monetary-policy.repo-reverse-repo-sdf"]
+source = "Civil Mentor sample"
+front = "What is the repo rate?"
+back = "The rate at which the RBI lends money to banks for a short term, usually overnight, against government securities. The Monetary Policy Committee sets it; raising it makes borrowing dearer and cools inflation."
+note = "gs3-economy-inflation"
+
+[[card]]
+id = "economy-inflation-target"
+topics = ["pre.gs.economy.inflation.inflation-targeting-and-the-monetary"]
+source = "Civil Mentor sample"
+front = "What is India's inflation target, and who sets it?"
+back = "4% CPI inflation, with a band of 2% to 6%. The Central Government sets it every five years in consultation with the RBI, under section 45ZA of the RBI Act, 1934. In March 2026 it kept the same target for April 2026 to March 2031."
+note = "gs3-economy-inflation"
+
+[[card]]
+id = "economy-fiscal-deficit"
+topics = ["pre.gs.economy.fiscal.deficits"]
+source = "Civil Mentor sample"
+front = "What is the fiscal deficit?"
+back = "Total expenditure minus total receipts other than borrowings (revenue receipts plus non-debt capital receipts). It shows how much the government must borrow in the year."
+
+[[card]]
+id = "economy-gnp"
+topics = ["pre.gs.economy.basics.national-income.gdp-gnp-ndp-and-nnp"]
+source = "Civil Mentor sample"
+front = "How do GDP and GNP differ?"
+back = "GDP is the value of final goods and services produced within the country's borders. GNP adds net factor income from abroad: what residents earn abroad minus what foreigners earn in India."
+
+[[card]]
+id = "economy-gst-council"
+topics = ["pre.gs.economy.fiscal.taxation.goods-and-services-tax", "pre.gs.polity.constitutional-bodies.gst-council"]
+source = "Civil Mentor sample"
+front = "How does the GST Council vote?"
+back = "Under Article 279A, decisions need three-fourths of the weighted votes of members present and voting. The Centre's vote counts for one-third and all the States together for two-thirds. The Union Finance Minister chairs it."
