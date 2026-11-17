@@ -6,12 +6,11 @@ use std::time::{Duration, Instant};
 
 use chrono::{Local, NaiveDateTime, Timelike as _};
 use gpui_kit::assets::IconName;
-use gpui_kit::component::button::{Button, ButtonGroup, ButtonVariants as _};
+use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::text::TextView;
 use gpui_kit::component::{
-    ActiveTheme as _, Disableable as _, Icon, Selectable as _, Sizable as _, StyledExt as _,
-    h_flex, v_flex,
+    Disableable as _, Icon, Selectable as _, Sizable as _, StyledExt as _, h_flex, v_flex,
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
@@ -20,6 +19,7 @@ use crate::AppState;
 use crate::app::Shell;
 use crate::mentor::{self, TestPlan};
 use crate::store::{Attempt, Confidence, Study};
+use crate::ui;
 
 actions!(
     exam,
@@ -30,7 +30,11 @@ actions!(
         ChooseD,
         ToggleMark,
         NextQuestion,
-        PreviousQuestion
+        PreviousQuestion,
+        TagSure,
+        TagFiftyFifty,
+        TagGuess,
+        SubmitTest
     ]
 );
 
@@ -38,7 +42,13 @@ actions!(
 /// reach a text field elsewhere.
 const KEYS: &str = "ExamRoom";
 pub(crate) const LETTERS: [&str; 4] = ["A", "B", "C", "D"];
-/// The clock turns red with this much time left.
+/// How the submit shortcut is shown.
+const SUBMIT_KEY: &str = if cfg!(target_os = "macos") {
+    "⌘↵"
+} else {
+    "Ctrl ↵"
+};
+/// The clock turns amber with this much time left, and red in the last minute.
 const LOW_TIME: u32 = 5 * 60;
 
 pub(crate) fn init(cx: &mut App) {
@@ -52,7 +62,23 @@ pub(crate) fn init(cx: &mut App) {
         KeyBinding::new("down", NextQuestion, Some(KEYS)),
         KeyBinding::new("left", PreviousQuestion, Some(KEYS)),
         KeyBinding::new("up", PreviousQuestion, Some(KEYS)),
+        KeyBinding::new("1", TagSure, Some(KEYS)),
+        KeyBinding::new("2", TagFiftyFifty, Some(KEYS)),
+        KeyBinding::new("3", TagGuess, Some(KEYS)),
     ]);
+    // `secondary` is Cmd on macOS and Ctrl elsewhere; only `load` resolves it.
+    let submit = KeyBinding::load(
+        "secondary-enter",
+        Box::new(SubmitTest),
+        Some(std::rc::Rc::new(
+            KeyBindingContextPredicate::parse(KEYS).expect("the context is spelled correctly"),
+        )),
+        false,
+        None,
+        cx,
+    )
+    .expect("the shortcut is spelled correctly");
+    cx.bind_keys([submit]);
 }
 
 /// The local time to the second, as the store keeps it.
@@ -344,69 +370,99 @@ impl ExamScreen {
     }
 
     fn header(&self, session: &Session, cx: &Context<Self>) -> impl IntoElement {
+        let t = ui::tokens(cx);
         let attempt = &session.attempt;
         let left = attempt.seconds_left();
-        h_flex()
-            .flex_shrink_0()
+        let warn = if left <= 60 {
+            Some(t.danger)
+        } else if left <= LOW_TIME {
+            Some(t.attention)
+        } else {
+            None
+        };
+        ui::header(cx)
             .h(px(52.))
-            .px_4()
             // The window's own buttons sit at the top left on macOS.
             .when(cfg!(target_os = "macos"), |this| this.pl(px(84.)))
-            .gap_4()
-            .border_b_1()
-            .border_color(cx.theme().border)
-            .child(
-                div()
-                    .flex_1()
-                    .min_w_0()
-                    .truncate()
-                    .font_semibold()
-                    .child(attempt.title.clone()),
-            )
-            .child(
-                div()
-                    .text_sm()
-                    .text_color(cx.theme().muted_foreground)
-                    .child(format!(
-                        "Question {} of {}",
-                        attempt.current + 1,
-                        attempt.answers.len()
-                    )),
-            )
             .child(
                 h_flex()
                     .flex_1()
-                    .justify_end()
                     .gap_3()
                     .child(
                         h_flex()
+                            .flex_1()
+                            .min_w_0()
+                            .gap_3()
+                            .child(
+                                div()
+                                    .min_w_0()
+                                    .truncate()
+                                    .text_size(px(13.5))
+                                    .font_semibold()
+                                    .child(attempt.title.clone()),
+                            )
+                            .child(ui::meta(
+                                format!(
+                                    "Question {} of {}",
+                                    attempt.current + 1,
+                                    attempt.answers.len()
+                                ),
+                                cx,
+                            )),
+                    )
+                    .child(
+                        h_flex()
                             .id("clock")
-                            .gap_1()
+                            .test_support()
+                            .h(px(30.))
+                            .px(px(13.))
+                            .gap(px(7.))
+                            .rounded_full()
+                            .bg(t.sunken)
+                            .border_1()
+                            .border_color(warn.unwrap_or(t.border))
+                            .text_size(px(14.5))
                             .font_semibold()
-                            .when(left <= LOW_TIME, |this| this.text_color(cx.theme().danger))
-                            .child(Icon::new(IconName::Timer).small())
-                            .child(format!("{} left", clock(left))),
+                            .text_color(warn.unwrap_or(t.text))
+                            .child(
+                                Icon::new(IconName::Timer)
+                                    .size(px(15.))
+                                    .text_color(warn.unwrap_or(t.text_3)),
+                            )
+                            .child(clock(left)),
                     )
                     .child(
-                        Button::new("leave")
-                            .ghost()
-                            .small()
-                            .icon(Icon::new(IconName::LogOut))
-                            .label("Save and leave")
-                            .tooltip("Your answers and time are saved. Resume from Practice.")
-                            .on_click(cx.listener(|this, _, _, cx| this.leave(cx))),
-                    )
-                    .child(
-                        Button::new("submit")
-                            .primary()
-                            .small()
-                            .label("Submit")
-                            .on_click(cx.listener(|this, _, _, cx| this.submit_clicked(cx))),
+                        h_flex()
+                            .flex_1()
+                            .justify_end()
+                            .gap_1()
+                            .child(
+                                Button::new("leave")
+                                    .ghost()
+                                    .small()
+                                    .icon(Icon::new(IconName::LogOut))
+                                    .label("Save and leave")
+                                    .tooltip(
+                                        "Your answers and time are saved. Resume from Practice.",
+                                    )
+                                    .on_click(cx.listener(|this, _, _, cx| this.leave(cx))),
+                            )
+                            .child(
+                                Button::new("submit")
+                                    .primary()
+                                    .small()
+                                    .label("Submit")
+                                    .child(ui::key(SUBMIT_KEY, true, cx))
+                                    .on_click(
+                                        cx.listener(|this, _, _, cx| this.submit_clicked(cx)),
+                                    ),
+                            ),
                     ),
             )
     }
 
     fn question(&self, session: &Session, cx: &Context<Self>) -> impl IntoElement {
+        let t = ui::tokens(cx);
         let library = &AppState::get(cx).library;
         let position = session.attempt.current;
         let answer = &session.attempt.answers[position];
@@ -414,68 +470,59 @@ impl ExamScreen {
             return v_flex()
                 .flex_1()
                 .p_8()
-                .text_color(cx.theme().muted_foreground)
-                .child("This question is no longer in the question bank. Move on to the next.")
+                .child(ui::meta(
+                    "This question is no longer in the question bank. Move on to the next.",
+                    cx,
+                ))
                 .into_any_element();
         };
-        let subject = mentor::subject_of(question).map_or("", |s| s.name);
-        let meta = [subject, question.source.as_str()]
-            .into_iter()
-            .filter(|part| !part.is_empty())
-            .collect::<Vec<_>>()
-            .join(" · ");
+        let topic = question.topics.first().cloned().unwrap_or_default();
+        let subject = mentor::subject_of(question).map(|s| s.name);
 
         let options = question.options.iter().enumerate().map(|(option, text)| {
             let chosen = answer.chosen == Some(option);
             let struck = answer.is_struck(option);
             h_flex()
-                .gap_2()
+                .gap(px(6.))
                 .child(
                     h_flex()
                         .id(("option", option))
                         .test_support()
                         .flex_1()
                         .min_w_0()
-                        .items_start()
-                        .gap_3()
-                        .p_3()
-                        .rounded(cx.theme().radius_lg)
+                        .min_h(px(52.))
+                        .gap(px(14.))
+                        .px(px(12.))
+                        .py(px(10.))
+                        .rounded(px(10.))
                         .border_1()
-                        .border_color(if chosen {
-                            cx.theme().primary
-                        } else {
-                            cx.theme().border
-                        })
-                        .when(chosen, |this| this.bg(cx.theme().accent))
+                        .border_color(if chosen { t.accent } else { t.border_2 })
+                        .bg(if chosen { t.accent_soft } else { t.card })
+                        .when(struck, |this| this.opacity(0.45))
                         .cursor_pointer()
-                        .hover(|this| this.bg(cx.theme().accent))
+                        .hover(|this| this.border_color(if chosen { t.accent } else { t.border_3 }))
                         .child(
                             div()
                                 .flex_shrink_0()
-                                .size(px(24.))
+                                .size(px(28.))
                                 .flex()
                                 .items_center()
                                 .justify_center()
                                 .rounded_full()
                                 .border_1()
-                                .border_color(cx.theme().border)
-                                .text_sm()
-                                .font_medium()
-                                .when(chosen, |this| {
-                                    this.bg(cx.theme().primary)
-                                        .border_color(cx.theme().primary)
-                                        .text_color(cx.theme().primary_foreground)
-                                })
+                                .border_color(if chosen { t.accent } else { t.border_2 })
+                                .when(chosen, |this| this.bg(t.accent).text_color(t.on_accent))
+                                .when(!chosen, |this| this.text_color(t.text_2))
+                                .text_size(px(12.5))
+                                .font_semibold()
                                 .child(LETTERS[option]),
                         )
                         .child(
                             div()
                                 .flex_1()
                                 .min_w_0()
-                                .pt(px(2.))
-                                .when(struck, |this| {
-                                    this.line_through().text_color(cx.theme().muted_foreground)
-                                })
+                                .text_size(px(15.))
+                                .when(struck, |this| this.line_through().text_color(t.text_3))
                                 .child(text.clone()),
                         )
                         .on_click(cx.listener(move |this, _, _, cx| this.choose(option, cx))),
@@ -495,6 +542,25 @@ impl ExamScreen {
                 )
         });
 
+        let answered = answer.chosen.is_some();
+        let tags = Confidence::ALL.into_iter().enumerate().map(|(ix, level)| {
+            let id = match level {
+                Confidence::Sure => "sure",
+                Confidence::FiftyFifty => "fifty-fifty",
+                Confidence::Guess => "guess",
+            };
+            ui::segment(id, level.label(), answer.confidence == Some(level), cx)
+                .child(
+                    ui::key((ix + 1).to_string(), false, cx)
+                        .h(px(16.))
+                        .min_w(px(16.)),
+                )
+                .when(!answered, |this| this.opacity(0.5))
+                .when(answered, |this| {
+                    this.on_click(cx.listener(move |this, _, _, cx| this.set_confidence(level, cx)))
+                })
+        });
+
         v_flex()
             .id("exam-question")
             .flex_1()
@@ -504,72 +570,104 @@ impl ExamScreen {
             .child(
                 v_flex()
                     .w_full()
-                    .max_w(px(780.))
+                    .max_w(px(760.))
                     .mx_auto()
                     .px_8()
-                    .py_6()
-                    .gap_4()
+                    .py(px(28.))
+                    .gap(px(14.))
                     .child(
-                        div()
-                            .text_sm()
-                            .text_color(cx.theme().muted_foreground)
-                            .child(meta),
+                        h_flex()
+                            .gap(px(6.))
+                            .when_some(subject, |this, subject| {
+                                this.child(ui::subject_chip(
+                                    subject,
+                                    ui::subject_color(&topic, cx),
+                                    cx,
+                                ))
+                            })
+                            .when(!question.source.is_empty(), |this| {
+                                this.child(ui::chip(cx).child(question.source.clone()))
+                            }),
                     )
                     .child(
                         div()
                             .text_size(px(17.))
+                            .line_height(px(27.))
                             .child(TextView::markdown(
                                 ("exam-stem", position),
                                 question.stem.clone(),
                             )),
                     )
-                    .child(v_flex().gap_2().children(options))
+                    .child(v_flex().gap(px(8.)).children(options))
                     .when(question.answer.is_none(), |this| {
-                        this.child(
-                            div()
-                                .text_sm()
-                                .text_color(cx.theme().muted_foreground)
-                                .child("UPSC dropped this question from its answer key, so it carries no marks."),
-                        )
-                    }),
+                        this.child(ui::meta(
+                            "UPSC dropped this question from its answer key, so it carries no marks.",
+                            cx,
+                        ))
+                    })
+                    .child(
+                        h_flex()
+                            .gap_3()
+                            .pt(px(6.))
+                            .child(ui::meta("How sure are you?", cx))
+                            .child(ui::segmented(cx).children(tags))
+                            .when(!answered, |this| {
+                                this.child(ui::meta("Answer first, then tag it.", cx))
+                            }),
+                    ),
             )
             .into_any_element()
     }
 
     fn panel(&self, session: &Session, cx: &Context<Self>) -> impl IntoElement {
+        let t = ui::tokens(cx);
         let attempt = &session.attempt;
-        let current = &attempt.answers[attempt.current];
-        let theme = cx.theme();
         let cells = attempt
             .answers
             .iter()
             .enumerate()
             .map(|(position, answer)| {
-                let (bg, fg, border) = if answer.marked {
-                    (theme.warning, theme.warning_foreground, theme.warning)
-                } else if answer.chosen.is_some() {
-                    (theme.primary, theme.primary_foreground, theme.primary)
+                let answered = answer.chosen.is_some();
+                let (bg, fg, border) = if answered {
+                    (t.accent, t.on_accent, t.accent)
+                } else if answer.marked {
+                    (t.attention, rgb(0x1e1d1a).into(), t.attention)
                 } else if answer.visited {
-                    (theme.muted, theme.foreground, theme.muted)
+                    (transparent_black(), t.text_2, t.border_3)
                 } else {
-                    (theme.background, theme.muted_foreground, theme.border)
+                    (transparent_black(), t.text_4, t.border)
                 };
                 div()
                     .id(("cell", position))
                     .test_support()
-                    .size(px(34.))
+                    .relative()
+                    .size(px(40.))
                     .flex()
                     .items_center()
                     .justify_center()
-                    .rounded(theme.radius)
+                    .rounded(px(8.))
                     .bg(bg)
                     .text_color(fg)
                     .border_1()
                     .border_color(border)
-                    .text_sm()
+                    .text_size(px(12.5))
+                    .font_medium()
                     .cursor_pointer()
                     .when(position == attempt.current, |this| {
-                        this.border_2().border_color(theme.ring).font_semibold()
+                        this.border_2().border_color(t.text).font_semibold()
+                    })
+                    .when(answered && answer.marked, |this| {
+                        this.child(
+                            div()
+                                .absolute()
+                                .top(px(-4.))
+                                .right(px(-4.))
+                                .size(px(11.))
+                                .rounded_full()
+                                .bg(t.attention)
+                                .border_2()
+                                .border_color(t.canvas),
+                        )
                     })
                     .child((position + 1).to_string())
                     .on_click(cx.listener(move |this, _, _, cx| this.go_to(position, cx)))
@@ -581,121 +679,123 @@ impl ExamScreen {
         let marked = count(&|a| a.marked);
         let unseen = count(&|a| !a.visited);
         let seen = attempt.answers.len() - answered - unseen;
-        let key = |bg: Hsla, border: Hsla, label: String| {
+        let key = |fill: Option<Hsla>, edge: Hsla, label: String| {
             h_flex()
-                .gap_2()
+                .gap(px(7.))
                 .child(
                     div()
+                        .flex_shrink_0()
                         .size(px(10.))
-                        .rounded(px(2.))
-                        .bg(bg)
+                        .rounded(px(3.))
                         .border_1()
-                        .border_color(border),
+                        .border_color(edge)
+                        .when_some(fill, |this, fill| this.bg(fill)),
                 )
                 .child(label)
         };
-
-        let confidence = ButtonGroup::new("confidence")
-            .outline()
-            .small()
-            .disabled(current.chosen.is_none())
-            .children(Confidence::ALL.map(|level| {
-                Button::new(match level {
-                    Confidence::Sure => "sure",
-                    Confidence::FiftyFifty => "fifty-fifty",
-                    Confidence::Guess => "guess",
-                })
-                .label(level.label())
-                .selected(current.confidence == Some(level))
-            }))
-            .on_click(cx.listener(|this, clicked: &Vec<usize>, _, cx| {
-                if let Some(&ix) = clicked.first() {
-                    this.set_confidence(Confidence::ALL[ix], cx);
-                }
-            }));
+        let keys = [
+            (vec!["A", "D"], "answer"),
+            (vec!["M"], "mark for review"),
+            (vec!["←", "→"], "move"),
+            (vec!["1", "2", "3"], "how sure you are"),
+            (vec![SUBMIT_KEY], "submit"),
+        ]
+        .map(|(caps, what)| {
+            let range = caps.len() == 2 && caps[0] == "A";
+            h_flex()
+                .gap(px(4.))
+                .children(caps.iter().enumerate().map(|(ix, cap)| {
+                    h_flex()
+                        .gap(px(4.))
+                        .when(range && ix == 1, |this| this.child("–"))
+                        .child(ui::key(*cap, false, cx))
+                }))
+                .child(div().pl(px(4.)).child(what))
+        });
 
         v_flex()
             .w(px(300.))
             .flex_shrink_0()
             .h_full()
             .border_l_1()
-            .border_color(theme.border)
-            // The grid scrolls on its own, so the confidence tag stays in
-            // view even in a 100-question paper.
+            .border_color(t.border)
+            // The grid scrolls on its own, so the keys stay in view even in a
+            // 100-question paper.
             .child(
                 v_flex()
                     .id("exam-grid")
                     .flex_1()
                     .min_h_0()
-                    .p_4()
-                    .gap_4()
+                    .p(px(16.))
+                    .gap(px(14.))
                     .overflow_y_scrollbar()
-                    .child(div().flex().flex_wrap().gap_1().children(cells))
+                    .child(
+                        h_flex()
+                            .child(
+                                div()
+                                    .flex_1()
+                                    .text_size(px(13.5))
+                                    .font_semibold()
+                                    .child("Questions"),
+                            )
+                            .child(ui::meta(
+                                format!("{answered} of {} answered", attempt.answers.len()),
+                                cx,
+                            )),
+                    )
+                    .child(div().flex().flex_wrap().gap(px(9.)).children(cells))
                     .child(
                         div()
                             .grid()
                             .grid_cols(2)
                             .gap_x_3()
-                            .gap_y_1()
-                            .text_xs()
-                            .text_color(theme.muted_foreground)
+                            .gap_y(px(8.))
+                            .text_size(px(12.))
+                            .text_color(t.text_3)
                             .child(key(
-                                theme.primary,
-                                theme.primary,
-                                format!("answered {answered}"),
+                                Some(t.accent),
+                                t.accent,
+                                format!("Answered {answered}"),
                             ))
                             .child(key(
-                                theme.warning,
-                                theme.warning,
-                                format!("marked {marked}"),
+                                Some(t.attention),
+                                t.attention,
+                                format!("Marked {marked}"),
                             ))
-                            .child(key(
-                                theme.muted,
-                                theme.muted,
-                                format!("not answered {seen}"),
-                            ))
-                            .child(key(
-                                theme.background,
-                                theme.border,
-                                format!("not visited {unseen}"),
-                            )),
+                            .child(key(None, t.border_3, format!("Skipped {seen}")))
+                            .child(key(None, t.border, format!("Not seen {unseen}"))),
                     ),
             )
             .child(
                 v_flex()
                     .flex_shrink_0()
-                    .p_4()
-                    .gap_2()
-                    .border_t_1()
-                    .border_color(theme.border)
-                    .child(div().text_sm().font_medium().child("How sure are you?"))
-                    .child(confidence)
-                    .child(div().text_xs().text_color(theme.muted_foreground).child(
-                        "Tagging each answer shows later whether guessing wins or loses you marks.",
-                    ))
-                    .child(
-                        div()
-                            .pt_2()
-                            .text_xs()
-                            .text_color(theme.muted_foreground)
-                            .child("Keys: A to D answer, M marks, arrow keys move."),
-                    ),
+                    .m(px(16.))
+                    .p(px(12.))
+                    .gap(px(8.))
+                    .rounded(px(8.))
+                    .bg(t.sunken)
+                    .border_1()
+                    .border_color(t.border)
+                    .text_size(px(12.))
+                    .text_color(t.text_3)
+                    .child(div().font_medium().text_color(t.text_2).child("Keys"))
+                    .children(keys),
             )
     }
 
     fn footer(&self, session: &Session, cx: &Context<Self>) -> impl IntoElement {
+        let t = ui::tokens(cx);
         let attempt = &session.attempt;
         let current = &attempt.answers[attempt.current];
         h_flex()
             .flex_shrink_0()
             .h(px(56.))
-            .px_4()
+            .px(px(12.))
             .gap_2()
             .border_t_1()
-            .border_color(cx.theme().border)
+            .border_color(t.border)
             .child(
                 Button::new("mark")
-                    .outline()
                     .small()
                     .icon(Icon::new(IconName::Flag))
                     .label(if current.marked {
@@ -704,6 +804,7 @@ impl ExamScreen {
                         "Mark for review"
                     })
                     .selected(current.marked)
+                    .child(ui::key("M", false, cx))
                     .on_click(cx.listener(|this, _, _, cx| this.toggle_mark(cx))),
             )
             .child(
@@ -717,19 +818,18 @@ impl ExamScreen {
             .child(div().flex_1())
             .child(
                 Button::new("previous")
-                    .outline()
                     .small()
-                    .icon(Icon::new(IconName::ChevronLeft))
+                    .icon(Icon::new(IconName::ArrowLeft))
                     .label("Previous")
                     .disabled(attempt.current == 0)
                     .on_click(cx.listener(|this, _, _, cx| this.step(-1, cx))),
             )
             .child(
                 Button::new("next")
-                    .outline()
                     .small()
                     .label("Next")
-                    .child(Icon::new(IconName::ChevronRight))
+                    .child(Icon::new(IconName::ArrowRight).size(px(14.)))
+                    .child(ui::key("→", false, cx))
                     .disabled(attempt.current + 1 == attempt.answers.len())
                     .on_click(cx.listener(|this, _, _, cx| this.step(1, cx))),
             )
@@ -751,15 +851,25 @@ impl Render for ExamScreen {
         let attempt = &session.attempt;
         let unanswered = attempt.answers.len() - attempt.answered();
         let marked = attempt.answers.iter().filter(|a| a.marked).count();
+        let t = ui::tokens(cx);
         let confirm = session.confirm.then(|| {
             h_flex()
                 .flex_shrink_0()
-                .px_4()
-                .py_2()
+                .mx(px(12.))
+                .mt(px(10.))
+                .px(px(14.))
+                .py(px(8.))
                 .gap_3()
-                .bg(cx.theme().warning)
-                .text_color(cx.theme().warning_foreground)
-                .text_sm()
+                .rounded(px(8.))
+                .bg(t.attention.opacity(0.14))
+                .border_1()
+                .border_color(t.attention.opacity(0.5))
+                .text_size(px(13.))
+                .child(
+                    Icon::new(IconName::TriangleAlert)
+                        .size_4()
+                        .text_color(t.attention),
+                )
                 .child(div().flex_1().child(format!(
                     "{} unanswered and {} marked for review. Submit now?",
                     crate::screens::count(unanswered, "question", "questions"),
@@ -791,8 +901,6 @@ impl Render for ExamScreen {
             .key_context(KEYS)
             .track_focus(&self.focus)
             .size_full()
-            .bg(cx.theme().background)
-            .text_color(cx.theme().foreground)
             .on_action(cx.listener(|this, _: &ChooseA, _, cx| this.choose(0, cx)))
             .on_action(cx.listener(|this, _: &ChooseB, _, cx| this.choose(1, cx)))
             .on_action(cx.listener(|this, _: &ChooseC, _, cx| this.choose(2, cx)))
@@ -800,7 +908,27 @@ impl Render for ExamScreen {
             .on_action(cx.listener(|this, _: &ToggleMark, _, cx| this.toggle_mark(cx)))
             .on_action(cx.listener(|this, _: &NextQuestion, _, cx| this.step(1, cx)))
             .on_action(cx.listener(|this, _: &PreviousQuestion, _, cx| this.step(-1, cx)))
+            .on_action(
+                cx.listener(|this, _: &TagSure, _, cx| this.set_confidence(Confidence::Sure, cx)),
+            )
+            .on_action(cx.listener(|this, _: &TagFiftyFifty, _, cx| {
+                this.set_confidence(Confidence::FiftyFifty, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &TagGuess, _, cx| this.set_confidence(Confidence::Guess, cx)),
+            )
+            .on_action(cx.listener(|this, _: &SubmitTest, _, cx| this.submit_clicked(cx)))
             .child(self.header(session, cx))
+            .child(
+                div()
+                    .flex_shrink_0()
+                    .h(px(3.))
+                    .w_full()
+                    .bg(t.selected)
+                    .child(div().h_full().bg(t.accent).w(relative(
+                        attempt.answered() as f32 / attempt.answers.len().max(1) as f32,
+                    ))),
+            )
             .children(confirm)
             .child(
                 div()

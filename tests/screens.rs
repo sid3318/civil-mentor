@@ -618,24 +618,24 @@ fn main() {
     assert_eq!(app.screen(), Screen::Syllabus);
     let leaf = app.topic_ix("pre.gs.polity.rights.fundamental-rights.right-to-equality");
     assert!(!app.shows(("topic", leaf)), "folded at first");
-    for (step, id) in [
+    let steps: Vec<usize> = [
         "pre.gs",
         "pre.gs.polity",
         "pre.gs.polity.rights",
         "pre.gs.polity.rights.fundamental-rights",
     ]
     .into_iter()
-    .enumerate()
-    {
-        if step == 2 {
-            // The rows under Polity run past the bottom of the window.
-            let polity = app.topic_ix("pre.gs.polity");
-            app.scroll_down(("topic", polity), 400.);
-        }
-        let row = app.topic_ix(id);
+    .map(|id| app.topic_ix(id))
+    .collect();
+    // The rows run past the bottom of the window, so each is scrolled into
+    // view first, at whichever row of the path is showing.
+    let path: Vec<ElementId> = steps.iter().map(|&row| ("topic", row).into()).collect();
+    for &row in &steps {
+        app.centre(("topic", row), &path);
         app.click(("topic", row));
     }
     assert!(app.shows(("topic", leaf)), "open down to the topic");
+    app.centre(("topic", leaf), &path);
     app.shot("syllabus-read");
 
     // A topic opens the note that covers it, and back returns to the tree.

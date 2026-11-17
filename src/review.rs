@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::text::TextView;
-use gpui_kit::component::{ActiveTheme as _, Icon, Sizable as _, StyledExt as _, h_flex, v_flex};
+use gpui_kit::component::{Icon, Sizable as _, StyledExt as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
@@ -18,6 +18,7 @@ use crate::exam::{LETTERS, clock};
 use crate::mentor::{self, SECONDS_PER_QUESTION, Score, TestKind, TestPlan};
 use crate::screens::{count, page};
 use crate::store::{Answer, Attempt, Confidence};
+use crate::ui;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum View {
@@ -105,66 +106,74 @@ impl ReviewScreen {
         toggle: bool,
         cx: &Context<Self>,
     ) -> Div {
+        let t = ui::tokens(cx);
         let library = &AppState::get(cx).library;
         let question = &library.questions[ix];
-        let theme = cx.theme();
         let options = question.options.iter().enumerate().map(|(option, text)| {
             let right = revealed && question.answer == Some(option);
             let wrong = revealed && chosen == Some(option) && !right;
+            let tone = if right {
+                Some(t.success)
+            } else if wrong {
+                Some(t.danger)
+            } else {
+                None
+            };
             h_flex()
                 .items_start()
-                .gap_2()
-                .px_2()
-                .py_1()
-                .rounded(theme.radius)
-                .when(right, |this| {
-                    this.bg(theme.success.opacity(0.12))
-                        .text_color(theme.success)
-                        .font_medium()
-                })
-                .when(wrong, |this| {
-                    this.bg(theme.danger.opacity(0.12)).text_color(theme.danger)
+                .gap(px(10.))
+                .px(px(10.))
+                .py(px(7.))
+                .rounded(px(8.))
+                .text_size(px(13.5))
+                .when_some(tone, |this, tone| {
+                    this.bg(tone.opacity(0.1)).text_color(tone).font_medium()
                 })
                 .child(
                     div()
                         .flex_shrink_0()
-                        .w(px(28.))
-                        .child(format!("({})", LETTERS[option])),
+                        .size(px(22.))
+                        .rounded_full()
+                        .flex()
+                        .items_center()
+                        .justify_center()
+                        .text_size(px(11.))
+                        .font_semibold()
+                        .border_1()
+                        .border_color(tone.unwrap_or(t.border_2))
+                        .when_some(tone, |this, tone| this.bg(tone).text_color(t.on_accent))
+                        .when(tone.is_none(), |this| this.text_color(t.text_2))
+                        .child(LETTERS[option]),
                 )
-                .child(div().flex_1().min_w_0().child(text.clone()))
+                .child(div().flex_1().min_w_0().pt(px(2.)).child(text.clone()))
                 .when(chosen == Some(option), |this| {
-                    this.child(
-                        div()
-                            .flex_shrink_0()
-                            .text_xs()
-                            .text_color(theme.muted_foreground)
-                            .child("your answer"),
-                    )
+                    this.child(ui::chip(cx).child("your answer"))
                 })
-                .when(right, |this| this.child(Icon::new(IconName::Check)))
-                .when(wrong, |this| this.child(Icon::new(IconName::Close)))
+                .when(right, |this| {
+                    this.child(Icon::new(IconName::Check).size_4().mt(px(3.)))
+                })
+                .when(wrong, |this| {
+                    this.child(Icon::new(IconName::Close).size_4().mt(px(3.)))
+                })
         });
         let note = question
             .note
             .as_deref()
             .and_then(|id| library.notes.iter().position(|note| note.id == id));
-        v_flex()
+        ui::card(cx)
             .p_4()
-            .gap_3()
-            .rounded(theme.radius_lg)
-            .border_1()
-            .border_color(theme.border)
+            .gap(px(12.))
+            .child(ui::meta(heading, cx))
             .child(
                 div()
-                    .text_xs()
-                    .text_color(theme.muted_foreground)
-                    .child(heading),
+                    .text_size(px(14.5))
+                    .line_height(px(22.))
+                    .child(TextView::markdown(
+                        ("review-stem", ix),
+                        question.stem.clone(),
+                    )),
             )
-            .child(TextView::markdown(
-                ("review-stem", ix),
-                question.stem.clone(),
-            ))
-            .child(v_flex().gap_1().children(options))
+            .child(v_flex().gap(px(4.)).children(options))
             .when(revealed, |card| {
                 let explanation = match question.answer {
                     Some(_) => question.explanation.clone(),
@@ -173,16 +182,34 @@ impl ReviewScreen {
                         question.explanation
                     ),
                 };
-                card.child(div().child(explanation)).when_some(
-                    question.trap.clone(),
-                    |card, trap| {
-                        card.child(
-                            div()
-                                .text_color(theme.muted_foreground)
-                                .child(format!("The trap: {trap}")),
-                        )
-                    },
+                card.child(
+                    div()
+                        .text_size(px(13.5))
+                        .line_height(px(20.))
+                        .text_color(t.text_2)
+                        .child(explanation),
                 )
+                .when_some(question.trap.clone(), |card, trap| {
+                    card.child(
+                        h_flex()
+                            .items_start()
+                            .gap(px(8.))
+                            .px_3()
+                            .py(px(10.))
+                            .rounded(px(8.))
+                            .bg(t.attention.opacity(0.1))
+                            .border_l_2()
+                            .border_color(t.attention)
+                            .text_size(px(13.))
+                            .child(
+                                Icon::new(IconName::TriangleAlert)
+                                    .size(px(14.))
+                                    .mt(px(2.))
+                                    .text_color(t.attention),
+                            )
+                            .child(div().flex_1().child(format!("The trap: {trap}"))),
+                    )
+                })
             })
             .child(
                 h_flex()
@@ -190,7 +217,6 @@ impl ReviewScreen {
                     .when(toggle, |row| {
                         row.child(
                             Button::new(("answer", ix))
-                                .outline()
                                 .small()
                                 .label(if revealed {
                                     "Hide the answer"
@@ -217,112 +243,170 @@ impl ReviewScreen {
 
     fn result(&self, cx: &Context<Self>) -> Div {
         let Some(attempt) = &self.attempt else {
-            return page("Result", "This test could not be found.", cx);
+            return page("This test could not be found.", cx);
         };
+        let t = ui::tokens(cx);
         let library = &AppState::get(cx).library;
-        let theme = cx.theme();
         let score = mentor::score(attempt);
+        let full = mentor::full_marks(attempt);
         let seconds_each = attempt.seconds_used / attempt.answers.len().max(1) as u32;
         let submitted = attempt
             .finished
             .unwrap_or(attempt.started)
             .format("%-d %B %Y, %H:%M");
-        let summary = format!(
-            "Submitted {submitted}. You used {} of {}.",
-            clock(attempt.seconds_used),
-            clock(attempt.seconds_allowed)
-        );
-
-        let tile = |value: String, label: String| {
-            v_flex()
-                .flex_1()
-                .p_4()
-                .rounded(theme.radius_lg)
-                .border_1()
-                .border_color(theme.border)
-                .child(div().text_2xl().font_semibold().child(value))
-                .child(
-                    div()
-                        .text_sm()
-                        .text_color(theme.muted_foreground)
-                        .child(label),
-                )
+        let share = if full > 0. {
+            (score.marks / full).clamp(0., 1.) as f32
+        } else {
+            0.
         };
-        let tiles = h_flex()
-            .id("score")
-            .test_support()
-            .gap_3()
-            .child(tile(
-                marks(score.marks),
-                format!("net score of {}", marks(mentor::full_marks(attempt))),
-            ))
-            .child(tile(score.right.to_string(), "right".into()))
-            .child(tile(score.wrong.to_string(), "wrong".into()))
-            .child(tile(score.blank.to_string(), "left blank".into()))
-            .child(tile(
-                format!("{seconds_each} s"),
-                format!("a question, against {SECONDS_PER_QUESTION} s"),
-            ));
+        let answered = score.right + score.wrong;
+        let accuracy = mentor::percent(score.right, answered);
 
-        let table = |title: &'static str, rows: Vec<(String, Score)>| {
-            let row = |cells: [String; 5], strong: bool| {
-                let [label, right, wrong, blank, marks] = cells;
-                let cell = |text: String| div().w(px(56.)).text_right().child(text);
-                h_flex()
-                    .py_1()
-                    .border_t_1()
-                    .border_color(theme.border)
-                    .text_sm()
-                    .when(strong, |this| {
-                        this.font_medium().text_color(theme.muted_foreground)
-                    })
-                    .child(div().flex_1().min_w_0().truncate().child(label))
-                    .child(cell(right))
-                    .child(cell(wrong))
-                    .child(cell(blank))
-                    .child(cell(marks))
-            };
+        let stat = |value: String, label: &'static str, tone: Option<Hsla>| {
             v_flex()
                 .flex_1()
                 .min_w_0()
-                .child(div().pb_1().font_medium().child(title))
-                .child(row(
-                    [
-                        String::new(),
-                        "right".into(),
-                        "wrong".into(),
-                        "blank".into(),
-                        "marks".into(),
-                    ],
-                    true,
-                ))
-                .children(rows.into_iter().map(|(label, score)| {
-                    row(
-                        [
-                            label,
-                            score.right.to_string(),
-                            score.wrong.to_string(),
-                            score.blank.to_string(),
-                            marks(score.marks),
-                        ],
-                        false,
-                    )
-                }))
+                .gap(px(2.))
+                .child(ui::caption(label, cx).text_size(px(12.)))
+                .child(
+                    div()
+                        .text_size(px(22.))
+                        .line_height(px(28.))
+                        .font_semibold()
+                        .when_some(tone, |this, tone| this.text_color(tone))
+                        .child(value),
+                )
         };
-        let by_subject = mentor::score_by(attempt, |a| a.subject.clone())
-            .into_iter()
-            .map(|(id, score)| {
-                let name = mentor::subject(&id).map_or("Other", |s| s.name);
-                (name.to_string(), score)
-            })
-            .collect();
-        let by_confidence = mentor::score_by(attempt, |a| a.confidence)
+        let hero = ui::card(cx).id("score").test_support().child(
+            h_flex()
+                .p(px(18.))
+                .gap(px(24.))
+                .child(ui::ring(
+                    share,
+                    104.,
+                    9.,
+                    t.accent,
+                    v_flex()
+                        .items_center()
+                        .child(
+                            div()
+                                .font_family(ui::DISPLAY)
+                                .text_size(px(24.))
+                                .font_semibold()
+                                .child(marks(score.marks)),
+                        )
+                        .child(ui::meta(format!("of {}", marks(full)), cx)),
+                    cx,
+                ))
+                .child(
+                    v_flex()
+                        .flex_1()
+                        .min_w_0()
+                        .gap(px(14.))
+                        .child(
+                            v_flex()
+                                .gap(px(2.))
+                                .child(
+                                    div()
+                                        .font_family(ui::DISPLAY)
+                                        .text_size(px(20.))
+                                        .font_semibold()
+                                        .child(attempt.title.clone()),
+                                )
+                                .child(ui::meta(
+                                    format!(
+                                        "Submitted {submitted} · used {} of {}",
+                                        clock(attempt.seconds_used),
+                                        clock(attempt.seconds_allowed)
+                                    ),
+                                    cx,
+                                )),
+                        )
+                        .child(
+                            h_flex()
+                                .gap(px(18.))
+                                .child(stat(score.right.to_string(), "Right", Some(t.success)))
+                                .child(stat(score.wrong.to_string(), "Wrong", Some(t.danger)))
+                                .child(stat(score.blank.to_string(), "Left blank", None))
+                                .child(stat(format!("{accuracy}%"), "Accuracy", None))
+                                .child(stat(
+                                    format!("{seconds_each} s"),
+                                    "A question",
+                                    (seconds_each > SECONDS_PER_QUESTION).then_some(t.attention),
+                                )),
+                        ),
+                ),
+        );
+
+        let by_subject: Vec<(String, Hsla, Score)> =
+            mentor::score_by(attempt, |a| a.subject.clone())
+                .into_iter()
+                .map(|(id, score)| {
+                    let name = mentor::subject(&id).map_or("Other", |s| s.name);
+                    (name.to_string(), ui::subject_id_color(&id, cx), score)
+                })
+                .collect();
+        let by_confidence: Vec<(String, Hsla, Score)> = mentor::score_by(attempt, |a| a.confidence)
             .into_iter()
             .map(|(level, score)| {
                 let label = level.map_or("Not tagged", Confidence::label);
-                (label.to_string(), score)
+                let color = match level {
+                    Some(Confidence::Sure) => t.success,
+                    Some(Confidence::FiftyFifty) => t.accent,
+                    Some(Confidence::Guess) => t.attention,
+                    None => t.text_4,
+                };
+                (label.to_string(), color, score)
             })
             .collect();
+        let breakdown =
+            |title: &'static str, note: &'static str, rows: Vec<(String, Hsla, Score)>| {
+                let lines = rows.into_iter().map(|(label, color, score)| {
+                    let asked = score.right + score.wrong + score.blank;
+                    let right = score.right as f32 / asked.max(1) as f32;
+                    h_flex()
+                        .gap(px(10.))
+                        .h(px(34.))
+                        .px(px(14.))
+                        .border_t_1()
+                        .border_color(t.border)
+                        .text_size(px(13.))
+                        .child(
+                            h_flex()
+                                .w(px(150.))
+                                .flex_shrink_0()
+                                .gap(px(8.))
+                                .child(ui::dot(color))
+                                .child(div().truncate().child(label)),
+                        )
+                        .child(div().flex_1().child(ui::progress(right, color, cx)))
+                        .child(
+                            div()
+                                .w(px(76.))
+                                .text_right()
+                                .text_size(px(12.))
+                                .text_color(t.text_3)
+                                .child(format!("{} of {asked}", score.right)),
+                        )
+                        .child(
+                            div()
+                                .w(px(56.))
+                                .text_right()
+                                .font_semibold()
+                                .text_color(if score.marks < 0. { t.danger } else { t.text })
+                                .child(if score.marks > 0. {
+                                    format!("+{}", marks(score.marks))
+                                } else {
+                                    marks(score.marks)
+                                }),
+                        )
+                });
+                ui::card(cx)
+                    .flex_1()
+                    .min_w_0()
+                    .child(ui::card_head(title, cx).child(ui::meta(note, cx)))
+                    .children(lines)
+            };
 
         let cards = attempt
             .answers
@@ -330,13 +414,10 @@ impl ReviewScreen {
             .enumerate()
             .map(|(position, answer)| {
                 let Some(ix) = library.question_ix(&answer.question) else {
-                    return div()
-                        .text_sm()
-                        .text_color(theme.muted_foreground)
-                        .child(format!(
-                            "Question {} is no longer in the bank.",
-                            position + 1
-                        ));
+                    return ui::meta(
+                        format!("Question {} is no longer in the bank.", position + 1),
+                        cx,
+                    );
                 };
                 self.card(
                     ix,
@@ -349,26 +430,40 @@ impl ReviewScreen {
             });
 
         let shell = self.shell.clone();
-        page("Result", summary, cx)
-            .child(div().text_lg().font_semibold().child(attempt.title.clone()))
-            .child(tiles)
+        ui::column(900.)
+            .gap(px(18.))
+            .child(hero)
             .child(
                 h_flex()
                     .items_start()
-                    .gap_8()
-                    .child(table("Marks by subject", by_subject))
-                    .child(table("Marks by how sure you were", by_confidence)),
+                    .gap(px(14.))
+                    .child(breakdown(
+                        "By subject",
+                        "right answers and marks",
+                        by_subject,
+                    ))
+                    .child(breakdown(
+                        "By how sure you were",
+                        "what guessing won or lost",
+                        by_confidence,
+                    )),
             )
             .child(
                 v_flex()
-                    .gap_3()
-                    .child(div().text_lg().font_semibold().child("Every question"))
+                    .gap(px(12.))
+                    .pt_2()
+                    .child(
+                        div()
+                            .font_family(ui::DISPLAY)
+                            .text_size(px(20.))
+                            .font_semibold()
+                            .child("Every question"),
+                    )
                     .children(cards),
             )
             .child(
-                h_flex().pb_8().child(
+                h_flex().child(
                     Button::new("back-to-practice")
-                        .outline()
                         .label("Back to Practice")
                         .on_click(move |_, _, cx| {
                             let _ = shell.update(cx, |shell, cx| shell.go(Screen::Practice, cx));
@@ -386,7 +481,7 @@ impl ReviewScreen {
         } else {
             question.source.clone()
         };
-        page("Question", summary, cx).child(self.card(
+        page(summary, cx).child(self.card(
             ix,
             subject.to_string(),
             None,
@@ -431,33 +526,21 @@ impl ReviewScreen {
                 cx,
             )
         });
-        page("Past paper", summary, cx)
-            .child(
-                div()
-                    .text_lg()
-                    .font_semibold()
-                    .child(TestKind::Paper(year).title()),
-            )
+        page(summary, cx)
             .child(
                 h_flex()
                     .gap_2()
                     .child(
-                        Button::new("sit-this-paper")
-                            .primary()
-                            .label("Sit it as a mock")
-                            .on_click(move |_, _, cx| {
-                                let _ = shell.update(cx, |shell, cx| {
-                                    let plan = TestPlan::standard(
-                                        TestKind::Paper(year),
-                                        &AppState::get(cx).library,
-                                    );
-                                    shell.sit(&plan, cx)
-                                });
-                            }),
+                        div()
+                            .flex_1()
+                            .font_family(ui::DISPLAY)
+                            .text_size(px(22.))
+                            .font_semibold()
+                            .child(TestKind::Paper(year).title()),
                     )
                     .child(
                         Button::new("show-all")
-                            .outline()
+                            .small()
                             .label(if all_shown {
                                 "Hide all answers"
                             } else {
@@ -474,9 +557,25 @@ impl ReviewScreen {
                                     cx.notify();
                                 }
                             })),
+                    )
+                    .child(
+                        Button::new("sit-this-paper")
+                            .primary()
+                            .small()
+                            .icon(Icon::new(IconName::Play))
+                            .label("Sit it as a mock")
+                            .on_click(move |_, _, cx| {
+                                let _ = shell.update(cx, |shell, cx| {
+                                    let plan = TestPlan::standard(
+                                        TestKind::Paper(year),
+                                        &AppState::get(cx).library,
+                                    );
+                                    shell.sit(&plan, cx)
+                                });
+                            }),
                     ),
             )
-            .child(v_flex().gap_3().pb_8().children(cards))
+            .child(v_flex().gap(px(12.)).children(cards))
     }
 }
 
@@ -505,12 +604,19 @@ fn heading(position: usize, answer: &Answer, attempt: &Attempt) -> String {
 
 impl Render for ReviewScreen {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        match self.view {
-            View::Nothing => page("Practice", "", cx),
+        let (title, scroll) = match self.view {
+            View::Nothing | View::Result => ("Result", 3usize),
+            View::Paper(_) => ("Past paper", 4),
+            View::Question(_) => ("Question", 5),
+        };
+        let header = ui::header(cx).child(ui::title(IconName::SquarePen, title, cx));
+        let body = match self.view {
+            View::Nothing => page("", cx),
             View::Result => self.result(cx),
             View::Question(ix) => self.question(ix, cx),
             View::Paper(year) => self.paper(year, cx),
-        }
+        };
+        ui::screen(header, ("screen", scroll), body)
     }
 }
 

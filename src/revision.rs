@@ -19,6 +19,7 @@ use crate::mentor::{self, ReviewItem, SUBJECTS};
 use crate::notes::IDLE;
 use crate::screens::{count, page};
 use crate::store::{Review, Study};
+use crate::ui;
 
 pub struct RevisionScreen {
     shell: WeakEntity<Shell>,
@@ -44,18 +45,13 @@ struct Session {
 
 fn muted(text: impl Into<SharedString>, cx: &App) -> Div {
     div()
-        .text_sm()
-        .text_color(cx.theme().muted_foreground)
+        .text_size(px(13.))
+        .text_color(ui::tokens(cx).text_3)
         .child(text.into())
 }
 
 fn card(cx: &App) -> Div {
-    v_flex()
-        .p_4()
-        .gap_3()
-        .rounded(cx.theme().radius_lg)
-        .border_1()
-        .border_color(cx.theme().border)
+    ui::card(cx).p_4().gap(px(12.))
 }
 
 /// "19 Nov".
@@ -377,7 +373,6 @@ impl RevisionScreen {
         let finish = cx.listener(|this, _, _, cx| this.finish(cx));
         let Some(key) = session.items.get(session.at) else {
             return page(
-                "Review done",
                 format!("{} of {total} right", session.right),
                 cx,
             )
@@ -400,7 +395,6 @@ impl RevisionScreen {
             None => muted("This item has left the content.", cx).into_any_element(),
         };
         page(
-            "Today's review",
             format!(
                 "{} of {total} · {} right so far",
                 session.at + 1,
@@ -499,19 +493,126 @@ impl RevisionScreen {
                 )
         };
 
+        // Where every item stands: a column per box, with today's due part
+        // of it picked out, and the gap before the box asks again.
+        let t = ui::tokens(cx);
+        let mut levels = [(0usize, 0usize); 5];
+        let mut learnt_total = 0;
+        for review in state.reviews.values() {
+            match review.due {
+                Some(due) => {
+                    let level = (review.level.clamp(1, 5) - 1) as usize;
+                    levels[level].0 += 1;
+                    levels[level].1 += usize::from(due <= today);
+                }
+                None => learnt_total += 1,
+            }
+        }
+        let tallest = levels
+            .iter()
+            .map(|(total, _)| *total)
+            .max()
+            .unwrap_or(0)
+            .max(1);
+        let columns = levels.iter().enumerate().map(|(ix, &(total, due))| {
+            let height = 72. * total as f32 / tallest as f32;
+            let gap = mentor::REVIEW_GAPS[ix];
+            v_flex()
+                .flex_1()
+                .min_w_0()
+                .gap(px(6.))
+                .child(
+                    v_flex().h(px(76.)).justify_end().child(
+                        v_flex()
+                            .w_full()
+                            .h(px(height.max(4.)))
+                            .rounded(px(6.))
+                            .overflow_hidden()
+                            .bg(t.accent.opacity(0.14 + 0.12 * ix as f32))
+                            .when(due > 0 && total > 0, |this| {
+                                this.child(div().flex_1()).child(
+                                    div()
+                                        .w_full()
+                                        .h(relative(due as f32 / total as f32))
+                                        .bg(t.attention),
+                                )
+                            }),
+                    ),
+                )
+                .child(
+                    h_flex()
+                        .justify_between()
+                        .child(
+                            div()
+                                .text_size(px(12.5))
+                                .font_semibold()
+                                .child(format!("Box {}", ix + 1)),
+                        )
+                        .child(
+                            div()
+                                .text_size(px(12.5))
+                                .font_semibold()
+                                .child(total.to_string()),
+                        ),
+                )
+                .child(ui::meta(
+                    if gap == 1 {
+                        "back next day".to_string()
+                    } else {
+                        format!("back in {gap} days")
+                    },
+                    cx,
+                ))
+        });
+        let boxes = card(cx)
+            .id("review-boxes")
+            .test_support()
+            .child(
+                h_flex()
+                    .child(
+                        v_flex()
+                            .flex_1()
+                            .child(
+                                div()
+                                    .text_size(px(13.5))
+                                    .font_semibold()
+                                    .child("Review boxes"),
+                            )
+                            .child(ui::meta(
+                                "Right moves an item up a box. Wrong sends it back to box 1.",
+                                cx,
+                            )),
+                    )
+                    .child(
+                        h_flex()
+                            .gap(px(14.))
+                            .child(
+                                h_flex()
+                                    .gap(px(6.))
+                                    .child(div().size(px(9.)).rounded(px(2.)).bg(t.attention))
+                                    .child(ui::meta("due today", cx)),
+                            )
+                            .child(ui::meta(format!("{learnt_total} learnt"), cx)),
+                    ),
+            )
+            .child(h_flex().gap(px(12.)).items_end().children(columns));
+
         let mut subjects: Vec<Div> = Vec::new();
         for group in book.chunk_by(|a, b| a.0 == b.0) {
             let name = SUBJECTS.get(group[0].0).map_or("Other", |s| s.name);
+            let color = SUBJECTS
+                .get(group[0].0)
+                .map_or(t.text_3, |s| ui::subject_id_color(s.id, cx));
             let rows = group.iter().map(|&(_, ix, review)| {
                 let question = &library.questions[ix];
                 h_flex()
                     .id(("mistake", ix))
                     .test_support()
                     .gap_3()
-                    .px_1()
-                    .py_2()
-                    .border_t_1()
-                    .border_color(theme.border)
+                    .px_2()
+                    .py(px(8.))
+                    .rounded(px(6.))
+                    .text_size(px(13.))
                     .cursor_pointer()
                     .hover(|this| this.bg(theme.accent))
                     .child(
@@ -521,7 +622,7 @@ impl RevisionScreen {
                             .truncate()
                             .child(one_line(&question.stem, 110)),
                     )
-                    .child(muted(standing(review), cx).flex_shrink_0())
+                    .child(ui::chip(cx).child(standing(review)))
                     .on_click(
                         cx.listener(move |this, _, _, cx| this.open(Target::Question(ix), cx)),
                     )
@@ -530,11 +631,12 @@ impl RevisionScreen {
                 v_flex()
                     .pt_2()
                     .child(
-                        div()
+                        h_flex()
+                            .gap(px(7.))
+                            .px_2()
                             .pb_1()
-                            .text_sm()
-                            .font_semibold()
-                            .child(format!("{name} · {}", group.len())),
+                            .child(ui::dot(color))
+                            .child(ui::caption(format!("{name} · {}", group.len()), cx)),
                     )
                     .children(rows),
             );
@@ -542,7 +644,7 @@ impl RevisionScreen {
         let mistake_book = card(cx)
             .id("mistake-book")
             .test_support()
-            .child(div().font_semibold().child(format!(
+            .child(div().text_size(px(13.5)).font_semibold().child(format!(
                 "Mistake book · {}",
                 count(book.len(), "question", "questions")
             )))
@@ -565,6 +667,7 @@ impl RevisionScreen {
         let flashcards = card(cx)
             .child(
                 div()
+                    .text_size(px(13.5))
                     .font_semibold()
                     .child(format!("Flashcards · {}", library.cards.len())),
             )
@@ -582,8 +685,9 @@ impl RevisionScreen {
         } else {
             format!("{} due today", count(queue.len(), "item", "items"))
         };
-        page("Revision", summary, cx)
+        page(summary, cx)
             .child(today_card)
+            .child(boxes)
             .child(mistake_book)
             .child(flashcards)
     }
@@ -591,9 +695,14 @@ impl RevisionScreen {
 
 impl Render for RevisionScreen {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        match &self.session {
-            Some(session) => self.session_page(session, cx),
-            None => self.overview(cx),
-        }
+        let (title, body) = match &self.session {
+            Some(session) if session.at >= session.items.len() => {
+                ("Review done", self.session_page(session, cx))
+            }
+            Some(session) => ("Today's review", self.session_page(session, cx)),
+            None => ("Revision", self.overview(cx)),
+        };
+        let header = ui::header(cx).child(ui::title(IconName::Repeat, title, cx));
+        ui::screen(header, ("screen", 8usize), body)
     }
 }

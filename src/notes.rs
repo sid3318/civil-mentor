@@ -1,15 +1,15 @@
-//! The Notes screen: the list of notes, the reader, and an outline beside it.
+//! The Notes screen: the list of notes, the reader, and the inspector beside
+//! it with the outline (DESIGN.md, "Notes").
 
 use std::collections::HashSet;
 use std::time::{Duration, Instant};
 
 use gpui_kit::assets::IconName;
-use gpui_kit::component::button::{Button, ButtonGroup, ButtonVariants as _};
+use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::text::TextView;
 use gpui_kit::component::{
-    ActiveTheme as _, Disableable as _, Icon, Selectable as _, Sizable as _, StyledExt as _,
-    h_flex, v_flex,
+    Disableable as _, Icon, Selectable as _, Sizable as _, StyledExt as _, h_flex, v_flex,
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
@@ -18,17 +18,21 @@ use crate::AppState;
 use crate::app::Shell;
 use crate::content::{Target, sections};
 use crate::marks::{self, Blocks, Marking, Selection};
+use crate::mentor;
 use crate::screens::count;
 use crate::store::{MarkKind, NewMark, Study};
 use crate::syllabus::Status;
+use crate::ui;
 
 /// Reader text sizes, in pixels.
 const MIN_SIZE: u32 = 13;
 const MAX_SIZE: u32 = 24;
 /// Widths of the reading column. The narrow one keeps lines near 75
 /// characters at the default size; the wide one suits tables.
-const NARROW: f32 = 720.;
-const WIDE: f32 = 960.;
+const NARROW: f32 = 680.;
+const WIDE: f32 = 920.;
+/// How many questions the inspector's drill on the note asks.
+const DRILL: usize = 10;
 /// Reading time stops counting after this long with no scrolling or mouse
 /// movement, so a note left open overnight is not a night of study.
 pub(crate) const IDLE: Duration = Duration::from_secs(5 * 60);
@@ -53,6 +57,19 @@ pub struct NotesScreen {
     marking: Marking,
     /// The last passage the student selected in the note.
     selected: Option<Selection>,
+    /// Which notes the list shows.
+    filter: Filter,
+    /// Whether the outline and reading panel shows beside the note.
+    inspector: bool,
+}
+
+/// The notes the list shows.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Filter {
+    All,
+    Unread,
+    /// Bookmarked.
+    Saved,
 }
 
 /// Counts the time something is open in a reader, while the student is
@@ -148,6 +165,8 @@ impl NotesScreen {
             blocks: Blocks::default(),
             marking: Marking::default(),
             selected: None,
+            filter: Filter::All,
+            inspector: true,
         }
     }
 
@@ -222,10 +241,21 @@ impl NotesScreen {
         }
     }
 
-    /// Every note, bookmarked ones first, then grouped by paper and subject.
-    fn list(&self, cx: &App) -> impl IntoElement {
+    /// Every note, bookmarked ones first, then grouped by paper, with the
+    /// All, Unread and Saved filter above.
+    fn list(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
+        let t = ui::tokens(cx);
         let state = AppState::get(cx);
         let library = &state.library;
+        let filter = self.filter;
+        let shown = |ix: &usize| {
+            let reading = state.reading.get(&library.notes[*ix].id);
+            match filter {
+                Filter::All => true,
+                Filter::Unread => reading.is_none_or(|reading| reading.done.is_none()),
+                Filter::Saved => reading.is_some_and(|reading| reading.bookmarked),
+            }
+        };
         let bookmarked: Vec<usize> = (0..library.notes.len())
             .filter(|&ix| {
                 state
@@ -234,8 +264,8 @@ impl NotesScreen {
                     .is_some_and(|reading| reading.bookmarked)
             })
             .collect();
-        // In syllabus order, so that each subject's notes come together.
-        let mut order: Vec<usize> = (0..library.notes.len()).collect();
+        // In syllabus order, so that each paper's notes come together.
+        let mut order: Vec<usize> = (0..library.notes.len()).filter(shown).collect();
         order.sort_by_key(|&ix| {
             let first = library.notes[ix].topics.first();
             library
@@ -243,80 +273,140 @@ impl NotesScreen {
                 .iter()
                 .position(|topic| Some(&topic.id) == first)
         });
-        let mut subjects: Vec<(String, Vec<usize>)> = Vec::new();
+        let mut papers: Vec<(String, Vec<usize>)> = Vec::new();
         for ix in order {
-            let label = library.notes[ix]
+            let paper = library.notes[ix]
                 .topics
                 .first()
-                .map(|topic| library.subject_label(topic))
+                .map(|topic| paper_of(library, topic))
                 .unwrap_or_default();
-            match subjects.last_mut() {
-                Some((last, notes)) if *last == label => notes.push(ix),
-                _ => subjects.push((label, vec![ix])),
+            match papers.last_mut() {
+                Some((last, notes)) if *last == paper => notes.push(ix),
+                _ => papers.push((paper, vec![ix])),
             }
         }
 
-        let header = |label: String| {
-            div()
-                .px_2()
-                .pt_3()
-                .pb_1()
-                .text_xs()
-                .font_medium()
-                .text_color(cx.theme().muted_foreground)
-                .child(label)
-        };
-        // ponytail: one plain list. Fold subjects away once there are
+        let segment =
+            |id: &'static str, text: &'static str, choice: Filter, cx: &mut Context<Self>| {
+                ui::segment(id, text, filter == choice, cx)
+                    .flex_1()
+                    .on_click(cx.listener(move |this, _, _, cx| {
+                        this.filter = choice;
+                        cx.notify();
+                    }))
+            };
+        let segments = [
+            segment("filter-all", "All", Filter::All, cx),
+            segment("filter-unread", "Unread", Filter::Unread, cx),
+            segment("filter-saved", "Saved", Filter::Saved, cx),
+        ];
+        let empty = papers.is_empty();
+        let label = |text: String| ui::caption(text, cx).px(px(8.)).pt(px(14.)).pb(px(4.));
+        // ponytail: one plain list. Fold papers away once there are
         // hundreds of notes.
         v_flex()
-            .w(px(250.))
+            .w(px(272.))
             .flex_shrink_0()
             .h_full()
-            .p_2()
             .border_r_1()
-            .border_color(cx.theme().border)
-            .overflow_y_scrollbar()
-            .id("notes-list")
-            .when(!bookmarked.is_empty(), |list| {
-                list.child(header("Bookmarked".into())).children(
-                    bookmarked
-                        .iter()
-                        .map(|&ix| self.list_row(("bookmarked", ix), ix, cx)),
-                )
-            })
-            .children(subjects.into_iter().map(|(label, notes)| {
-                v_flex().child(header(label)).children(
-                    notes
-                        .into_iter()
-                        .map(|ix| self.list_row(("note", ix), ix, cx)),
-                )
-            }))
+            .border_color(t.border)
+            .child(
+                div()
+                    .px(px(10.))
+                    .pt(px(10.))
+                    .pb(px(2.))
+                    .child(ui::segmented(cx).w_full().children(segments)),
+            )
+            .child(
+                div()
+                    .flex_1()
+                    .min_h_0()
+                    .overflow_y_scrollbar()
+                    .id("notes-list")
+                    .child(
+                        v_flex()
+                            .px(px(8.))
+                            .pb_3()
+                            .when(filter == Filter::All && !bookmarked.is_empty(), |list| {
+                                list.child(label("Bookmarked".into())).children(
+                                    bookmarked
+                                        .iter()
+                                        .map(|&ix| self.list_row(("bookmarked", ix), ix, cx)),
+                                )
+                            })
+                            .children(papers.into_iter().map(|(paper, notes)| {
+                                v_flex().child(label(paper)).children(
+                                    notes
+                                        .into_iter()
+                                        .map(|ix| self.list_row(("note", ix), ix, cx)),
+                                )
+                            }))
+                            .when(empty, |list| {
+                                list.child(
+                                    ui::meta(
+                                        match filter {
+                                            Filter::Saved => "Bookmark a note and it is kept here.",
+                                            _ => "Every note is read.",
+                                        },
+                                        cx,
+                                    )
+                                    .px(px(8.))
+                                    .pt(px(14.)),
+                                )
+                            }),
+                    ),
+            )
     }
 
     fn list_row(&self, id: impl Into<ElementId>, ix: usize, cx: &App) -> impl IntoElement {
+        let t = ui::tokens(cx);
         let state = AppState::get(cx);
-        let note = &state.library.notes[ix];
+        let library = &state.library;
+        let note = &library.notes[ix];
+        let topic = note.topics.first().cloned().unwrap_or_default();
+        let questions = library.questions_for(note).len();
+        let mut meta = vec![subject_of(library, &topic), format!("{} min", note.minutes)];
+        if questions > 0 {
+            meta.push(count(questions, "question", "questions"));
+        }
+        let selected = self.note == Some(ix);
         let shell = self.shell.clone();
         h_flex()
             .id(id)
             .test_support()
             .items_start()
-            .gap_2()
-            .px_2()
-            .py_1()
-            .rounded(cx.theme().radius)
-            .text_sm()
+            .gap(px(9.))
+            .px(px(8.))
+            .py(px(6.))
+            .rounded(px(6.))
             .cursor_pointer()
-            .hover(|this| this.bg(cx.theme().accent))
-            .when(self.note == Some(ix), |this| {
-                this.bg(cx.theme().accent).font_medium()
-            })
+            .hover(|this| this.bg(t.hover))
+            .when(selected, |this| this.bg(t.accent_soft))
             .child(
                 div()
-                    .pt(px(2.))
+                    .pt(px(1.))
                     .child(Status::of(state.reading.get(&note.id)).icon(cx).small()),
             )
-            .child(div().flex_1().min_w_0().child(note.title.clone()))
+            .child(
+                v_flex()
+                    .flex_1()
+                    .min_w_0()
+                    .child(
+                        div()
+                            .truncate()
+                            .text_size(px(13.))
+                            .when(selected, |this| this.font_medium())
+                            .child(note.title.clone()),
+                    )
+                    .child(
+                        h_flex()
+                            .gap(px(6.))
+                            .text_size(px(12.))
+                            .text_color(t.text_3)
+                            .child(ui::dot(ui::subject_color(&topic, cx)))
+                            .child(div().truncate().child(meta.join(" · "))),
+                    ),
+            )
             // Not a listener: the shell updates this screen when it opens the note.
             .on_click(move |_, _, cx| {
                 let _ = shell.update(cx, |shell, cx| shell.open(Target::Note(ix), cx));
@@ -413,9 +503,10 @@ impl NotesScreen {
         cx.notify();
     }
 
-    /// The open note with its toolbar, and the outline beside it.
+    /// The open note, and the inspector beside it.
     fn reader(&mut self, cx: &mut Context<Self>) -> AnyElement {
         self.prepare_blocks(cx);
+        let t = ui::tokens(cx);
         let state = AppState::get(cx);
         let library = &state.library;
         let Some(ix) = self.note else {
@@ -429,23 +520,30 @@ impl NotesScreen {
                 .h_full()
                 .items_center()
                 .justify_center()
-                .gap_1()
-                .child(div().text_lg().font_medium().child("Pick a note to read"))
+                .gap_2()
+                .child(
+                    Icon::new(IconName::BookOpen)
+                        .size(px(28.))
+                        .text_color(t.text_4),
+                )
                 .child(
                     div()
-                        .text_sm()
-                        .text_color(cx.theme().muted_foreground)
-                        .child(format!(
-                            "You have read {read} of {}.",
-                            count(library.notes.len(), "note", "notes")
-                        )),
+                        .text_size(px(15.))
+                        .font_semibold()
+                        .child("Pick a note to read"),
                 )
+                .child(ui::meta(
+                    format!(
+                        "You have read {read} of {}.",
+                        count(library.notes.len(), "note", "notes")
+                    ),
+                    cx,
+                ))
                 .into_any_element();
         };
 
         let note = &library.notes[ix];
         let reading = state.reading.get(&note.id).copied();
-        let bookmarked = reading.is_some_and(|reading| reading.bookmarked);
         let size = state.settings.reader_size.clamp(MIN_SIZE, MAX_SIZE);
         let wide = state.settings.reader_wide;
         let distilled = self.distilled && !note.distilled.is_empty();
@@ -456,112 +554,6 @@ impl NotesScreen {
         };
         let sections = sections(text);
         let questions = library.questions_for(note);
-        let muted = cx.theme().muted_foreground;
-
-        let toolbar = h_flex()
-            .flex_shrink_0()
-            .h(px(44.))
-            .px_3()
-            .gap_1()
-            .border_b_1()
-            .border_color(cx.theme().border)
-            .child(
-                ButtonGroup::new("mode")
-                    .outline()
-                    .small()
-                    .child(Button::new("read-mode").label("Read").selected(!distilled))
-                    .child(
-                        Button::new("distilled-mode")
-                            .label("Distilled")
-                            .selected(distilled)
-                            .disabled(note.distilled.is_empty()),
-                    )
-                    .on_click(cx.listener(|this, clicked: &Vec<usize>, _, cx| {
-                        if let Some(&button) = clicked.first() {
-                            this.set_distilled(button == 1, cx);
-                        }
-                    })),
-            )
-            .child(div().flex_1())
-            .child(
-                Button::new("smaller-text")
-                    .ghost()
-                    .small()
-                    .icon(Icon::new(IconName::AArrowDown))
-                    .tooltip("Smaller text")
-                    .disabled(size <= MIN_SIZE)
-                    .on_click(move |_, _, cx| {
-                        AppState::update_settings(cx, |settings| settings.reader_size = size - 1);
-                    }),
-            )
-            .child(
-                Button::new("larger-text")
-                    .ghost()
-                    .small()
-                    .icon(Icon::new(IconName::AArrowUp))
-                    .tooltip("Larger text")
-                    .disabled(size >= MAX_SIZE)
-                    .on_click(move |_, _, cx| {
-                        AppState::update_settings(cx, |settings| settings.reader_size = size + 1);
-                    }),
-            )
-            .child(
-                Button::new("wide")
-                    .ghost()
-                    .small()
-                    .icon(Icon::new(IconName::ChevronsLeftRight))
-                    .selected(wide)
-                    .tooltip(if wide { "Narrow column" } else { "Wide column" })
-                    .on_click(|_, _, cx| {
-                        AppState::update_settings(cx, |settings| {
-                            settings.reader_wide = !settings.reader_wide
-                        });
-                    }),
-            )
-            .child(
-                Button::new("bookmark")
-                    .ghost()
-                    .small()
-                    .icon(Icon::new(if bookmarked {
-                        IconName::BookmarkCheck
-                    } else {
-                        IconName::Bookmark
-                    }))
-                    .selected(bookmarked)
-                    .tooltip(if bookmarked {
-                        "Remove the bookmark"
-                    } else {
-                        "Bookmark this note"
-                    })
-                    .on_click({
-                        let id = note.id.clone();
-                        move |_, _, cx| {
-                            AppState::update_reading(cx, &id, |reading, _| {
-                                reading.bookmarked = !reading.bookmarked
-                            });
-                        }
-                    }),
-            )
-            .child(
-                Button::new("highlight")
-                    .ghost()
-                    .small()
-                    .icon(Icon::new(IconName::PenLine))
-                    .tooltip("Highlight the selected text")
-                    .on_click(cx.listener(|this, _, window, cx| {
-                        this.start_mark(MarkKind::Highlight, window, cx)
-                    })),
-            )
-            .child(
-                Button::new("clip")
-                    .ghost()
-                    .small()
-                    .icon(Icon::new(IconName::NotebookText))
-                    .tooltip("Keep the selected text as a clip")
-                    .on_click(cx.listener(|this, _, window, cx| {
-                        this.start_mark(MarkKind::Clip, window, cx)
-                    })),
-            );
 
         // Every child of the reader is one of these, so the outline can find
         // a section by its position.
@@ -574,9 +566,12 @@ impl NotesScreen {
                 .child(child)
         };
 
-        let mut facts = vec![format!("{} min read", note.minutes)];
+        let mut facts = vec![(IconName::Clock, format!("{} min read", note.minutes))];
         if !questions.is_empty() {
-            facts.push(count(questions.len(), "question", "questions"));
+            facts.push((
+                IconName::CircleQuestionMark,
+                count(questions.len(), "question", "questions"),
+            ));
         }
         let years: Vec<String> = library
             .years_asked(note)
@@ -584,42 +579,56 @@ impl NotesScreen {
             .map(u16::to_string)
             .collect();
         if !years.is_empty() {
-            facts.push(format!("asked in {}", years.join(", ")));
+            facts.push((
+                IconName::CalendarClock,
+                format!("asked in {}", years.join(", ")),
+            ));
         }
         if let Some(updated) = note.updated {
-            facts.push(format!("updated {}", updated.format("%-d %b %Y")));
+            facts.push((
+                IconName::Calendar,
+                format!("updated {}", updated.format("%-d %b %Y")),
+            ));
         }
-        let subject = note
-            .topics
-            .first()
-            .map(|topic| library.subject_label(topic))
-            .unwrap_or_default();
+        let topic = note.topics.first().cloned().unwrap_or_default();
         let header = v_flex()
             .pt_8()
-            .pb_4()
-            .gap_2()
-            .child(div().text_sm().text_color(muted).child(subject))
+            .pb_5()
+            .gap(px(10.))
+            .items_start()
+            .child(ui::subject_chip(
+                library.subject_label(&topic),
+                ui::subject_color(&topic, cx),
+                cx,
+            ))
             .child(
                 div()
+                    .font_family(ui::DISPLAY)
                     .text_size(px(size as f32 * 1.75))
                     .line_height(relative(1.2))
                     .font_semibold()
                     .child(note.title.clone()),
             )
-            .child(div().text_sm().text_color(muted).child(facts.join(" · ")));
+            .child(
+                h_flex()
+                    .w_full()
+                    .flex_wrap()
+                    .gap_x_4()
+                    .gap_y_1()
+                    .pb_4()
+                    .border_b_1()
+                    .border_color(t.border)
+                    .text_size(px(12.))
+                    .text_color(t.text_3)
+                    .children(facts.into_iter().map(|(icon, fact)| {
+                        h_flex()
+                            .gap(px(5.))
+                            .child(Icon::new(icon).size(px(13.)))
+                            .child(fact)
+                    })),
+            );
 
         let done = reading.and_then(|reading| reading.done);
-        let mark = {
-            let id = note.id.clone();
-            move |_: &ClickEvent, _: &mut Window, cx: &mut App| {
-                AppState::update_reading(cx, &id, |reading, today| {
-                    reading.done = match reading.done {
-                        Some(_) => None,
-                        None => Some(today),
-                    };
-                });
-            }
-        };
         let footer = match done {
             None => h_flex()
                 .py_8()
@@ -629,18 +638,21 @@ impl NotesScreen {
                         .primary()
                         .icon(Icon::new(IconName::Check))
                         .label("Mark as read")
-                        .on_click(mark),
+                        .on_click(toggle_read(&note.id)),
                 )
-                .child(
-                    div()
-                        .text_sm()
-                        .text_color(muted)
-                        .child("It then counts towards your syllabus coverage."),
-                ),
+                .child(ui::meta(
+                    "It then counts towards your syllabus coverage.",
+                    cx,
+                )),
             Some(day) => h_flex()
                 .py_8()
                 .gap_2()
-                .child(Icon::new(IconName::CircleCheck).text_color(cx.theme().success))
+                .text_size(px(13.5))
+                .child(
+                    Icon::new(IconName::CircleCheck)
+                        .size_4()
+                        .text_color(t.success),
+                )
                 .child(format!(
                     "You marked this read on {}.",
                     day.format("%-d %B %Y")
@@ -650,11 +662,13 @@ impl NotesScreen {
                         .ghost()
                         .small()
                         .label("Mark as unread")
-                        .on_click(mark),
+                        .on_click(toggle_read(&note.id)),
                 ),
         };
 
         let section_views = sections.iter().enumerate().map(|(k, section)| {
+            // The trap is the one section set apart, as a callout.
+            let trap = section.heading == Some("The trap");
             column(
                 div()
                     .when(section.heading.is_some(), |this| this.pt_6())
@@ -662,6 +676,16 @@ impl NotesScreen {
                         div()
                             .id(("note-section", k))
                             .test_support()
+                            .font_family(ui::SERIF)
+                            .line_height(relative(1.65))
+                            .when(trap, |this| {
+                                this.px_4()
+                                    .py_3()
+                                    .rounded(px(8.))
+                                    .bg(t.attention.opacity(0.1))
+                                    .border_l_2()
+                                    .border_color(t.attention)
+                            })
                             .child(self.blocks.view(&k.to_string())),
                     )
                     .into_any_element(),
@@ -709,47 +733,6 @@ impl NotesScreen {
                 sections.len() + 2,
             ));
         }
-        let panel = v_flex()
-            .w(px(220.))
-            .flex_shrink_0()
-            .h_full()
-            .p_3()
-            .gap_1()
-            .border_l_1()
-            .border_color(cx.theme().border)
-            .text_sm()
-            .overflow_y_scrollbar()
-            .id("outline")
-            .when(!outline.is_empty(), |panel| {
-                panel.child(
-                    div()
-                        .pb_1()
-                        .text_xs()
-                        .font_medium()
-                        .text_color(muted)
-                        .child("On this page"),
-                )
-            })
-            .children(
-                outline
-                    .into_iter()
-                    .enumerate()
-                    .map(|(entry, (title, child))| {
-                        div()
-                            .id(("outline", entry))
-                            .test_support()
-                            .px_2()
-                            .py_1()
-                            .rounded(cx.theme().radius)
-                            .cursor_pointer()
-                            .hover(|this| this.bg(cx.theme().accent))
-                            .child(title)
-                            .on_click(cx.listener(move |this, _, _, cx| {
-                                this.scroll.scroll_to_top_of_item(child);
-                                cx.notify();
-                            }))
-                    }),
-            );
 
         div()
             .flex()
@@ -757,27 +740,197 @@ impl NotesScreen {
             .min_w_0()
             .h_full()
             .child(
+                v_flex().flex_1().min_w_0().h_full().children(bar).child(
+                    div()
+                        .relative()
+                        .flex_1()
+                        .min_h_0()
+                        .child(reader)
+                        .vertical_scrollbar(&self.scroll),
+                ),
+            )
+            .when(self.inspector, |this| {
+                this.child(self.inspector(ix, outline, cx))
+            })
+            .into_any_element()
+    }
+
+    /// Beside the note: its outline, how far the student has read it, and
+    /// a drill on it.
+    fn inspector(
+        &self,
+        ix: usize,
+        outline: Vec<(SharedString, usize)>,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement + use<> {
+        let t = ui::tokens(cx);
+        let state = AppState::get(cx);
+        let library = &state.library;
+        let note = &library.notes[ix];
+        let reading = state.reading.get(&note.id).copied();
+        let done = reading.and_then(|reading| reading.done).is_some();
+        let seconds = reading.map_or(0, |reading| reading.seconds);
+        let share = if done {
+            1.
+        } else {
+            (seconds as f32 / (note.minutes.max(1) * 60) as f32).min(0.99)
+        };
+        let left = note.minutes.saturating_sub(seconds / 60).max(1);
+        let topic = note.topics.first().cloned().unwrap_or_default();
+        // A note carries Mains and Prelims topics; the drill is on the one
+        // with the most questions.
+        let drill = note
+            .topics
+            .iter()
+            .map(|topic| mentor::topic_drill(library, topic, DRILL))
+            .max_by_key(|plan| plan.count)
+            .unwrap_or_else(|| mentor::topic_drill(library, &topic, DRILL));
+        let questions = library.questions_for(note).len();
+        let entries = outline
+            .into_iter()
+            .enumerate()
+            .map(|(entry, (title, child))| {
+                div()
+                    .id(("outline", entry))
+                    .test_support()
+                    .h(px(28.))
+                    .px(px(10.))
+                    .flex()
+                    .items_center()
+                    .rounded(px(6.))
+                    .text_size(px(13.))
+                    .text_color(t.text_2)
+                    .cursor_pointer()
+                    .hover(|this| this.bg(t.hover).text_color(t.text))
+                    .child(div().truncate().child(title))
+                    .on_click(cx.listener(move |this, _, _, cx| {
+                        this.scroll.scroll_to_top_of_item(child);
+                        cx.notify();
+                    }))
+            });
+        v_flex()
+            .w(px(300.))
+            .flex_shrink_0()
+            .h_full()
+            .border_l_1()
+            .border_color(t.border)
+            .overflow_y_scrollbar()
+            .id("outline")
+            .child(
                 v_flex()
-                    .flex_1()
-                    .min_w_0()
-                    .h_full()
-                    .child(toolbar)
-                    .children(bar)
+                    .p(px(12.))
+                    .gap(px(2.))
+                    .child(ui::caption("On this page", cx).px(px(10.)).pb(px(6.)))
+                    .children(entries),
+            )
+            .child(
+                ui::card(cx)
+                    .mx(px(12.))
+                    .mt(px(6.))
                     .child(
-                        div()
-                            .relative()
-                            .flex_1()
-                            .min_h_0()
-                            .child(reader)
-                            .vertical_scrollbar(&self.scroll),
+                        h_flex()
+                            .gap(px(12.))
+                            .p(px(12.))
+                            .child(ui::ring(
+                                share,
+                                40.,
+                                5.,
+                                if done { t.success } else { t.accent },
+                                div(),
+                                cx,
+                            ))
+                            .child(
+                                v_flex()
+                                    .child(div().text_size(px(13.)).font_medium().child(if done {
+                                        "Read".to_string()
+                                    } else {
+                                        format!("{}% read", (share * 100.).round())
+                                    }))
+                                    .child(ui::meta(
+                                        if done {
+                                            "It counts towards your coverage".to_string()
+                                        } else {
+                                            format!("About {left} min left")
+                                        },
+                                        cx,
+                                    )),
+                            ),
+                    )
+                    .child(
+                        div().px(px(12.)).pb(px(12.)).child(
+                            Button::new("inspector-mark-read")
+                                .small()
+                                .w_full()
+                                .when(!done, |this| this.primary())
+                                .icon(Icon::new(IconName::Check))
+                                .label(if done {
+                                    "Mark as unread"
+                                } else {
+                                    "Mark as read"
+                                })
+                                .on_click(toggle_read(&note.id)),
+                        ),
                     ),
             )
-            .child(panel)
-            .into_any_element()
+            .when(drill.count > 0, |this| {
+                this.child(
+                    ui::card(cx)
+                        .mx(px(12.))
+                        .mt(px(10.))
+                        .mb(px(12.))
+                        .child(
+                            h_flex()
+                                .gap(px(12.))
+                                .p(px(12.))
+                                .child(
+                                    div()
+                                        .flex_shrink_0()
+                                        .size(px(32.))
+                                        .rounded(px(8.))
+                                        .flex()
+                                        .items_center()
+                                        .justify_center()
+                                        .bg(ui::subject_color(&topic, cx).opacity(0.14))
+                                        .child(
+                                            Icon::new(IconName::SquarePen)
+                                                .size(px(15.))
+                                                .text_color(ui::subject_color(&topic, cx)),
+                                        ),
+                                )
+                                .child(
+                                    v_flex()
+                                        .min_w_0()
+                                        .child(div().text_size(px(13.)).font_medium().child(count(
+                                            questions,
+                                            "question",
+                                            "questions",
+                                        )))
+                                        .child(ui::meta("on what this note covers", cx)),
+                                ),
+                        )
+                        .child(
+                            div().px(px(12.)).pb(px(12.)).child(
+                                Button::new("practise-note")
+                                    .small()
+                                    .w_full()
+                                    .label(format!(
+                                        "Practise {}",
+                                        count(drill.count, "question", "questions")
+                                    ))
+                                    .on_click(cx.listener(move |this, _, _, cx| {
+                                        let plan = drill.clone();
+                                        let _ =
+                                            this.shell.update(cx, |shell, cx| shell.sit(&plan, cx));
+                                    })),
+                            ),
+                        ),
+                )
+            })
     }
 
     /// The questions that go with the note, each with its answer behind a button.
     fn questions(&self, questions: &[usize], cx: &Context<Self>) -> impl IntoElement {
+        let t = ui::tokens(cx);
         let library = &AppState::get(cx).library;
         let cards = questions.iter().map(|&ix| {
             let question = &library.questions[ix];
@@ -786,49 +939,62 @@ impl NotesScreen {
                 let right = shown && Some(option) == question.answer;
                 h_flex()
                     .items_start()
-                    .gap_2()
-                    .when(right, |this| {
-                        this.font_medium().text_color(cx.theme().success)
-                    })
+                    .gap(px(10.))
+                    .text_size(px(13.5))
+                    .when(right, |this| this.font_medium().text_color(t.success))
                     .child(
                         div()
                             .flex_shrink_0()
-                            .w(px(28.))
-                            .child(format!("({})", ["A", "B", "C", "D"][option])),
+                            .size(px(22.))
+                            .rounded_full()
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .text_size(px(11.))
+                            .font_semibold()
+                            .border_1()
+                            .border_color(if right { t.success } else { t.border_2 })
+                            .when(right, |this| this.bg(t.success).text_color(t.on_accent))
+                            .child(["A", "B", "C", "D"][option]),
                     )
-                    .child(div().min_w_0().child(text.clone()))
-                    .when(right, |this| this.child(Icon::new(IconName::Check)))
+                    .child(div().min_w_0().pt(px(2.)).child(text.clone()))
             });
-            v_flex()
+            ui::card(cx)
                 .p_4()
-                .gap_3()
-                .rounded(cx.theme().radius_lg)
-                .border_1()
-                .border_color(cx.theme().border)
+                .gap(px(12.))
                 .when(!question.source.is_empty(), |card| {
+                    card.child(ui::meta(question.source.clone(), cx))
+                })
+                .child(
+                    div()
+                        .text_size(px(14.))
+                        .child(TextView::markdown(("stem", ix), question.stem.clone())),
+                )
+                .child(v_flex().gap(px(8.)).children(options))
+                .when(shown, |card| {
                     card.child(
                         div()
-                            .text_xs()
-                            .text_color(cx.theme().muted_foreground)
-                            .child(question.source.clone()),
+                            .text_size(px(13.5))
+                            .text_color(t.text_2)
+                            .child(question.explanation.clone()),
                     )
-                })
-                .child(TextView::markdown(("stem", ix), question.stem.clone()))
-                .child(v_flex().gap_1().children(options))
-                .when(shown, |card| {
-                    card.child(div().child(question.explanation.clone()))
-                        .when_some(question.trap.clone(), |card, trap| {
-                            card.child(
-                                div()
-                                    .text_color(cx.theme().muted_foreground)
-                                    .child(format!("The trap: {trap}")),
-                            )
-                        })
+                    .when_some(question.trap.clone(), |card, trap| {
+                        card.child(
+                            div()
+                                .px_3()
+                                .py_2()
+                                .rounded(px(6.))
+                                .bg(t.attention.opacity(0.1))
+                                .border_l_2()
+                                .border_color(t.attention)
+                                .text_size(px(13.))
+                                .child(format!("The trap: {trap}")),
+                        )
+                    })
                 })
                 .child(
                     h_flex().child(
                         Button::new(("answer", ix))
-                            .outline()
                             .small()
                             .label(if shown {
                                 "Hide the answer"
@@ -846,24 +1012,224 @@ impl NotesScreen {
         });
         v_flex()
             .pb_16()
-            .gap_3()
+            .gap(px(12.))
             .child(
                 div()
-                    .text_size(rems(1.25))
+                    .font_family(ui::DISPLAY)
+                    .text_size(px(20.))
                     .font_semibold()
                     .child("Questions on this note"),
             )
             .children(cards)
     }
-}
 
-impl Render for NotesScreen {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn panes(&mut self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         div()
             .flex()
             .size_full()
             .on_mouse_move(cx.listener(|this, _, _, cx| this.touch(cx)))
             .child(self.list(cx))
             .child(self.reader(cx))
+    }
+
+    /// The header: the breadcrumb to the open note, Read or Distilled, and
+    /// the reader's controls.
+    fn header(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
+        let t = ui::tokens(cx);
+        let state = AppState::get(cx);
+        let library = &state.library;
+        let Some(ix) = self.note else {
+            return ui::header(cx)
+                .child(ui::title(IconName::BookOpen, "Notes", cx))
+                .into_any_element();
+        };
+        let note = &library.notes[ix];
+        let topic = note.topics.first().cloned().unwrap_or_default();
+        let bookmarked = state
+            .reading
+            .get(&note.id)
+            .is_some_and(|reading| reading.bookmarked);
+        let size = state.settings.reader_size.clamp(MIN_SIZE, MAX_SIZE);
+        let wide = state.settings.reader_wide;
+        let has_distilled = !note.distilled.is_empty();
+        let distilled = self.distilled && has_distilled;
+        let chevron = || {
+            Icon::new(IconName::ChevronRight)
+                .size(px(13.))
+                .text_color(t.text_4)
+        };
+        let icon_button = |id: &'static str, icon: IconName, tip: &'static str| {
+            Button::new(id)
+                .ghost()
+                .small()
+                .icon(Icon::new(icon))
+                .tooltip(tip)
+        };
+        ui::header(cx)
+            .child(
+                h_flex()
+                    .flex_1()
+                    .min_w_0()
+                    .gap(px(6.))
+                    .text_size(px(13.))
+                    .text_color(t.text_3)
+                    .child(div().flex_shrink_0().child("Notes"))
+                    .child(chevron())
+                    .child(div().flex_shrink_0().child(library.subject_label(&topic)))
+                    .child(chevron())
+                    .child(
+                        div()
+                            .min_w_0()
+                            .truncate()
+                            .font_medium()
+                            .text_color(t.text)
+                            .child(note.title.clone()),
+                    )
+                    .child(
+                        ui::segmented(cx)
+                            .ml_2()
+                            .child(ui::segment("read-mode", "Read", !distilled, cx).on_click(
+                                cx.listener(|this, _, _, cx| this.set_distilled(false, cx)),
+                            ))
+                            .child(
+                                ui::segment("distilled-mode", "Distilled", distilled, cx)
+                                    .when(!has_distilled, |this| this.opacity(0.5))
+                                    .when(has_distilled, |this| {
+                                        this.on_click(cx.listener(|this, _, _, cx| {
+                                            this.set_distilled(true, cx)
+                                        }))
+                                    }),
+                            ),
+                    )
+                    .child(div().flex_1())
+                    .child(
+                        icon_button("smaller-text", IconName::AArrowDown, "Smaller text")
+                            .disabled(size <= MIN_SIZE)
+                            .on_click(move |_, _, cx| {
+                                AppState::update_settings(cx, |settings| {
+                                    settings.reader_size = size - 1
+                                });
+                            }),
+                    )
+                    .child(
+                        icon_button("larger-text", IconName::AArrowUp, "Larger text")
+                            .disabled(size >= MAX_SIZE)
+                            .on_click(move |_, _, cx| {
+                                AppState::update_settings(cx, |settings| {
+                                    settings.reader_size = size + 1
+                                });
+                            }),
+                    )
+                    .child(
+                        icon_button(
+                            "wide",
+                            IconName::ChevronsLeftRight,
+                            if wide { "Narrow column" } else { "Wide column" },
+                        )
+                        .selected(wide)
+                        .on_click(|_, _, cx| {
+                            AppState::update_settings(cx, |settings| {
+                                settings.reader_wide = !settings.reader_wide
+                            });
+                        }),
+                    )
+                    .child(
+                        icon_button(
+                            "highlight",
+                            IconName::Highlighter,
+                            "Highlight the selected text",
+                        )
+                        .on_click(cx.listener(|this, _, window, cx| {
+                            this.start_mark(MarkKind::Highlight, window, cx)
+                        })),
+                    )
+                    .child(
+                        icon_button(
+                            "clip",
+                            IconName::NotebookText,
+                            "Keep the selected text as a clip",
+                        )
+                        .on_click(cx.listener(|this, _, window, cx| {
+                            this.start_mark(MarkKind::Clip, window, cx)
+                        })),
+                    )
+                    .child(
+                        icon_button(
+                            "bookmark",
+                            if bookmarked {
+                                IconName::BookmarkCheck
+                            } else {
+                                IconName::Bookmark
+                            },
+                            if bookmarked {
+                                "Remove the bookmark"
+                            } else {
+                                "Bookmark this note"
+                            },
+                        )
+                        .selected(bookmarked)
+                        .on_click({
+                            let id = note.id.clone();
+                            move |_, _, cx| {
+                                AppState::update_reading(cx, &id, |reading, _| {
+                                    reading.bookmarked = !reading.bookmarked
+                                });
+                            }
+                        }),
+                    )
+                    .child(
+                        icon_button(
+                            "inspector",
+                            IconName::PanelRight,
+                            "Show or hide the outline",
+                        )
+                        .selected(self.inspector)
+                        .on_click(cx.listener(|this, _, _, cx| {
+                            this.inspector = !this.inspector;
+                            cx.notify();
+                        })),
+                    ),
+            )
+            .into_any_element()
+    }
+}
+
+/// Marks a note read, or unread again, the same from the footer and the
+/// inspector.
+fn toggle_read(note: &str) -> impl Fn(&ClickEvent, &mut Window, &mut App) + 'static {
+    let id = note.to_string();
+    move |_, _, cx| {
+        AppState::update_reading(cx, &id, |reading, today| {
+            reading.done = match reading.done {
+                Some(_) => None,
+                None => Some(today),
+            };
+        });
+    }
+}
+
+/// "GS-1" for any topic in Mains GS Paper I: the paper, which the list
+/// groups notes by.
+fn paper_of(library: &crate::content::Library, topic: &str) -> String {
+    let paper: Vec<&str> = topic.split('.').take(2).collect();
+    let id = paper.join(".");
+    library.topic(&id).map_or(id, |topic| topic.title.clone())
+}
+
+/// "Constitution and polity" for a topic in it: the subject, shown on each
+/// row of the list.
+fn subject_of(library: &crate::content::Library, topic: &str) -> String {
+    let subject: Vec<&str> = topic.split('.').take(3).collect();
+    let id = subject.join(".");
+    library.topic(&id).map_or(id, |topic| topic.title.clone())
+}
+
+impl Render for NotesScreen {
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let header = self.header(cx);
+        v_flex()
+            .size_full()
+            .child(header)
+            .child(div().flex_1().min_h_0().child(self.panes(cx)))
     }
 }

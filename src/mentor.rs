@@ -1317,9 +1317,27 @@ pub struct Insights {
     pub today_seconds: u32,
 }
 
+/// What a mentor insight is about. Today picks its icon and colour by it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Insight {
+    /// The weakest topic.
+    Weak,
+    /// Marks won or lost by guessing.
+    Guesses,
+    /// How attempting more or fewer questions pays.
+    Attempts,
+    /// Seconds per question against the budget.
+    Pace,
+    /// The week's study against the goal.
+    Week,
+    /// A much-asked topic not read yet.
+    HighYield,
+}
+
 /// A piece of advice for the Today screen.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Card {
+    pub kind: Insight,
     pub text: String,
     /// The topic it is about, for its Open note and Drill buttons.
     pub topic: Option<String>,
@@ -1419,9 +1437,14 @@ impl Insights {
     /// goal, then the most-asked unread topic.
     pub fn cards(&self, library: &Library) -> Vec<Card> {
         let mut cards = Vec::new();
-        let card = |text: String| Card { text, topic: None };
+        let card = |kind: Insight, text: String| Card {
+            kind,
+            text,
+            topic: None,
+        };
         if let Some(weak) = self.weak.first() {
             cards.push(Card {
+                kind: Insight::Weak,
                 text: format!(
                     "{}: {}% right over {} questions.",
                     topic_title(library, &weak.topic),
@@ -1437,7 +1460,7 @@ impl Insights {
             .find(|(level, _)| *level == Some(Confidence::Guess));
         if let Some((_, guess)) = guesses.filter(|(_, g)| g.answered() > 0 && g.marks != 0.0) {
             let per_test = guess.marks / self.tests.max(1) as f64;
-            cards.push(card(if per_test < 0.0 {
+            cards.push(card(Insight::Guesses, if per_test < 0.0 {
                 format!(
                     "Guesses cost you {} marks per test. Skip a question unless you can rule out two options.",
                     one_decimal(-per_test)
@@ -1453,7 +1476,7 @@ impl Insights {
             let asked = self.overall.answered() + self.overall.blank;
             let attempted = percent(self.overall.answered(), asked);
             let right = percent(self.overall.right, self.overall.answered());
-            cards.push(card(if per_attempt > 0.0 && self.overall.blank == 0 {
+            cards.push(card(Insight::Attempts, if per_attempt > 0.0 && self.overall.blank == 0 {
                 format!(
                     "You attempt every question and get {right}% of them right, so each attempt earns {} marks. At this accuracy attempting pays, so keep attempting.",
                     one_decimal(per_attempt)
@@ -1472,27 +1495,34 @@ impl Insights {
         }
         if let Some(pace) = self.seconds_per_question {
             let budget = SECONDS_PER_QUESTION as f64;
-            cards.push(card(format!(
-                "You spend {} seconds a question against the {} second budget. {}",
-                pace.round(),
-                SECONDS_PER_QUESTION,
-                if pace > budget {
-                    "Speed up to finish the paper."
-                } else {
-                    "That leaves time to go back to marked questions."
-                }
-            )));
+            cards.push(card(
+                Insight::Pace,
+                format!(
+                    "You spend {} seconds a question against the {} second budget. {}",
+                    pace.round(),
+                    SECONDS_PER_QUESTION,
+                    if pace > budget {
+                        "Speed up to finish the paper."
+                    } else {
+                        "That leaves time to go back to marked questions."
+                    }
+                ),
+            ));
         }
         if self.week_seconds > 0 {
-            cards.push(card(format!(
-                "You studied {} in the last 7 days, {}% of your {} goal.",
-                hours(self.week_seconds),
-                percent(self.week_seconds as usize, self.week_goal as usize),
-                hours(self.week_goal)
-            )));
+            cards.push(card(
+                Insight::Week,
+                format!(
+                    "You studied {} in the last 7 days, {}% of your {} goal.",
+                    hours(self.week_seconds),
+                    percent(self.week_seconds as usize, self.week_goal as usize),
+                    hours(self.week_goal)
+                ),
+            ));
         }
         if let Some((topic, asked)) = self.high_yield.first() {
             cards.push(Card {
+                kind: Insight::HighYield,
                 text: format!(
                     "{}: {asked} past UPSC questions, and you have not read it yet.",
                     topic_title(library, topic)

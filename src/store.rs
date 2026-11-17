@@ -182,7 +182,7 @@ impl Default for Settings {
             exam_date: NaiveDate::from_ymd_opt(2027, 5, 23).expect("valid date"),
             daily_minutes: 90,
             theme: ThemeChoice::Light,
-            reader_size: 16,
+            reader_size: 17,
             reader_wide: false,
         }
     }

@@ -141,25 +141,10 @@ impl Blocks {
     }
 }
 
-/// The colour a highlight paints behind the words it covers.
+/// The colour a highlight paints behind the words it covers: the
+/// `highlight` token from DESIGN.md.
 pub fn highlight(cx: &App) -> Hsla {
-    // The theme's own yellow is not opaque, and translucent over cream reads
-    // as nothing, so the highlight is an amber of its own.
-    if cx.theme().is_dark() {
-        Hsla {
-            h: 0.13,
-            s: 0.9,
-            l: 0.5,
-            a: 0.45,
-        }
-    } else {
-        Hsla {
-            h: 0.13,
-            s: 1.0,
-            l: 0.72,
-            a: 0.7,
-        }
-    }
+    crate::ui::tokens(cx).highlight
 }
 
 /// The ranges of `part` that "highlight" marks cover in this block's text.

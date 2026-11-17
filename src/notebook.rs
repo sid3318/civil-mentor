@@ -3,12 +3,11 @@
 //! themselves.
 
 use gpui_kit::assets::IconName;
-use gpui_kit::component::button::{Button, ButtonGroup, ButtonVariants as _};
+use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::input::{Input, InputState, Textarea, TextareaState};
 use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::{
-    ActiveTheme as _, Disableable as _, Icon, Selectable as _, Sizable as _, StyledExt as _,
-    h_flex, v_flex,
+    ActiveTheme as _, Disableable as _, Icon, Sizable as _, StyledExt as _, h_flex, v_flex,
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
@@ -18,6 +17,7 @@ use crate::app::Shell;
 use crate::content::{Library, Target};
 use crate::screens::count;
 use crate::store::{Mark, MarkKind, MyNote};
+use crate::ui;
 
 /// Which of the Notebook's lists is showing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -218,67 +218,36 @@ impl NotebookScreen {
 
     /// The filter and the entries it shows.
     fn list(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let muted = cx.theme().muted_foreground;
-        let filters = ButtonGroup::new("notebook-filter")
-            .outline()
-            .small()
-            .child(
-                Button::new("nb-all")
-                    .label("All")
-                    .selected(self.kind == Kind::All),
-            )
-            .child(
-                Button::new("nb-highlights")
-                    .label("Highlights")
-                    .selected(self.kind == Kind::Highlights),
-            )
-            .child(
-                Button::new("nb-clips")
-                    .label("Clips")
-                    .selected(self.kind == Kind::Clips),
-            )
-            .child(
-                Button::new("nb-bookmarks")
-                    .label("Bookmarks")
-                    .selected(self.kind == Kind::Bookmarks),
-            )
-            .child(
-                Button::new("nb-notes")
-                    .label("My notes")
-                    .selected(self.kind == Kind::Notes),
-            )
-            .on_click(cx.listener(|this, clicked: &Vec<usize>, _, cx| {
-                if let Some(&button) = clicked.first() {
-                    this.kind = [
-                        Kind::All,
-                        Kind::Highlights,
-                        Kind::Clips,
-                        Kind::Bookmarks,
-                        Kind::Notes,
-                    ][button];
-                    this.item = Item::Blank;
-                    this.editing = None;
-                    this.title = None;
-                    this.body = None;
-                    cx.notify();
-                }
-            }));
-
+        let t = ui::tokens(cx);
+        let muted = t.text_3;
         let row =
             |id: ElementId, title: String, detail: String, item: Item, cx: &mut Context<Self>| {
                 let open = matches!(self.item, ref showing if *showing == item);
                 v_flex()
                     .id(id)
                     .test_support()
-                    .px_3()
-                    .py_2()
-                    .gap_1()
-                    .rounded(cx.theme().radius)
+                    .px(px(10.))
+                    .py(px(8.))
+                    .gap(px(2.))
+                    .rounded(px(6.))
                     .cursor_pointer()
-                    .when(open, |this| this.bg(cx.theme().accent))
-                    .hover(|this| this.bg(cx.theme().accent))
-                    .child(div().text_sm().font_medium().child(title))
-                    .child(div().text_xs().text_color(muted).child(detail))
+                    .when(open, |this| this.bg(t.accent_soft))
+                    .hover(|this| this.bg(t.hover))
+                    .child(
+                        div()
+                            .text_size(px(13.))
+                            .font_medium()
+                            .line_clamp(2)
+                            .text_ellipsis()
+                            .child(title),
+                    )
+                    .child(
+                        div()
+                            .truncate()
+                            .text_size(px(12.))
+                            .text_color(muted)
+                            .child(detail),
+                    )
                     .on_click(cx.listener(move |this, _, window, cx| {
                         this.show(item.clone(), window, cx);
                     }))
@@ -333,44 +302,22 @@ impl NotebookScreen {
         }
 
         v_flex()
-            .w(px(330.))
+            .w(px(300.))
             .flex_shrink_0()
             .h_full()
             .border_r_1()
-            .border_color(cx.theme().border)
-            .child(
-                v_flex()
-                    .p_3()
-                    .gap_2()
-                    .border_b_1()
-                    .border_color(cx.theme().border)
-                    .child(filters)
-                    .child(
-                        Button::new("new-note")
-                            .outline()
-                            .small()
-                            .icon(Icon::new(IconName::SquarePen))
-                            .label("New note")
-                            .on_click(cx.listener(|this, _, window, cx| this.new_note(window, cx))),
-                    ),
-            )
+            .border_color(t.border)
             .child(
                 v_flex()
                     .id("notebook-list")
                     .test_support()
                     .flex_1()
                     .min_h_0()
-                    .p_2()
-                    .gap_1()
+                    .p(px(8.))
+                    .gap(px(2.))
                     .overflow_y_scrollbar()
                     .when(rows.is_empty(), |this| {
-                        this.child(
-                            div()
-                                .p_3()
-                                .text_sm()
-                                .text_color(muted)
-                                .child("Nothing here yet."),
-                        )
+                        this.child(ui::meta("Nothing here yet.", cx).p_3())
                     })
                     .children(rows),
             )
@@ -611,35 +558,63 @@ fn blank(cx: &App) -> AnyElement {
         .into_any_element()
 }
 
+impl NotebookScreen {
+    fn body(&mut self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
+        div().flex().size_full().child(self.list(cx)).child(
+            div()
+                .id("notebook-pane")
+                .test_support()
+                .flex_1()
+                .min_w_0()
+                .h_full()
+                .overflow_y_scrollbar()
+                .child(self.pane(cx)),
+        )
+    }
+
+    fn set_kind(&mut self, kind: Kind, cx: &mut Context<Self>) {
+        self.kind = kind;
+        self.item = Item::Blank;
+        self.editing = None;
+        self.title = None;
+        self.body = None;
+        cx.notify();
+    }
+}
+
 impl Render for NotebookScreen {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let kind = self.kind;
+        let filters = [
+            ("nb-all", "All", Kind::All),
+            ("nb-highlights", "Highlights", Kind::Highlights),
+            ("nb-clips", "Clips", Kind::Clips),
+            ("nb-bookmarks", "Bookmarks", Kind::Bookmarks),
+            ("nb-notes", "My notes", Kind::Notes),
+        ]
+        .map(|(id, label, choice)| {
+            ui::segment(id, label, kind == choice, cx)
+                .on_click(cx.listener(move |this, _, _, cx| this.set_kind(choice, cx)))
+        });
+        let header = ui::header(cx).child(
+            h_flex()
+                .flex_1()
+                .gap_3()
+                .child(ui::title(IconName::NotebookText, "Notebook", cx))
+                .child(ui::segmented(cx).children(filters))
+                .child(div().flex_1())
+                .child(
+                    Button::new("new-note")
+                        .primary()
+                        .small()
+                        .icon(Icon::new(IconName::SquarePen))
+                        .label("New note")
+                        .on_click(cx.listener(|this, _, window, cx| this.new_note(window, cx))),
+                ),
+        );
         v_flex()
             .size_full()
-            .child(
-                v_flex()
-                    .px_6()
-                    .pt_5()
-                    .pb_3()
-                    .gap_1()
-                    .child(div().text_2xl().font_semibold().child("Notebook"))
-                    .child(
-                        div()
-                            .text_sm()
-                            .text_color(cx.theme().muted_foreground)
-                            .child("Your highlights, clips, bookmarks and own notes."),
-                    ),
-            )
-            .child(
-                div().flex().flex_1().min_h_0().child(self.list(cx)).child(
-                    div()
-                        .id("notebook-pane")
-                        .test_support()
-                        .flex_1()
-                        .min_w_0()
-                        .h_full()
-                        .overflow_y_scrollbar()
-                        .child(self.pane(cx)),
-                ),
-            )
+            .child(header)
+            .child(div().flex_1().min_h_0().child(self.body(cx)))
     }
 }

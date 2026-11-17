@@ -11,6 +11,7 @@
 //!   the plan and the insights, and [`demo`] makes up history to show them.
 //! - `revision` is the mistake book and flashcards, `notebook` the
 //!   student's highlights, clips and own notes, and `mains` answer writing.
+//! - `ui` is the shared look from DESIGN.md: colours, fonts and small parts.
 
 mod analysis;
 mod app;
@@ -31,6 +32,7 @@ mod settings;
 pub mod store;
 pub mod syllabus;
 mod today;
+mod ui;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -40,7 +42,7 @@ use gpui_kit::assets::Assets;
 use gpui_kit::component::{Theme, ThemeMode, ThemeRegistry, TitleBar};
 use gpui_kit::{
     AnyWindowHandle, App, AppContext as _, AssetSource, Bounds, Entity, Global, Result,
-    SharedString, WindowBounds, WindowOptions, px, size,
+    SharedString, TitlebarOptions, WindowBounds, WindowOptions, point, px, size,
 };
 
 pub use app::{Screen, Shell};
@@ -58,20 +60,35 @@ gpui_kit::assets::icon_assets!(
         Bookmark,
         BookmarkCheck,
         Calendar,
+        CalendarClock,
+        CalendarDays,
         ChartColumn,
         ChevronsLeftRight,
         Circle,
         CircleDot,
+        CircleQuestionMark,
+        Clock,
+        Dices,
         Flag,
+        Flame,
+        FlaskConical,
+        Highlighter,
+        Lightbulb,
         ListTree,
         LogOut,
         Newspaper,
         NotebookText,
         PenLine,
         Repeat,
+        Shuffle,
+        SlidersHorizontal,
         SquarePen,
         Strikethrough,
-        Timer
+        Target,
+        Timer,
+        TrendingDown,
+        TrendingUp,
+        Zap
     ]
 );
 
@@ -345,19 +362,23 @@ fn by_item(marks: Vec<Mark>) -> HashMap<String, Vec<Mark>> {
     by_item
 }
 
-/// Makes the app's warm "Paper" palette the light theme. Dark stays the
-/// component library's default.
-fn install_paper_theme(cx: &mut App) {
+/// Makes the app's own palettes the themes: Paper for light, Ink for dark.
+fn install_themes(cx: &mut App) {
     let registry = ThemeRegistry::global_mut(cx);
     registry
         .load_themes_from_str(include_str!("../assets/theme.json"))
         .expect("assets/theme.json is a valid theme file");
-    let paper = registry
-        .themes()
-        .get("Paper")
-        .cloned()
-        .expect("assets/theme.json defines Paper");
-    Theme::global_mut(cx).light_theme = paper;
+    let theme = |name: &str| {
+        registry
+            .themes()
+            .get(name)
+            .cloned()
+            .expect("assets/theme.json defines Paper and Ink")
+    };
+    let (paper, ink) = (theme("Paper"), theme("Ink"));
+    let global = Theme::global_mut(cx);
+    global.light_theme = paper;
+    global.dark_theme = ink;
 }
 
 fn apply_theme(choice: ThemeChoice, cx: &mut App) {
@@ -372,7 +393,8 @@ fn apply_theme(choice: ThemeChoice, cx: &mut App) {
 /// state, key bindings and menus. Call once, before opening the window.
 pub fn init(mut store: Store, mut store_error: Option<String>, cx: &mut App) {
     gpui_kit::init(cx);
-    install_paper_theme(cx);
+    ui::load_fonts(cx);
+    install_themes(cx);
 
     let library = Library::embedded();
     for problem in &library.problems {
@@ -440,6 +462,12 @@ pub fn window_options(cx: &App) -> WindowOptions {
             cx,
         ))),
         window_min_size: Some(size(px(900.), px(600.))),
+        // No title bar of its own: the traffic lights sit in the sidebar's
+        // top row, centred on the canvas header beside it.
+        titlebar: Some(TitlebarOptions {
+            traffic_light_position: Some(point(px(18.), px(21.))),
+            ..TitleBar::title_bar_options()
+        }),
         ..TitleBar::window_options()
     }
 }

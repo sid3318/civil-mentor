@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Civil Mentor redesign</title>
+<!-- Visual reference for DESIGN.md. The four windows are drawn at full size and
+     scaled to fit narrow frames (1280 x 760); open this file in a wide browser to see them full size. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+.board{display:flex;flex-direction:column;gap:6px;font-family:var(--font-sans,Inter,system-ui,sans-serif)}
+.cap{font-size:12px;line-height:16px;color:var(--muted-foreground,#777);margin:12px 2px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cap b{color:var(--foreground,#111);font-weight:600}
+.legend{display:grid;grid-template-columns:62px 1fr;gap:8px 10px;align-items:center;font-size:11px;line-height:14px;color:var(--muted-foreground,#777)}
+.legend b{color:var(--foreground,#111);font-weight:600;font-size:11.5px}
+.sw{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.sw i{width:16px;height:16px;border-radius:5px;display:block;box-shadow:inset 0 0 0 1px rgba(128,128,128,.3)}
+.sw span{display:inline-flex;align-items:center;gap:4px;margin-right:9px}
+.sw span i{width:9px;height:9px;border-radius:50%;box-shadow:none}
+.sw em{font-style:normal;margin-left:6px}
+.type{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;color:var(--foreground,#111)}
+
+/* ---- the app windows ---------------------------------------------------- */
+.win{width:1280px;height:760px;zoom:.55625;display:flex;position:relative;overflow:hidden;border-radius:14px;background:var(--chrome);color:var(--fg);font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:18px;font-optical-sizing:auto;-webkit-font-smoothing:antialiased;box-shadow:0 0 0 1px rgba(128,128,128,.32),0 18px 40px rgba(0,0,0,.2)}
+@media (min-width:1320px){.win{zoom:1}}
+.win *{box-sizing:border-box;margin:0;padding:0}
+.paper{--chrome:#f2f0ed;--canvas:#fcfbfa;--card:#fff;--pop:#fff;--sunken:#f5f4f2;--hover:#1e1d1a0b;--sel:#1e1d1a12;--b1:#1e1d1a14;--b2:#1e1d1a1f;--b3:#1e1d1a29;--fg:#1e1d1a;--fg2:#5c5b57;--fg3:#6d6c69;--fg4:#a6a4a2;--ac:#006d99;--acs:#006d991a;--onac:#fff;--att:#ef9d25;--hl:#f5cb708c;--ok:#2a904b;--bad:#c83a35;--sh1:0 1px 2px rgba(0,0,0,.04);--sh2:0 1px 3px rgba(0,0,0,.05);--h:#b66c18;--g:#00988f;--p:#9669bb;--e:#6679cd;--en:#409551;--s:#b85c8b;--c:#c25e53;--et:#8c8300;--o:#6d7c8c}
+.ink{--chrome:#0d0c0a;--canvas:#151412;--card:#1d1c1a;--pop:#242321;--sunken:#191816;--hover:#ffffff0a;--sel:#ffffff12;--b1:#ffffff14;--b2:#ffffff1f;--b3:#ffffff29;--fg:#ecebe8;--fg2:#b2b1ae;--fg3:#8a8986;--fg4:#5f5d5b;--ac:#42acd2;--acs:#42acd224;--onac:#0d0c0a;--att:#f2a635;--hl:#96680059;--ok:#4cb86a;--bad:#e8605b;--sh1:none;--sh2:0 1px 3px rgba(0,0,0,.4);--h:#d38c49;--g:#0fb6ac;--p:#b389d8;--e:#8499e9;--en:#67b373;--s:#d67ea9;--c:#df8074;--et:#aaa23f;--o:#8b9aab}
+.win svg.lucide{width:16px;height:16px;stroke-width:1.75;flex:none}
+.tnum{font-variant-numeric:tabular-nums}
+.muted{color:var(--fg3)}
+.sp{flex:1}
+
+/* sidebar */
+.sb{width:232px;flex:none;display:flex;flex-direction:column;padding:0 10px 10px}
+.top{height:56px;flex:none;display:flex;align-items:center;justify-content:space-between;padding-left:8px}
+.lights{display:flex;gap:8px}
+.lights i{width:12px;height:12px;border-radius:50%;display:block;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12)}
+.lights i:nth-child(1){background:#ff5f57}.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+.tools{display:flex;gap:2px}
+.ib{width:28px;height:28px;display:grid;place-items:center;border-radius:6px;color:var(--fg3)}
+.ib.on{background:var(--sel);color:var(--fg)}
+.ib.dim{color:var(--fg4)}
+.search{height:30px;flex:none;display:flex;align-items:center;gap:8px;padding:0 6px 0 9px;border-radius:7px;background:var(--card);border:1px solid var(--b1);box-shadow:var(--sh1);color:var(--fg3)}
+.search svg.lucide{width:14px;height:14px}
+.kbd{display:inline-flex;align-items:center;height:18px;padding:0 5px;border-radius:4px;font-size:11px;font-weight:500;line-height:1;color:var(--fg3);background:var(--sunken);border:1px solid var(--b1);font-variant-numeric:tabular-nums}
+.grp{font-size:11px;line-height:14px;font-weight:500;color:var(--fg3);padding:18px 8px 6px}
+.nav{height:30px;flex:none;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:6px;color:var(--fg2)}
+.nav svg.lucide{color:var(--fg3)}
+.nav.on{background:var(--sel);color:var(--fg);font-weight:500}
+.nav.on svg.lucide{color:var(--fg)}
+.ct{margin-left:auto;font-size:11px;color:var(--fg3);font-variant-numeric:tabular-nums}
+.pill{margin-left:auto;min-width:20px;height:18px;padding:0 6px;border-radius:9px;background:var(--ac);color:var(--onac);font-size:11px;font-weight:600;line-height:18px;text-align:center}
+.foot{margin-top:auto;display:flex;flex-direction:column;gap:2px}
+.streak{padding:10px 10px 11px;border-radius:9px;background:var(--card);border:1px solid var(--b1);box-shadow:var(--sh1);margin-bottom:6px}
+.streak .l1{display:flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px}
+.streak .l1 svg.lucide{color:var(--att);width:15px;height:15px}
+.streak .l2{display:flex;justify-content:space-between;color:var(--fg3);font-size:11.5px;margin:3px 0 8px}
+.rail{width:72px;flex:none;display:flex;flex-direction:column;align-items:center;padding-bottom:10px}
+.rail .top{width:100%;justify-content:center;padding:0}
+.rail .nav{width:36px;height:34px;padding:0;justify-content:center;position:relative;margin-top:2px}
+.rail .nav .bd{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--ac)}
+.rail hr{width:24px;border:none;border-top:1px solid var(--b2);margin:10px 0 8px}
+
+/* canvas */
+.cv{flex:1;min-width:0;margin:8px 8px 8px 0;display:flex;flex-direction:column;background:var(--canvas);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh2);overflow:hidden}
+.focus .cv{margin:8px}
+.hd{height:40px;flex:none;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;border-bottom:1px solid var(--b1)}
+.hd .t{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;white-space:nowrap}
+.hd .t svg.lucide{color:var(--fg3)}
+.crumb{display:flex;align-items:center;gap:6px;color:var(--fg3);white-space:nowrap}
+.crumb svg.lucide{width:13px;height:13px;color:var(--fg4)}
+.crumb b{color:var(--fg);font-weight:500}
+.seg{display:inline-flex;padding:2px;gap:2px;border-radius:8px;background:var(--sunken);border:1px solid var(--b1)}
+.seg span{height:24px;padding:0 10px;display:flex;align-items:center;gap:6px;border-radius:6px;color:var(--fg2);font-weight:500;font-size:12.5px;white-space:nowrap}
+.seg span.on{background:var(--card);color:var(--fg);box-shadow:0 0 0 1px var(--b1),0 1px 2px rgba(0,0,0,.06)}
+.ink .seg span.on{background:var(--pop)}
+.seg .kbd{height:16px;font-size:10px;padding:0 4px}
+.btn{height:28px;padding:0 10px;display:inline-flex;align-items:center;gap:6px;border-radius:6px;font-weight:500;font-size:12.5px;white-space:nowrap;background:var(--card);color:var(--fg);border:1px solid var(--b2);box-shadow:var(--sh1)}
+.btn svg.lucide{width:14px;height:14px}
+.btn.pri{background:var(--ac);color:var(--onac);border-color:transparent}
+.btn.pri .kbd{background:rgba(255,255,255,.2);border-color:transparent;color:inherit}
+.ink .btn.pri .kbd{background:rgba(0,0,0,.16)}
+.btn.gh{background:transparent;border-color:transparent;box-shadow:none;color:var(--fg2)}
+.btn.soft{background:var(--acs);color:var(--ac);border-color:transparent;box-shadow:none}
+.btn.sm{height:24px;padding:0 8px;font-size:12px}
+.body{flex:1;min-height:0;overflow:hidden;position:relative}
+
+/* shared parts */
+.card{background:var(--card);border:1px solid var(--b1);border-radius:8px;box-shadow:var(--sh1);overflow:hidden}
+.ch{display:flex;align-items:center;gap:8px;padding:12px 14px 10px}
+.ch .t{font-weight:600;font-size:13.5px}
+.ch .m{color:var(--fg3);font-size:12px}
+.chip{height:22px;padding:0 9px;display:inline-flex;align-items:center;gap:5px;border-radius:11px;background:var(--sunken);border:1px solid var(--b1);color:var(--fg2);font-size:12px;font-weight:500;white-space:nowrap}
+.chip svg.lucide{width:13px;height:13px}
+.chip.s{background:color-mix(in oklab,var(--k) 13%,transparent);border-color:transparent;color:color-mix(in oklab,var(--k) 80%,var(--fg))}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--k);display:inline-block;flex:none}
+.bar{height:4px;border-radius:2px;background:var(--sel);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:2px;background:var(--ac)}
+.tt{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm{font-size:12px;line-height:16px;color:var(--fg3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dots{position:absolute;left:0;right:0;top:0;height:240px;background-image:radial-gradient(color-mix(in oklab,var(--ac) 45%,transparent) 1.1px,transparent 1.6px);background-size:11px 11px;-webkit-mask-image:radial-gradient(ellipse 55% 100% at 88% 0%,#000 0%,transparent 72%);mask-image:radial-gradient(ellipse 55% 100% at 88% 0%,#000 0%,transparent 72%);pointer-events:none}
+
+/* Today */
+.today{padding:20px 32px 0}
+.today .in{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:14px;position:relative}
+.hero{display:flex;align-items:center;justify-content:space-between;padding:8px 4px 6px}
+.over{font-size:12px;font-weight:500;color:var(--fg3)}
+.hero h1{font-size:28px;line-height:34px;font-weight:600;margin:2px 0 12px}
+.chips{display:flex;gap:6px}
+.ring{display:flex;align-items:center;gap:14px;padding-right:6px}
+.ring .n{position:relative;width:92px;height:92px}
+.ring .n b{position:absolute;inset:0;display:grid;place-items:center;font-size:21px;font-weight:600;font-variant-numeric:tabular-nums}
+.ring .l{font-size:12px;color:var(--fg3);line-height:17px}
+.ring .l b{display:block;color:var(--fg);font-size:13px;font-weight:500}
+.g3{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.task{display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border-top:1px solid var(--b1)}
+.cb{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--b3);display:grid;place-items:center;flex:none}
+.cb.on{background:var(--ac);border-color:var(--ac);color:var(--onac)}
+.cb.on svg.lucide{width:11px;height:11px;stroke-width:3.2}
+.kind{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:color-mix(in oklab,var(--k) 14%,transparent);color:var(--k);flex:none}
+.kind svg.lucide{width:14px;height:14px}
+.tx{flex:1;min-width:0}
+.task.done .tt{color:var(--fg3);text-decoration:line-through;text-decoration-color:var(--fg4)}
+.task.done .kind{filter:grayscale(1);opacity:.6}
+.min{font-size:12px;color:var(--fg3);width:46px;text-align:right;font-variant-numeric:tabular-nums}
+.act{width:78px;display:flex;justify-content:flex-end}
+.segbar{display:flex;gap:3px;width:130px}
+.segbar i{flex:1;height:4px;border-radius:2px;background:var(--sel)}
+.segbar i.on{background:var(--ac)}
+.ins{display:flex;gap:11px;padding:12px 14px;border-top:1px solid var(--b1)}
+.ins .tt{white-space:normal}
+.ico{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none;background:color-mix(in oklab,var(--k) 14%,transparent);color:var(--k)}
+.ico svg.lucide{width:14px;height:14px}
+.acts{display:flex;gap:6px;margin-top:9px}
+.cr{padding:0 14px 14px}
+.cr h3{font-size:14px;line-height:20px;font-weight:600;margin:10px 0 12px}
+.cr .row{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.stem{padding:0 14px 10px;font-size:13px;line-height:19px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 14px 14px}
+.opt{height:30px;display:flex;align-items:center;gap:8px;padding:0 8px;border-radius:6px;border:1px solid var(--b2);font-size:12.5px}
+.opt b{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:600;background:var(--sunken);color:var(--fg2);border:1px solid var(--b1)}
+.week{position:relative;display:flex;align-items:flex-end;gap:9px;height:84px;margin:4px 14px 0}
+.week span{flex:1;display:block;border-radius:4px;background:var(--ac)}
+.week span.now{background:color-mix(in oklab,var(--ac) 55%,transparent)}
+.week span.z{background:var(--sel);height:4px}
+.goal{position:absolute;left:0;right:0;border-top:1.5px dashed var(--b3)}
+.days{display:flex;gap:9px;margin:6px 14px 0;font-size:11px;color:var(--fg3)}
+.days span{flex:1;text-align:center}
+.days span.on{color:var(--fg);font-weight:600}
+
+/* Notes */
+.cols{display:flex;flex:1;min-height:0}
+.list{width:272px;flex:none;border-right:1px solid var(--b1);display:flex;flex-direction:column;padding:10px 8px;overflow:hidden}
+.filter{height:28px;flex:none;display:flex;align-items:center;gap:7px;padding:0 8px;border-radius:6px;background:var(--card);border:1px solid var(--b2);color:var(--fg4);margin:0 2px 8px}
+.filter svg.lucide{width:14px;height:14px}
+.list .seg{margin:0 2px 4px;display:flex}
+.list .seg span{flex:1;justify-content:center}
+.lg{font-size:11px;font-weight:500;color:var(--fg3);padding:14px 8px 4px}
+.li{display:flex;gap:9px;padding:6px 8px;border-radius:6px}
+.li .st{padding-top:1px;color:var(--fg4)}
+.li .st svg.lucide{width:15px;height:15px}
+.li .st.r{color:var(--ac)}
+.li .st.d{color:var(--ok)}
+.li .tx{min-width:0;flex:1}
+.li .tm{display:flex;align-items:center;gap:6px}
+.li.on{background:var(--acs)}
+.reader{flex:1;min-width:0;overflow:hidden;padding:30px 44px 0}
+.col{max-width:640px;margin:0 auto}
+.rt{font-size:30px;line-height:36px;font-weight:600;margin:12px 0 2px}
+.rsub{font-family:'Source Serif 4',Georgia,serif;font-size:18px;line-height:26px;color:var(--fg2);font-style:italic}
+.meta{display:flex;gap:16px;color:var(--fg3);font-size:12px;margin:12px 0 4px;padding-bottom:16px;border-bottom:1px solid var(--b1)}
+.meta span{display:flex;align-items:center;gap:5px}
+.meta svg.lucide{width:13px;height:13px}
+.prose{font-family:'Source Serif 4',Georgia,serif;font-size:17px;line-height:28px;color:var(--fg)}
+.prose h2{font-family:Inter,sans-serif;font-size:19px;line-height:26px;font-weight:600;margin:20px 0 6px}
+.prose p{margin:0 0 14px}
+.prose mark{background:var(--hl);color:inherit;border-radius:3px;padding:1px 2px}
+table.t{width:100%;border-collapse:separate;border-spacing:0;font-family:Inter,sans-serif;font-size:13px;line-height:18px;border:1px solid var(--b1);border-radius:8px;overflow:hidden;margin:8px 0 14px}
+table.t th{background:var(--sunken);color:var(--fg3);font-weight:500;font-size:12px;text-align:left;padding:8px 12px;border-bottom:1px solid var(--b1)}
+table.t td{padding:9px 12px;border-bottom:1px solid var(--b1);vertical-align:top}
+table.t tr:last-child td{border-bottom:none}
+.callout{display:flex;gap:10px;padding:12px 14px;border-radius:8px;background:color-mix(in oklab,var(--att) 12%,transparent);box-shadow:inset 3px 0 0 var(--att);font-family:Inter,sans-serif;font-size:13.5px;line-height:20px;margin:4px 0 6px}
+.callout svg.lucide{color:var(--att);margin-top:2px}
+.callout b{display:block;font-weight:600;margin-bottom:2px}
+.insp{width:300px;flex:none;border-left:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden}
+.insp .tabs{height:40px;flex:none;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--b1)}
+.ol{padding:10px 12px 8px}
+.ol div{height:28px;display:flex;align-items:center;padding:0 10px;border-radius:6px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ol div.on{color:var(--fg);font-weight:500;box-shadow:inset 2px 0 0 var(--ac);background:var(--hover);border-radius:0 6px 6px 0}
+.insp .card{margin:6px 12px}
+.mini{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.mini .tx b{display:block;font-weight:500}
+
+/* Exam room */
+.focus .hd{height:52px;padding:0 10px 0 18px;gap:12px}
+.timer{height:30px;display:inline-flex;align-items:center;gap:7px;padding:0 13px;border-radius:15px;background:var(--sunken);border:1px solid var(--b1);font-weight:600;font-size:14.5px;font-variant-numeric:tabular-nums}
+.timer svg.lucide{color:var(--fg3)}
+.prog{height:3px;flex:none;background:var(--sel)}
+.prog i{display:block;height:100%;width:25%;background:var(--ac)}
+.ex{display:flex;flex:1;min-height:0}
+.qcol{flex:1;min-width:0;padding:28px 48px 0;overflow:hidden}
+.q{max-width:720px;margin:0 auto}
+.qstem{font-size:16.5px;line-height:26px;margin:16px 0 8px}
+.stmts{list-style:none;font-size:15.5px;line-height:24px;margin-bottom:10px}
+.stmts li{display:flex;gap:12px;padding:4px 0}
+.stmts li b{width:26px;color:var(--fg3);font-weight:500;flex:none}
+.op{display:flex;align-items:center;gap:14px;height:52px;padding:0 14px 0 12px;margin:8px 0;border-radius:10px;border:1px solid var(--b2);background:var(--card);font-size:15px}
+.op .lt{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:12.5px;border:1px solid var(--b2);color:var(--fg2);flex:none}
+.op .x{margin-left:auto;color:var(--fg4)}
+.op.on{border-color:var(--ac);background:var(--acs);box-shadow:0 0 0 1px var(--ac)}
+.op.on .lt{background:var(--ac);border-color:var(--ac);color:var(--onac)}
+.op.off{opacity:.45}
+.op.off .tx{text-decoration:line-through}
+.conf{display:flex;align-items:center;gap:12px;margin-top:18px;color:var(--fg3);font-size:12.5px}
+.pal{width:300px;flex:none;border-left:1px solid var(--b1);padding:16px 18px}
+.grid5{display:grid;grid-template-columns:repeat(5,40px);gap:9px;margin:12px 0 16px}
+.cell{width:40px;height:40px;border-radius:8px;display:grid;place-items:center;font-size:12.5px;font-weight:500;border:1px solid var(--b1);color:var(--fg4);position:relative;font-variant-numeric:tabular-nums}
+.cell.v{border-color:var(--b3);color:var(--fg2)}
+.cell.a{background:var(--ac);border-color:transparent;color:var(--onac)}
+.cell.m{background:var(--att);border-color:transparent;color:#1e1d1a}
+.cell.am::after{content:"";position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--att);border:2px solid var(--canvas)}
+.cell.cur{box-shadow:0 0 0 2px var(--canvas),0 0 0 4px var(--fg)}
+.lgd{display:grid;grid-template-columns:1fr 1fr;gap:9px 10px;font-size:12px;color:var(--fg3)}
+.lgd span{display:flex;align-items:center;gap:7px}
+.lgd i{width:10px;height:10px;border-radius:3px;display:block;flex:none}
+.keys{margin-top:20px;padding:12px;border-radius:8px;background:var(--sunken);border:1px solid var(--b1);font-size:12px;color:var(--fg3);display:grid;gap:8px}
+.keys .h{color:var(--fg2);font-weight:500}
+.keys div{display:flex;align-items:center;gap:6px}
+.ft{height:56px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;border-top:1px solid var(--b1)}
+
+/* Analysis */
+.an{padding:18px 28px 0}
+.an .in{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.strip{display:flex;align-items:center;gap:8px;height:32px;padding:0 6px 0 12px;border-radius:8px;background:var(--sunken);border:1px solid var(--b1);color:var(--fg2);font-size:12.5px}
+.strip svg.lucide{width:14px;height:14px;color:var(--fg3)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{padding:12px 14px 10px}
+.kpi .l{font-size:12px;color:var(--fg3);font-weight:500}
+.kpi .v{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+.kpi .v b{font-size:24px;line-height:30px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums}
+.up{color:var(--ok)}.down{color:var(--bad)}
+.kpi svg.spark{display:block;margin-top:4px;width:100%;height:26px}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.two2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart{display:block;width:100%;height:200px;padding:0 10px 8px}
+.cfr{display:grid;grid-template-columns:54px 1fr 58px;align-items:center;gap:10px;height:46px;padding:0 14px;border-top:1px solid var(--b1)}
+.cfr .tm{margin:0}
+.div{position:relative;height:8px}
+.div::before{content:"";position:absolute;left:50%;top:-8px;bottom:-8px;border-left:1px solid var(--b3)}
+.div i{position:absolute;top:0;height:8px;border-radius:4px}
+.cfr .v{text-align:right;font-weight:600;font-size:12.5px;font-variant-numeric:tabular-nums}
+.note{display:flex;gap:8px;align-items:flex-start;padding:10px 14px 14px;border-top:1px solid var(--b1);font-size:12.5px;line-height:18px;color:var(--fg2)}
+.note svg.lucide{width:14px;height:14px;color:var(--att);margin-top:2px}
+.hb{display:grid;grid-template-columns:130px 1fr 38px;align-items:center;gap:10px;height:28px;padding:0 14px}
+.hb .nm{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.hb .tr{height:8px;border-radius:4px;background:var(--sel);overflow:hidden}
+.hb .tr i{display:block;height:100%;border-radius:4px;background:var(--k)}
+.hb .v{text-align:right;color:var(--fg2);font-variant-numeric:tabular-nums;font-size:12.5px}
+.wt{display:grid;grid-template-columns:1fr 44px 46px 58px;align-items:center;gap:8px;height:38px;padding:0 14px;border-top:1px solid var(--b1)}
+.wt .v{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="board">
+
+  <div class="legend">
+    <b>Paper</b>
+    <div class="sw"><i style="background:#f2f0ed"></i><i style="background:#fcfbfa"></i><i style="background:#ffffff"></i><i style="background:#1e1d1a"></i><i style="background:#6d6c69"></i><i style="background:#006d99"></i><i style="background:#ef9d25"></i><i style="background:#2a904b"></i><i style="background:#c83a35"></i><em>chrome · canvas · card · text · text-3 · accent · attention · right · wrong</em></div>
+    <b>Ink</b>
+    <div class="sw"><i style="background:#0d0c0a"></i><i style="background:#151412"></i><i style="background:#1d1c1a"></i><i style="background:#ecebe8"></i><i style="background:#8a8986"></i><i style="background:#42acd2"></i><i style="background:#f2a635"></i><i style="background:#4cb86a"></i><i style="background:#e8605b"></i></div>
+    <b>Subjects</b>
+    <div class="sw"><span><i style="background:#b66c18"></i>History</span><span><i style="background:#00988f"></i>Geography</span><span><i style="background:#9669bb"></i>Polity</span><span><i style="background:#6679cd"></i>Economy</span><span><i style="background:#409551"></i>Environment</span><span><i style="background:#b85c8b"></i>Science</span><span><i style="background:#c25e53"></i>Current</span><span><i style="background:#8c8300"></i>Ethics</span><span><i style="background:#6d7c8c"></i>Other</span></div>
+    <b>Type</b>
+    <div class="type"><span style="font-family:Inter,sans-serif;font-weight:600;font-size:17px">Inter Display</span><span style="font-family:Inter,sans-serif;font-size:12.5px">Inter 13 for the interface</span><span style="font-family:'Source Serif 4',Georgia,serif;font-size:14.5px">Source Serif 4 for reading</span></div>
+  </div>
+
+  <!-- 1. Today ------------------------------------------------------------ -->
+  <div class="cap"><b>Today</b>: the work sits on the inset canvas. Colour comes only from the accent and the subjects.</div>
+  <div class="win paper">
+    <aside class="sb">
+      <div class="top"><div class="lights"><i></i><i></i><i></i></div><div class="tools"><span class="ib"><i data-lucide="panel-left"></i></span><span class="ib"><i data-lucide="chevron-left"></i></span><span class="ib dim"><i data-lucide="chevron-right"></i></span></div></div>
+      <div class="search"><i data-lucide="search"></i><span>Search</span><span class="kbd" style="margin-left:auto">⌘K</span></div>
+      <div class="grp">Study</div>
+      <div class="nav on"><i data-lucide="sun"></i>Today<span class="ct">2/5</span></div>
+      <div class="nav"><i data-lucide="book-open"></i>Notes</div>
+      <div class="nav"><i data-lucide="square-pen"></i>Practice</div>
+      <div class="nav"><i data-lucide="newspaper"></i>Current affairs<span class="ct">3</span></div>
+      <div class="nav"><i data-lucide="chart-column"></i>Analysis</div>
+      <div class="grp">Library</div>
+      <div class="nav"><i data-lucide="repeat"></i>Revision<span class="pill">12</span></div>
+      <div class="nav"><i data-lucide="pen-line"></i>Mains</div>
+      <div class="nav"><i data-lucide="list-tree"></i>Syllabus<span class="ct">34%</span></div>
+      <div class="nav"><i data-lucide="notebook-text"></i>Notebook</div>
+      <div class="foot">
+        <div class="streak"><div class="l1"><i data-lucide="flame"></i>10-day streak</div><div class="l2"><span>187 days to Prelims</span><span>23 May</span></div><div class="bar"><i style="width:38%"></i></div></div>
+        <div class="nav"><i data-lucide="timer"></i>Focus<span class="ct">25:00</span></div>
+        <div class="nav"><i data-lucide="settings"></i>Settings</div>
+      </div>
+    </aside>
+    <main class="cv">
+      <div class="hd"><div class="t"><i data-lucide="sun"></i>Today</div><div class="sp"></div><span class="btn gh"><i data-lucide="sliders-horizontal"></i>Plan settings</span><span class="btn pri"><i data-lucide="play"></i>Start next task<span class="kbd">↵</span></span></div>
+      <div class="body today">
+        <div class="dots"></div>
+        <div class="in">
+          <section class="hero">
+            <div>
+              <div class="over">Tuesday, 17 November</div>
+              <h1>Good morning</h1>
+              <div class="chips"><span class="chip"><i data-lucide="flame" style="color:var(--att)"></i>10-day streak</span><span class="chip"><i data-lucide="calendar-days"></i>187 days to Prelims</span><span class="chip"><i data-lucide="clock-3"></i>61 of 90 min today</span></div>
+            </div>
+            <div class="ring">
+              <div class="n"><svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="38" fill="none" style="stroke:var(--sel)" stroke-width="8"/><circle cx="46" cy="46" r="38" fill="none" style="stroke:var(--ac)" stroke-width="8" stroke-linecap="round" stroke-dasharray="160 239" transform="rotate(-90 46 46)"/></svg><b>67%</b></div>
+              <div class="l"><b>Today's plan</b>2 of 5 tasks done<br>about 27 min to go</div>
+            </div>
+          </section>
+
+          <div class="g3">
+            <div class="card">
+              <div class="ch"><span class="t">Today's plan</span><span class="m">2 of 5 done · 67 min</span><span class="sp"></span><div class="segbar"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+              <div class="task done"><span class="cb on"><i data-lucide="check"></i></span><span class="kind" style="--k:var(--c)"><i data-lucide="newspaper"></i></span><div class="tx"><div class="tt">Read the brief for 16 Nov</div><div class="tm">Current affairs · 5 stories</div></div><span class="min">25 min</span><span class="act"><span class="btn sm">Take quiz</span></span></div>
+              <div class="task done"><span class="cb on"><i data-lucide="check"></i></span><span class="kind" style="--k:var(--ac)"><i data-lucide="repeat"></i></span><div class="tx"><div class="tt">Review 15 mistakes</div><div class="tm">Revision · due today</div></div><span class="min">15 min</span><span class="act"></span></div>
+              <div class="task"><span class="cb"></span><span class="kind" style="--k:var(--e)"><i data-lucide="book-open"></i></span><div class="tx"><div class="tt">Continue: Inflation and monetary policy</div><div class="tm">GS-3 · Economy · 40% read</div></div><span class="min">5 min</span><span class="act"><span class="btn sm">Read</span></span></div>
+              <div class="task"><span class="cb"></span><span class="kind" style="--k:var(--e)"><i data-lucide="square-pen"></i></span><div class="tx"><div class="tt">Drill: Money and banking</div><div class="tm">Economy · 8 questions · your weakest topic</div></div><span class="min">10 min</span><span class="act"><span class="btn sm">Start</span></span></div>
+              <div class="task"><span class="cb"></span><span class="kind" style="--k:var(--h)"><i data-lucide="pen-line"></i></span><div class="tx"><div class="tt">Write one Mains answer</div><div class="tm">GS-1 · 10 marks · 150 words</div></div><span class="min">12 min</span><span class="act"><span class="btn sm">Write</span></span></div>
+            </div>
+            <div class="card">
+              <div class="ch"><span class="t">Mentor</span><span class="m">3 insights</span></div>
+              <div class="ins"><span class="ico" style="--k:var(--bad)"><i data-lucide="trending-down"></i></span><div><div class="tt">Money and banking is your weakest topic</div><div class="tm">33% right over 18 questions</div><div class="acts"><span class="btn sm">Open note</span><span class="btn sm soft">Drill 8 Q</span></div></div></div>
+              <div class="ins"><span class="ico" style="--k:var(--att)"><i data-lucide="dices"></i></span><div><div class="tt">Guesses cost you 0.7 marks a test</div><div class="tm">Skip unless you can rule out two options</div></div></div>
+              <div class="ins"><span class="ico" style="--k:var(--ok)"><i data-lucide="trending-up"></i></span><div><div class="tt">Attempting more should lift your score</div><div class="tm">Each attempt earns 0.8 marks</div></div></div>
+            </div>
+          </div>
+
+          <div class="row3">
+            <div class="card">
+              <div class="ch"><span class="t">Continue reading</span></div>
+              <div class="cr"><span class="chip s" style="--k:var(--e)"><span class="dot"></span>GS-3 · Economy</span><h3>Inflation and monetary policy</h3><div class="bar"><i style="width:40%"></i></div><div class="row"><span class="tm">40% read · 3 min left</span><span class="btn sm">Continue</span></div></div>
+            </div>
+            <div class="card">
+              <div class="ch"><span class="t">Question of the day</span><span class="sp"></span><span class="chip s" style="--k:var(--s)">Science</span></div>
+              <div class="stem">Which one of the following is the most widely used material for making semiconductor chips?</div>
+              <div class="opts"><span class="opt"><b>A</b>Copper</span><span class="opt"><b>B</b>Germanium</span><span class="opt"><b>C</b>Aluminium</span><span class="opt"><b>D</b>Silicon</span></div>
+            </div>
+            <div class="card">
+              <div class="ch"><span class="t">This week</span><span class="sp"></span><span class="m tnum">2 h 19 m</span></div>
+              <div class="week"><div class="goal" style="bottom:72px"></div><span style="height:63px"></span><span class="now" style="height:49px"></span><span class="z"></span><span class="z"></span><span class="z"></span><span class="z"></span><span class="z"></span></div>
+              <div class="days"><span>M</span><span class="on">T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 2. Notes ------------------------------------------------------------ -->
+  <div class="cap"><b>Notes</b>: a rail sidebar, one-line titles, a serif reader, and an inspector for the outline and progress.</div>
+  <div class="win paper">
+    <aside class="rail">
+      <div class="top"><div class="lights"><i></i><i></i><i></i></div></div>
+      <span class="ib" style="margin-bottom:6px"><i data-lucide="search"></i></span>
+      <div class="nav"><i data-lucide="sun"></i></div>
+      <div class="nav on"><i data-lucide="book-open"></i></div>
+      <div class="nav"><i data-lucide="square-pen"></i></div>
+      <div class="nav"><i data-lucide="newspaper"></i><span class="bd"></span></div>
+      <div class="nav"><i data-lucide="chart-column"></i></div>
+      <hr>
+      <div class="nav"><i data-lucide="repeat"></i><span class="bd"></span></div>
+      <div class="nav"><i data-lucide="pen-line"></i></div>
+      <div class="nav"><i data-lucide="list-tree"></i></div>
+      <div class="nav"><i data-lucide="notebook-text"></i></div>
+      <div class="foot"><div class="nav"><i data-lucide="timer"></i></div><div class="nav"><i data-lucide="settings"></i></div></div>
+    </aside>
+    <main class="cv">
+      <div class="hd">
+        <div class="crumb">Notes<i data-lucide="chevron-right"></i>GS-2 · Polity<i data-lucide="chevron-right"></i><b>Fundamental Rights</b></div>
+        <div class="seg" style="margin-left:10px"><span class="on">Read</span><span>Distilled</span></div>
+        <div class="sp"></div>
+        <span class="ib"><i data-lucide="type"></i></span><span class="ib"><i data-lucide="highlighter"></i></span><span class="ib"><i data-lucide="bookmark"></i></span><span class="ib on"><i data-lucide="panel-right"></i></span>
+      </div>
+      <div class="cols">
+        <div class="list">
+          <div class="filter"><i data-lucide="search"></i>Filter notes</div>
+          <div class="seg"><span class="on">All</span><span>Unread</span><span>Saved</span></div>
+          <div class="lg">GS-1</div>
+          <div class="li"><span class="st"><i data-lucide="circle"></i></span><div class="tx"><div class="tt">Temple architecture: Nagara, Dravida and Vesara</div><div class="tm"><span class="dot" style="--k:var(--h)"></span>Art and culture · 7 min</div></div></div>
+          <div class="li"><span class="st"><i data-lucide="circle"></i></span><div class="tx"><div class="tt">The Gandhian phase of the freedom struggle</div><div class="tm"><span class="dot" style="--k:var(--h)"></span>Freedom struggle · 8 min</div></div></div>
+          <div class="li"><span class="st r"><i data-lucide="circle-dot"></i></span><div class="tx"><div class="tt">The Indian monsoon: mechanism and variability</div><div class="tm"><span class="dot" style="--k:var(--g)"></span>Geography · 6 min</div></div></div>
+          <div class="lg">GS-2</div>
+          <div class="li on"><span class="st r"><i data-lucide="circle-dot"></i></span><div class="tx"><div class="tt">Fundamental Rights (Articles 12 to 35)</div><div class="tm"><span class="dot" style="--k:var(--p)"></span>Polity · 6 min · 8 PYQs</div></div></div>
+          <div class="li"><span class="st"><i data-lucide="circle"></i></span><div class="tx"><div class="tt">Panchayati Raj and the 73rd Amendment</div><div class="tm"><span class="dot" style="--k:var(--p)"></span>Polity · 5 min</div></div></div>
+          <div class="li"><span class="st d"><i data-lucide="circle-check"></i></span><div class="tx"><div class="tt">Parliament: the two Houses, bills and sessions</div><div class="tm"><span class="dot" style="--k:var(--p)"></span>Polity · 7 min · read</div></div></div>
+          <div class="lg">GS-3</div>
+          <div class="li"><span class="st"><i data-lucide="circle"></i></span><div class="tx"><div class="tt">Inflation and monetary policy</div><div class="tm"><span class="dot" style="--k:var(--e)"></span>Economy · 5 min</div></div></div>
+          <div class="li"><span class="st"><i data-lucide="circle"></i></span><div class="tx"><div class="tt">India's space programme: orbits, rockets and missions</div><div class="tm"><span class="dot" style="--k:var(--s)"></span>Science and technology · 6 min</div></div></div>
+          <div class="li"><span class="st"><i data-lucide="circle"></i></span><div class="tx"><div class="tt">Biodiversity conservation: hotspots and treaties</div><div class="tm"><span class="dot" style="--k:var(--en)"></span>Environment · 7 min</div></div></div>
+        </div>
+        <div class="reader">
+          <div class="col">
+            <span class="chip s" style="--k:var(--p)"><span class="dot"></span>GS-2 · Constitution and polity</span>
+            <div class="rt">Fundamental Rights</div>
+            <div class="rsub">Articles 12 to 35 of the Constitution</div>
+            <div class="meta"><span><i data-lucide="clock-3"></i>6 min read</span><span><i data-lucide="circle-help"></i>8 questions</span><span><i data-lucide="history"></i>asked in 2025</span><span><i data-lucide="calendar"></i>updated 1 Nov 2026</span></div>
+            <div class="prose">
+              <h2>1. Quick anchor</h2>
+              <p>Part III of the Constitution guarantees six groups of rights that a person can enforce against the State. They are justiciable: <mark>a person whose right is violated can go straight to the Supreme Court under Article 32</mark>, or to a High Court under Article 226.</p>
+              <div class="callout"><i data-lucide="triangle-alert"></i><div><b>The trap</b>Article 21 feels like a citizen's right, but it protects every person on Indian soil, citizen or not.</div></div>
+              <h2>2. The six groups</h2>
+              <table class="t"><tr><th>Group</th><th>Articles</th><th>What it covers</th></tr><tr><td>Right to equality</td><td class="tnum">14 to 18</td><td>Equality before law, equal opportunity in public employment</td></tr><tr><td>Right to freedom</td><td class="tnum">19 to 22</td><td>Six freedoms, life and personal liberty, education</td></tr><tr><td>Against exploitation</td><td class="tnum">23 and 24</td><td>Forced labour, child labour in hazardous work</td></tr></table>
+            </div>
+          </div>
+        </div>
+        <div class="insp">
+          <div class="tabs"><div class="seg"><span class="on">Outline</span><span>Questions 8</span><span>Highlights 1</span></div></div>
+          <div class="ol"><div class="on">1. Quick anchor</div><div>2. The six groups</div><div>3. Who holds them, and against whom</div><div>4. Article 21 and how it grew</div><div>5. Remedies and writs</div><div>6. Limits</div><div>The trap</div></div>
+          <div class="card"><div class="mini"><svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" style="stroke:var(--sel)" stroke-width="5"/><circle cx="20" cy="20" r="16" fill="none" style="stroke:var(--ac)" stroke-width="5" stroke-linecap="round" stroke-dasharray="40 101" transform="rotate(-90 20 20)"/></svg><div class="tx"><b>40% read</b><span class="tm">About 4 min left</span></div></div><div style="padding:0 14px 14px"><span class="btn pri sm" style="width:100%;justify-content:center"><i data-lucide="check"></i>Mark as read</span></div></div>
+          <div class="card"><div class="mini"><span class="ico" style="--k:var(--p)"><i data-lucide="square-pen"></i></span><div class="tx"><b>8 questions on this note</b><span class="tm">Last time: 5 of 8 right</span></div></div><div style="padding:0 14px 14px"><span class="btn sm" style="width:100%;justify-content:center">Practise 8 questions</span></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 3. Exam room, dark ---------------------------------------------------- -->
+  <div class="cap"><b>Exam room, dark</b>: focus mode, keys on the buttons, a timer pill, and a palette of question states.</div>
+  <div class="win ink focus">
+    <main class="cv">
+      <div class="hd">
+        <div class="t">Subject drill · Polity</div><span class="muted tnum">Question 5 of 20</span>
+        <div class="sp"></div>
+        <span class="timer"><i data-lucide="timer"></i>22:30</span>
+        <div class="sp"></div>
+        <span class="btn gh"><i data-lucide="log-out"></i>Save and leave</span><span class="btn pri">Submit<span class="kbd">⌘↵</span></span>
+      </div>
+      <div class="prog"><i></i></div>
+      <div class="ex">
+        <div class="qcol"><div class="q">
+          <div style="display:flex;gap:6px"><span class="chip s" style="--k:var(--p)"><span class="dot"></span>Polity</span><span class="chip">UPSC Prelims 2025</span></div>
+          <div class="qstem">With reference to the Indian polity, consider the following statements:</div>
+          <ol class="stmts">
+            <li><b>I.</b>The Governor of a State is not answerable to any court for the exercise and performance of the powers and duties of his/her office.</li>
+            <li><b>II.</b>No criminal proceedings shall be instituted or continued against the Governor during his/her term of office.</li>
+            <li><b>III.</b>Members of a State Legislature are not liable to any proceedings in any court in respect of anything said within the House.</li>
+          </ol>
+          <div class="qstem" style="margin-top:4px">Which of the statements given above are correct?</div>
+          <div class="op"><span class="lt">A</span><span class="tx">I and II only</span><i class="x" data-lucide="strikethrough"></i></div>
+          <div class="op on"><span class="lt">B</span><span class="tx">II and III only</span><i class="x" data-lucide="strikethrough"></i></div>
+          <div class="op"><span class="lt">C</span><span class="tx">I and III only</span><i class="x" data-lucide="strikethrough"></i></div>
+          <div class="op off"><span class="lt">D</span><span class="tx">I, II and III</span><i class="x" data-lucide="strikethrough"></i></div>
+          <div class="conf">How sure are you?<div class="seg"><span>Sure<span class="kbd">1</span></span><span class="on">50-50<span class="kbd">2</span></span><span>Guess<span class="kbd">3</span></span></div></div>
+        </div></div>
+        <div class="pal">
+          <div style="display:flex;align-items:center"><span style="font-weight:600;font-size:13.5px">Questions</span><span class="sp"></span><span class="muted tnum">5 of 20 answered</span></div>
+          <div class="grid5">
+            <span class="cell a">1</span><span class="cell m">2</span><span class="cell a">3</span><span class="cell v">4</span><span class="cell a cur">5</span>
+            <span class="cell a am">6</span><span class="cell a">7</span><span class="cell">8</span><span class="cell">9</span><span class="cell">10</span>
+            <span class="cell">11</span><span class="cell">12</span><span class="cell">13</span><span class="cell">14</span><span class="cell">15</span>
+            <span class="cell">16</span><span class="cell">17</span><span class="cell">18</span><span class="cell">19</span><span class="cell">20</span>
+          </div>
+          <div class="lgd"><span><i style="background:var(--ac)"></i>Answered 5</span><span><i style="background:var(--att)"></i>Marked 2</span><span><i style="border:1px solid var(--b3)"></i>Skipped 1</span><span><i style="border:1px solid var(--b1)"></i>Not seen 13</span></div>
+          <div class="keys"><div class="h">Keys</div><div><span class="kbd">A</span>–<span class="kbd">D</span>answer</div><div><span class="kbd">M</span>mark for review</div><div><span class="kbd">S</span>strike out an option</div><div><span class="kbd">←</span><span class="kbd">→</span>move</div><div><span class="kbd">⌘↵</span>submit</div></div>
+        </div>
+      </div>
+      <div class="ft"><span class="btn"><i data-lucide="flag"></i>Mark for review<span class="kbd">M</span></span><span class="btn gh">Clear</span><div class="sp"></div><span class="btn"><i data-lucide="arrow-left"></i>Previous</span><span class="btn">Next<i data-lucide="arrow-right"></i><span class="kbd">→</span></span></div>
+    </main>
+  </div>
+
+  <!-- 4. Analysis ----------------------------------------------------------- -->
+  <div class="cap"><b>Analysis</b>: stat tiles with deltas, an accent trend, guesses either side of zero, subjects in their colours.</div>
+  <div class="win paper">
+    <aside class="sb">
+      <div class="top"><div class="lights"><i></i><i></i><i></i></div><div class="tools"><span class="ib"><i data-lucide="panel-left"></i></span><span class="ib"><i data-lucide="chevron-left"></i></span><span class="ib dim"><i data-lucide="chevron-right"></i></span></div></div>
+      <div class="search"><i data-lucide="search"></i><span>Search</span><span class="kbd" style="margin-left:auto">⌘K</span></div>
+      <div class="grp">Study</div>
+      <div class="nav"><i data-lucide="sun"></i>Today<span class="ct">2/5</span></div>
+      <div class="nav"><i data-lucide="book-open"></i>Notes</div>
+      <div class="nav"><i data-lucide="square-pen"></i>Practice</div>
+      <div class="nav"><i data-lucide="newspaper"></i>Current affairs<span class="ct">3</span></div>
+      <div class="nav on"><i data-lucide="chart-column"></i>Analysis</div>
+      <div class="grp">Library</div>
+      <div class="nav"><i data-lucide="repeat"></i>Revision<span class="pill">12</span></div>
+      <div class="nav"><i data-lucide="pen-line"></i>Mains</div>
+      <div class="nav"><i data-lucide="list-tree"></i>Syllabus<span class="ct">34%</span></div>
+      <div class="nav"><i data-lucide="notebook-text"></i>Notebook</div>
+      <div class="foot">
+        <div class="streak"><div class="l1"><i data-lucide="flame"></i>10-day streak</div><div class="l2"><span>187 days to Prelims</span><span>23 May</span></div><div class="bar"><i style="width:38%"></i></div></div>
+        <div class="nav"><i data-lucide="timer"></i>Focus<span class="ct">25:00</span></div>
+        <div class="nav"><i data-lucide="settings"></i>Settings</div>
+      </div>
+    </aside>
+    <main class="cv">
+      <div class="hd"><div class="t"><i data-lucide="chart-column"></i>Analysis</div><div class="seg" style="margin-left:8px"><span class="on">Overview</span><span>Subjects</span><span>Tests</span><span>Time</span><span>Coverage</span></div><div class="sp"></div><span class="btn gh">Last 10 tests<i data-lucide="chevron-down"></i></span></div>
+      <div class="body an"><div class="in">
+        <div class="strip"><i data-lucide="flask-conical"></i>This includes 30 days of made-up demo history.<span class="sp"></span><span class="btn gh sm">Remove it</span></div>
+        <div class="kpis">
+          <div class="card kpi"><div class="l">Net score, average</div><div class="v"><b>41%</b><span class="delta up">+6 pts</span></div><svg class="spark" viewBox="0 0 200 26" preserveAspectRatio="none"><polyline fill="none" style="stroke:var(--ac)" stroke-width="1.6" stroke-linejoin="round" points="0,18 22,15 44,8 66,15 88,3 110,11 132,22 154,9 176,16 200,20"/></svg></div>
+          <div class="card kpi"><div class="l">Accuracy</div><div class="v"><b>58%</b><span class="delta up">+3 pts</span></div><svg class="spark" viewBox="0 0 200 26" preserveAspectRatio="none"><polyline fill="none" style="stroke:var(--ac)" stroke-width="1.6" stroke-linejoin="round" points="0,16 22,17 44,12 66,13 88,9 110,11 132,10 154,7 176,9 200,6"/></svg></div>
+          <div class="card kpi"><div class="l">Attempt rate</div><div class="v"><b>92%</b><span class="delta down">−2 pts</span></div><svg class="spark" viewBox="0 0 200 26" preserveAspectRatio="none"><polyline fill="none" style="stroke:var(--ac)" stroke-width="1.6" stroke-linejoin="round" points="0,6 22,5 44,7 66,6 88,8 110,7 132,9 154,8 176,10 200,10"/></svg></div>
+          <div class="card kpi"><div class="l">Study time this week</div><div class="v"><b>9 h 40 m</b><span class="delta up">+1 h 10 m</span></div><svg class="spark" viewBox="0 0 200 26" preserveAspectRatio="none"><polyline fill="none" style="stroke:var(--ac)" stroke-width="1.6" stroke-linejoin="round" points="0,20 33,14 66,17 100,9 133,12 166,6 200,8"/></svg></div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <div class="ch"><span class="t">Net score, last 10 tests</span><span class="m">Share of full marks</span></div>
+            <svg class="chart" viewBox="0 0 620 190" preserveAspectRatio="none">
+              <defs><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--ac);stop-opacity:.2"/><stop offset="1" style="stop-color:var(--ac);stop-opacity:0"/></linearGradient></defs>
+              <g style="stroke:var(--b2)" stroke-dasharray="3 4" stroke-width="1"><line x1="40" y1="10" x2="610" y2="10"/><line x1="40" y1="60" x2="610" y2="60"/><line x1="40" y1="110" x2="610" y2="110"/></g>
+              <line x1="40" y1="160" x2="610" y2="160" style="stroke:var(--b3)" stroke-width="1"/>
+              <g style="fill:var(--fg3)" font-size="11" font-family="Inter,sans-serif" text-anchor="end"><text x="32" y="14">75%</text><text x="32" y="64">50%</text><text x="32" y="114">25%</text><text x="32" y="164">0%</text></g>
+              <g style="fill:var(--fg3)" font-size="11" font-family="Inter,sans-serif" text-anchor="middle"><text x="48" y="181">6 Nov</text><text x="172" y="181">9 Nov</text><text x="358" y="181">12 Nov</text><text x="482" y="181">14 Nov</text><text x="596" y="181">16 Nov</text></g>
+              <path d="M48,104 L110,88 L172,52 L234,90 L296,28 L358,66 L420,124 L482,58 L544,98 L606,132 L606,160 L48,160 Z" fill="url(#fade)"/>
+              <path d="M48,104 L110,88 L172,52 L234,90 L296,28 L358,66 L420,124 L482,58 L544,98 L606,132" fill="none" style="stroke:var(--ac)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle cx="606" cy="132" r="4" style="fill:var(--card);stroke:var(--ac)" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="card">
+            <div class="ch"><span class="t">Guess analysis</span><span class="m">Marks won or lost</span></div>
+            <div class="cfr"><div><div class="tt">Sure</div><div class="tm">69% right</div></div><div class="div"><i style="left:50%;width:44%;background:var(--ok)"></i></div><div class="v up">+88.7</div></div>
+            <div class="cfr"><div><div class="tt">50-50</div><div class="tm">62% right</div></div><div class="div"><i style="left:50%;width:30%;background:var(--ok);opacity:.75"></i></div><div class="v up">+60.7</div></div>
+            <div class="cfr"><div><div class="tt">Guess</div><div class="tm">18% right</div></div><div class="div"><i style="right:50%;width:5%;background:var(--bad)"></i></div><div class="v down">−6.7</div></div>
+            <div class="note"><i data-lucide="lightbulb"></i>Pure guesses lose marks. Skip a question unless you can rule out two options.</div>
+          </div>
+        </div>
+        <div class="two2">
+          <div class="card">
+            <div class="ch"><span class="t">Accuracy by subject</span><span class="m">Weakest first</span></div>
+            <div class="hb"><span class="nm"><span class="dot" style="--k:var(--e)"></span>Economy</span><span class="tr"><i style="width:43%;--k:var(--e)"></i></span><span class="v">43%</span></div>
+            <div class="hb"><span class="nm"><span class="dot" style="--k:var(--s)"></span>Science and tech</span><span class="tr"><i style="width:44%;--k:var(--s)"></i></span><span class="v">44%</span></div>
+            <div class="hb"><span class="nm"><span class="dot" style="--k:var(--h)"></span>History</span><span class="tr"><i style="width:45%;--k:var(--h)"></i></span><span class="v">45%</span></div>
+            <div class="hb"><span class="nm"><span class="dot" style="--k:var(--g)"></span>Geography</span><span class="tr"><i style="width:56%;--k:var(--g)"></i></span><span class="v">56%</span></div>
+            <div class="hb"><span class="nm"><span class="dot" style="--k:var(--en)"></span>Environment</span><span class="tr"><i style="width:63%;--k:var(--en)"></i></span><span class="v">63%</span></div>
+            <div class="hb"><span class="nm"><span class="dot" style="--k:var(--c)"></span>Current affairs</span><span class="tr"><i style="width:67%;--k:var(--c)"></i></span><span class="v">67%</span></div>
+            <div class="hb" style="padding-bottom:8px"><span class="nm"><span class="dot" style="--k:var(--p)"></span>Polity</span><span class="tr"><i style="width:71%;--k:var(--p)"></i></span><span class="v">71%</span></div>
+          </div>
+          <div class="card">
+            <div class="ch"><span class="t">Weakest topics</span><span class="m">Under 50% over 8 or more answers</span></div>
+            <div class="wt"><span class="tt">Money and banking</span><span class="v down">33%</span><span class="v muted">18 Q</span><span class="btn sm soft">Drill</span></div>
+            <div class="wt"><span class="tt">Space technology</span><span class="v down">41%</span><span class="v muted">17 Q</span><span class="btn sm soft">Drill</span></div>
+            <div class="wt"><span class="tt">Parliament</span><span class="v down">42%</span><span class="v muted">26 Q</span><span class="btn sm soft">Drill</span></div>
+            <div class="wt"><span class="tt">Financial markets</span><span class="v down">43%</span><span class="v muted">14 Q</span><span class="btn sm soft">Drill</span></div>
+          </div>
+        </div>
+      </div></div>
+    </main>
+  </div>
+
+</div>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>window.lucide && lucide.createIcons();</script>
+</body>
+</html>

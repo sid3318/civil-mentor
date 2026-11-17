@@ -1,20 +1,15 @@
 //! The Settings screen: exam date, daily study time, theme, and where things live.
 
 use gpui_kit::assets::IconName;
-use gpui_kit::component::button::{Button, ButtonGroup};
+use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::date_picker::{DatePicker, DatePickerEvent, DatePickerState};
-use gpui_kit::component::group_box::{GroupBox, GroupBoxVariants as _};
-use gpui_kit::component::{
-    ActiveTheme as _, Disableable as _, Icon, Selectable as _, Sizable as _, StyledExt as _,
-    h_flex, v_flex,
-};
+use gpui_kit::component::{Disableable as _, Icon, Sizable as _, StyledExt as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
 use crate::AppState;
-use crate::app::Screen;
-use crate::screens::page;
 use crate::store::ThemeChoice;
+use crate::ui;
 
 const STEP_MINUTES: u32 = 15;
 const MIN_MINUTES: u32 = 15;
@@ -56,6 +51,7 @@ fn duration(minutes: u32) -> String {
     }
 }
 
+/// One setting: its name and what it does on the left, its control on the right.
 fn setting(
     title: &'static str,
     help: impl Into<SharedString>,
@@ -65,23 +61,36 @@ fn setting(
     h_flex()
         .justify_between()
         .gap_6()
-        .py_2()
+        .px(px(16.))
+        .py(px(12.))
         .child(
             v_flex()
                 .min_w_0()
-                .child(div().font_medium().child(title))
-                .child(
-                    div()
-                        .text_sm()
-                        .text_color(cx.theme().muted_foreground)
-                        .child(help.into()),
-                ),
+                .gap(px(2.))
+                .child(div().text_size(px(13.5)).font_medium().child(title))
+                .child(ui::meta(help, cx).text_size(px(12.5))),
         )
         .child(div().flex_shrink_0().child(control))
 }
 
-impl Render for SettingsScreen {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+/// A titled group of settings in one card, with hairlines between them.
+fn group(title: &'static str, rows: Vec<Div>, cx: &App) -> Div {
+    let t = ui::tokens(cx);
+    v_flex()
+        .gap(px(8.))
+        .child(div().px_1().text_size(px(14.)).font_medium().child(title))
+        .child(
+            ui::card(cx).children(
+                rows.into_iter().enumerate().map(|(ix, row)| {
+                    row.when(ix > 0, |row| row.border_t_1().border_color(t.border))
+                }),
+            ),
+        )
+}
+
+impl SettingsScreen {
+    fn body(&mut self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
+        let t = ui::tokens(cx);
         let state = AppState::get(cx);
         let settings = state.settings.clone();
         let library = &state.library;
@@ -100,10 +109,10 @@ impl Render for SettingsScreen {
         };
 
         let study_time = h_flex()
-            .gap_2()
+            .gap_1()
             .child(
                 Button::new("less-time")
-                    .outline()
+                    .ghost()
                     .small()
                     .icon(Icon::new(IconName::Minus))
                     .accessibility_label("Study less each day")
@@ -119,13 +128,15 @@ impl Render for SettingsScreen {
             )
             .child(
                 div()
-                    .w(px(100.))
+                    .w(px(96.))
                     .text_center()
+                    .text_size(px(13.5))
+                    .font_medium()
                     .child(duration(settings.daily_minutes)),
             )
             .child(
                 Button::new("more-time")
-                    .outline()
+                    .ghost()
                     .small()
                     .icon(Icon::new(IconName::Plus))
                     .accessibility_label("Study more each day")
@@ -138,87 +149,91 @@ impl Render for SettingsScreen {
                     }),
             );
 
-        let theme = ButtonGroup::new("theme")
-            .outline()
-            .small()
-            .children(ThemeChoice::ALL.map(|choice| {
-                Button::new(choice.name())
-                    .label(choice.name())
-                    .selected(choice == settings.theme)
-            }))
-            .on_click(|clicked: &Vec<usize>, _, cx| {
-                if let Some(choice) = clicked.first().and_then(|&ix| ThemeChoice::ALL.get(ix)) {
-                    AppState::update_settings(cx, |settings| settings.theme = *choice);
-                }
-            });
+        let theme = ui::segmented(cx).children(ThemeChoice::ALL.map(|choice| {
+            ui::segment(choice.name(), choice.name(), choice == settings.theme, cx).on_click(
+                move |_, _, cx| AppState::update_settings(cx, |settings| settings.theme = choice),
+            )
+        }));
 
-        page(
-            Screen::Settings.title(),
-            "These are saved on this computer",
-            cx,
-        )
-        .child(
-            GroupBox::new()
-                .outline()
-                .title("Exam")
-                .child(setting(
-                    "Prelims date",
-                    "The countdown and your daily plan work back from this day.",
-                    DatePicker::new(&self.exam_date).w(px(180.)),
+        let demo_button = if demo {
+            Button::new("remove-demo")
+                .small()
+                .label("Remove demo history")
+                .on_click(|_, _, cx| AppState::set_demo(cx, false))
+        } else {
+            Button::new("add-demo")
+                .small()
+                .label("Add demo history")
+                .on_click(|_, _, cx| AppState::set_demo(cx, true))
+        };
+        let mut data = vec![
+            setting("Content", contents, div(), cx),
+            setting("Your progress file", data_file, div(), cx),
+            setting(
+                "Demo history",
+                if demo {
+                    "Made-up tests, reading and study time are showing in Today and Analysis. \
+                     Removing them leaves your own data as it is."
+                } else {
+                    "Adds 30 days of made-up tests, reading and study time, so Today and Analysis \
+                     have something to show. Each made-up row is marked, so removing them later \
+                     leaves your own data as it is."
+                },
+                demo_button,
+                cx,
+            ),
+        ];
+        if !problems.is_empty() {
+            data.push(
+                v_flex()
+                    .gap_1()
+                    .px(px(16.))
+                    .py(px(12.))
+                    .text_size(px(12.5))
+                    .text_color(t.danger)
+                    .child(format!("{} problems in the content files:", problems.len()))
+                    .children(problems.iter().map(|problem| div().child(problem.clone()))),
+            );
+        }
+
+        ui::column(680.)
+            .gap(px(28.))
+            .child(ui::meta("These are saved on this computer.", cx).text_size(px(13.5)))
+            .child(group(
+                "Exam",
+                vec![
+                    setting(
+                        "Prelims date",
+                        "The countdown and your daily plan work back from this day.",
+                        DatePicker::new(&self.exam_date).w(px(180.)),
+                        cx,
+                    ),
+                    setting(
+                        "Daily study time",
+                        "Today's plan is sized to fit this.",
+                        study_time,
+                        cx,
+                    ),
+                ],
+                cx,
+            ))
+            .child(group(
+                "Appearance",
+                vec![setting(
+                    "Theme",
+                    "System follows your computer's light or dark setting.",
+                    theme,
                     cx,
-                ))
-                .child(setting(
-                    "Daily study time",
-                    "Today's plan is sized to fit this.",
-                    study_time,
-                    cx,
-                )),
-        )
-        .child(GroupBox::new().outline().title("Appearance").child(setting(
-            "Theme",
-            "System follows your computer's light or dark setting.",
-            theme,
-            cx,
-        )))
-        .child(
-            GroupBox::new()
-                .outline()
-                .title("Library and data")
-                .child(setting("Content", contents, div(), cx))
-                .child(setting("Your progress file", data_file, div(), cx))
-                .child(setting(
-                    "Demo history",
-                    if demo {
-                        "Made-up tests, reading and study time are showing in Today and Analysis. Removing them leaves your own data as it is."
-                    } else {
-                        "Adds 30 days of made-up tests, reading and study time, so Today and Analysis have something to show. Each made-up row is marked, so removing them later leaves your own data as it is."
-                    },
-                    if demo {
-                        Button::new("remove-demo")
-                            .outline()
-                            .small()
-                            .label("Remove demo history")
-                            .on_click(|_, _, cx| AppState::set_demo(cx, false))
-                    } else {
-                        Button::new("add-demo")
-                            .outline()
-                            .small()
-                            .label("Add demo history")
-                            .on_click(|_, _, cx| AppState::set_demo(cx, true))
-                    },
-                    cx,
-                ))
-                .when(!problems.is_empty(), |this| {
-                    this.child(
-                        v_flex()
-                            .gap_1()
-                            .pt_2()
-                            .text_sm()
-                            .text_color(cx.theme().danger)
-                            .child(format!("{} problems in the content files:", problems.len()))
-                            .children(problems.iter().map(|problem| div().child(problem.clone()))),
-                    )
-                }),
-        )
+                )],
+                cx,
+            ))
+            .child(group("Library and data", data, cx))
+    }
+}
+
+impl Render for SettingsScreen {
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let header = ui::header(cx).child(ui::title(IconName::Settings, "Settings", cx));
+        ui::screen(header, ("screen", 0usize), self.body(cx))
     }
 }

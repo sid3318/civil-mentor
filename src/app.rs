@@ -1,4 +1,5 @@
-//! The window shell: title bar, sidebar, search palette and the active screen.
+//! The window shell: the sidebar on the window's background, the search
+//! palette, and the canvas the active screen sits on (DESIGN.md, section 4).
 
 use std::cell::Cell;
 use std::rc::Rc;
@@ -8,14 +9,15 @@ use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::command::{Command, CommandGroup, CommandItem, CommandState};
 use gpui_kit::component::kbd::Kbd;
-use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::sidebar::{
     Sidebar, SidebarGroup, SidebarItem as _, SidebarMenu, SidebarMenuItem, SidebarToggleButton,
 };
+use gpui_kit::component::tooltip::Tooltip;
 use gpui_kit::component::{
     ActiveTheme as _, Collapsible as _, Disableable as _, Icon, Sizable as _, StyledExt as _,
     Theme, TitleBar, WindowExt as _, h_flex, v_flex,
 };
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
 use crate::AppState;
@@ -34,7 +36,8 @@ use crate::settings::SettingsScreen;
 use crate::store::Study;
 use crate::store::ThemeChoice;
 use crate::syllabus::SyllabusScreen;
-use crate::today::{TodayScreen, streak_label};
+use crate::today::{TodayScreen, plan_progress, streak_label};
+use crate::ui;
 
 actions!(
     civil_mentor,
@@ -686,234 +689,354 @@ impl Shell {
             dialog
                 .close_button(false)
                 .p_0()
-                .w(px(580.))
+                .w(px(640.))
                 .content(move |content, _, _| content.child(palette.clone()))
         });
     }
 
-    fn title_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
+    /// The count beside a sidebar item, and whether it asks for action: the
+    /// day's plan, the unread stories in the latest brief, coverage, and the
+    /// reviews due (the one shown as a pill).
+    fn badge(screen: Screen, cx: &App) -> Option<(String, bool)> {
         let today = AppState::today(cx);
         let state = AppState::get(cx);
-        let days = (state.settings.exam_date - today).num_days();
-        let study = state.store.study_days().unwrap_or_default();
-        let countdown = format!(
-            "{} · {}",
-            countdown(days),
-            streak_label(crate::mentor::streak(&study, today))
-        );
-        let dark = cx.theme().is_dark();
-        let search_keys = Keystroke::parse_with_os(SEARCH_KEYS, cx.platform_info().os)
-            .expect("the shortcut is spelled correctly");
-
-        TitleBar::new()
-            .child(
-                h_flex()
-                    .flex_1()
-                    .gap_2()
-                    .child(
-                        SidebarToggleButton::new()
-                            .collapsed(self.sidebar_collapsed)
-                            .accessibility_label("Toggle sidebar")
-                            .on_click(cx.listener(|this, _, _, cx| this.toggle_sidebar(cx))),
-                    )
-                    .child(
-                        Button::new("back")
-                            .ghost()
-                            .small()
-                            .icon(Icon::new(IconName::ChevronLeft))
-                            .tooltip("Back")
-                            .disabled(self.at == 0)
-                            .on_click(cx.listener(|this, _, _, cx| this.back(cx))),
-                    )
-                    .child(
-                        Button::new("forward")
-                            .ghost()
-                            .small()
-                            .icon(Icon::new(IconName::ChevronRight))
-                            .tooltip("Forward")
-                            .disabled(self.at + 1 == self.history.len())
-                            .on_click(cx.listener(|this, _, _, cx| this.forward(cx))),
-                    )
-                    .child(div().text_sm().font_semibold().child("Civil Mentor")),
-            )
-            .child(
-                h_flex()
-                    .id("search-trigger")
-                    .test_support()
-                    .w(px(380.))
-                    .h(px(24.))
-                    .px_2()
-                    .gap_2()
-                    .rounded(cx.theme().radius)
-                    .border_1()
-                    .border_color(cx.theme().border)
-                    .bg(cx.theme().background)
-                    .text_xs()
-                    .text_color(cx.theme().muted_foreground)
-                    .cursor_pointer()
-                    .hover(|this| this.border_color(cx.theme().ring))
-                    .child(Icon::new(IconName::Search).xsmall())
-                    .child(div().flex_1().child("Search notes, questions and news"))
-                    .child(Kbd::new(search_keys))
-                    .on_click(cx.listener(|this, _, window, cx| this.open_search(window, cx))),
-            )
-            .child(
-                h_flex()
-                    .flex_1()
-                    .justify_end()
-                    .gap_1()
-                    .pr_2()
-                    .child(
-                        Button::new("countdown")
-                            .ghost()
-                            .xsmall()
-                            .label(countdown)
-                            .tooltip("Change your exam date")
-                            .on_click(cx.listener(|this, _, _, cx| this.go(Screen::Settings, cx))),
-                    )
-                    .child(
-                        Button::new("theme-toggle")
-                            .ghost()
-                            .small()
-                            .icon(Icon::new(if dark { IconName::Sun } else { IconName::Moon }))
-                            .tooltip(if dark {
-                                "Switch to the light theme"
-                            } else {
-                                "Switch to the dark theme"
-                            })
-                            .on_click(|_, _, cx| toggle_theme(cx)),
-                    ),
-            )
+        let library = &state.library;
+        match screen {
+            Screen::Today => {
+                plan_progress(cx, today).map(|(done, total)| (format!("{done}/{total}"), false))
+            }
+            Screen::CurrentAffairs => {
+                let unread = library.briefs.first().map_or(0, |brief| {
+                    brief
+                        .stories
+                        .iter()
+                        .filter(|story| {
+                            state
+                                .reading
+                                .get(&story.reading_key())
+                                .is_none_or(|reading| reading.done.is_none())
+                        })
+                        .count()
+                });
+                (unread > 0).then(|| (unread.to_string(), false))
+            }
+            Screen::Revision => {
+                let due = crate::mentor::review_queue(library, &state.reviews, today).len();
+                (due > 0).then(|| (due.to_string(), true))
+            }
+            Screen::Syllabus => {
+                let statuses = crate::syllabus::statuses(library, &state.reading);
+                let (done, total) = library
+                    .topics
+                    .iter()
+                    .filter(|topic| topic.depth == 0)
+                    .map(|stage| crate::syllabus::coverage(library, &statuses, &stage.id))
+                    .fold((0, 0), |(done, total), (d, t)| (done + d, total + t));
+                (total > 0).then(|| (format!("{}%", done * 100 / total), false))
+            }
+            _ => None,
+        }
     }
 
+    /// The sidebar, on the window's background: the traffic lights and the
+    /// view controls, search, the two groups of sections with their counts,
+    /// then the streak, the focus timer and Settings. Folded, it is a 72 px
+    /// rail of icons, wide enough for the traffic lights.
     fn sidebar(&self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let t = ui::tokens(cx);
         let current = self.screen();
+        let rail = self.sidebar_collapsed;
         let item = |screen: Screen, cx: &mut Context<Self>| {
+            let active = screen == current;
+            let badge = Shell::badge(screen, cx);
             SidebarMenuItem::new(screen.title())
-                .icon(Icon::new(screen.icon()))
-                .active(screen == current)
+                .icon(Icon::new(screen.icon()).text_color(if active { t.text } else { t.text_3 }))
+                .active(active)
+                .when_some(badge, |item, (count, pill)| {
+                    item.suffix(move |_, cx| {
+                        let t = ui::tokens(cx);
+                        let badge = div().flex_shrink_0().text_size(px(11.));
+                        if pill {
+                            badge
+                                .min_w(px(20.))
+                                .h(px(18.))
+                                .px(px(6.))
+                                .rounded_full()
+                                .bg(t.accent)
+                                .text_color(t.on_accent)
+                                .font_semibold()
+                                .flex()
+                                .items_center()
+                                .justify_center()
+                                .child(count.clone())
+                        } else {
+                            badge.text_color(t.text_3).child(count.clone())
+                        }
+                    })
+                })
                 .on_click(cx.listener(move |this, _, _, cx| this.go(screen, cx)))
         };
         let primary = Screen::PRIMARY.map(|screen| item(screen, cx));
         let secondary = Screen::SECONDARY.map(|screen| item(screen, cx));
-        let footer = SidebarMenu::new()
-            .w_full()
-            .child(
-                SidebarMenuItem::new(self.focus_label())
-                    .icon(Icon::new(IconName::Timer))
-                    .active(self.focus.is_some())
-                    .on_click(cx.listener(|this, _, _, cx| this.toggle_focus(cx))),
+        let settings = item(Screen::Settings, cx);
+        let focus = SidebarMenuItem::new(self.focus_label())
+            .icon(
+                Icon::new(IconName::Timer).text_color(if self.focus.is_some() {
+                    t.accent
+                } else {
+                    t.text_3
+                }),
             )
-            .child(item(Screen::Settings, cx))
-            .collapsed(self.sidebar_collapsed)
-            .render("sidebar-footer", window, cx);
+            .active(self.focus.is_some())
+            .on_click(cx.listener(|this, _, _, cx| this.toggle_focus(cx)));
 
-        Sidebar::new("sidebar")
-            .w(px(220.))
-            .collapsed(self.sidebar_collapsed)
+        let today = AppState::today(cx);
+        let state = AppState::get(cx);
+        let exam = state.settings.exam_date;
+        let study = state.store.study_days().unwrap_or_default();
+        let streak = crate::mentor::streak(&study, today);
+        let days_left = countdown((exam - today).num_days());
+        // How far through the preparation the student is: from the first
+        // day studied to the exam.
+        let start = study.keys().next().copied().unwrap_or(today).min(today);
+        let span = (exam - start).num_days().max(1) as f32;
+        let elapsed = ((today - start).num_days() as f32 / span).clamp(0., 1.);
+        let to_settings = cx.listener(|this, _, _, cx| this.go(Screen::Settings, cx));
+        let streak_card = if rail {
+            let tip = format!("{} · {days_left}", streak_label(streak));
+            div()
+                .id("countdown")
+                .test_support()
+                .size(px(32.))
+                .flex()
+                .items_center()
+                .justify_center()
+                .rounded(px(6.))
+                .cursor_pointer()
+                .hover(|this| this.bg(t.hover))
+                .child(Icon::new(IconName::Flame).size_4().text_color(t.attention))
+                .tooltip(move |window, cx| Tooltip::new(tip.clone()).build(window, cx))
+                .on_click(to_settings)
+                .into_any_element()
+        } else {
+            v_flex()
+                .id("countdown")
+                .test_support()
+                .w_full()
+                .p(px(10.))
+                .gap(px(3.))
+                .rounded(px(9.))
+                .bg(t.card)
+                .border_1()
+                .border_color(t.border)
+                .shadow(ui::lift(cx))
+                .cursor_pointer()
+                .hover(|this| this.border_color(t.border_3))
+                .child(
+                    h_flex()
+                        .gap(px(6.))
+                        .text_size(px(12.5))
+                        .font_semibold()
+                        .child(
+                            Icon::new(IconName::Flame)
+                                .size(px(15.))
+                                .text_color(t.attention),
+                        )
+                        .child(streak_label(streak)),
+                )
+                .child(
+                    h_flex()
+                        .justify_between()
+                        .pb(px(5.))
+                        .text_size(px(11.5))
+                        .text_color(t.text_3)
+                        .child(days_left)
+                        .child(exam.format("%-d %b").to_string()),
+                )
+                .child(ui::progress(elapsed, t.accent, cx))
+                .on_click(to_settings)
+                .into_any_element()
+        };
+
+        let dark = cx.theme().is_dark();
+        let icon_button = |id: &'static str, icon: IconName, tip: &'static str| {
+            Button::new(id)
+                .ghost()
+                .small()
+                .icon(Icon::new(icon))
+                .tooltip(tip)
+        };
+        let toggle = SidebarToggleButton::new()
+            .collapsed(rail)
+            .accessibility_label("Toggle sidebar")
+            .on_click(cx.listener(|this, _, _, cx| this.toggle_sidebar(cx)));
+        let back = icon_button("back", IconName::ChevronLeft, "Back")
+            .disabled(self.at == 0)
+            .on_click(cx.listener(|this, _, _, cx| this.back(cx)));
+        let forward = icon_button("forward", IconName::ChevronRight, "Forward")
+            .disabled(self.at + 1 == self.history.len())
+            .on_click(cx.listener(|this, _, _, cx| this.forward(cx)));
+        let theme = icon_button(
+            "theme-toggle",
+            if dark { IconName::Sun } else { IconName::Moon },
+            if dark {
+                "Switch to the light theme"
+            } else {
+                "Switch to the dark theme"
+            },
+        )
+        .on_click(|_, _, cx| toggle_theme(cx));
+        let search_keys = Keystroke::parse_with_os(SEARCH_KEYS, cx.platform_info().os)
+            .expect("the shortcut is spelled correctly");
+        let search = h_flex()
+            .id("search-trigger")
+            .test_support()
+            .flex_shrink_0()
+            .cursor_pointer()
+            .text_color(t.text_3)
+            .on_click(cx.listener(|this, _, window, cx| this.open_search(window, cx)));
+        let search = if rail {
+            search
+                .mt_1()
+                .size(px(32.))
+                .justify_center()
+                .rounded(px(6.))
+                .hover(|this| this.bg(t.hover))
+                .child(Icon::new(IconName::Search).size_4())
+        } else {
+            search
+                .mx(px(12.))
+                .h(px(30.))
+                .px(px(9.))
+                .gap_2()
+                .rounded(px(7.))
+                .bg(t.card)
+                .border_1()
+                .border_color(t.border)
+                .shadow(ui::lift(cx))
+                .text_size(px(13.))
+                .hover(|this| this.border_color(t.border_3))
+                .child(Icon::new(IconName::Search).size(px(14.)))
+                .child(div().flex_1().child("Search"))
+                .child(Kbd::new(search_keys))
+        };
+        // Built last: the menu holds on to `cx`.
+        let menu = SidebarMenu::new()
+            .w_full()
+            .child(focus)
+            .child(settings)
+            .collapsed(rail)
+            .render("sidebar-footer", window, cx);
+        let groups = Sidebar::new("sidebar")
+            .w(px(232.))
+            .collapsed(rail)
             .child(SidebarGroup::new("Study").child(SidebarMenu::new().children(primary)))
-            .child(SidebarGroup::new("More").child(SidebarMenu::new().children(secondary)))
-            .footer(footer)
+            .child(SidebarGroup::new("Library").child(SidebarMenu::new().children(secondary)))
+            .footer(
+                v_flex()
+                    .w_full()
+                    .gap_1()
+                    .when(rail, |this| this.items_center())
+                    .child(streak_card)
+                    .child(menu),
+            );
+
+        // The top row moves the window, like the title bar it replaces.
+        let top = TitleBar::new().h(px(56.)).bg(transparent_black());
+        if rail {
+            return v_flex()
+                .w(px(72.))
+                .h_full()
+                .flex_shrink_0()
+                .items_center()
+                .child(top.pl_0())
+                .child(h_flex().child(back).child(forward))
+                .child(h_flex().child(toggle).child(theme))
+                .child(search)
+                .child(div().flex_1().min_h_0().w(px(48.)).child(groups))
+                .into_any_element();
+        }
+        v_flex()
+            .w(px(232.))
+            .h_full()
+            .flex_shrink_0()
+            .child(
+                top.pl(px(80.)).pr(px(8.)).child(
+                    h_flex()
+                        .flex_1()
+                        .justify_end()
+                        .child(back)
+                        .child(forward)
+                        .child(theme)
+                        .child(toggle),
+                ),
+            )
+            .child(search)
+            .child(div().flex_1().min_h_0().child(groups))
+            .into_any_element()
     }
 }
 
 impl Render for Shell {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let store_error = AppState::get(cx).store_error.clone();
+        let t = ui::tokens(cx);
         let place = self.history[self.at];
-        let banner = store_error.map(|error| {
+        let banner = AppState::get(cx).store_error.clone().map(|error| {
             h_flex()
-                .px_4()
+                .id("store-error")
+                .flex_shrink_0()
+                .m_2()
+                .px_3()
                 .py_2()
                 .gap_2()
-                .bg(cx.theme().danger)
+                .rounded(px(8.))
+                .bg(t.danger)
                 .text_color(cx.theme().danger_foreground)
-                .text_sm()
-                .child(Icon::new(IconName::TriangleAlert))
+                .text_size(px(13.))
+                .child(Icon::new(IconName::TriangleAlert).size_4())
                 .child(format!("Your progress is not being saved. {error}"))
         });
-        // The exam room takes the whole window: no title bar, no sidebar.
-        if place == Place::Exam {
-            return v_flex()
-                .size_full()
-                .bg(cx.theme().background)
-                .text_color(cx.theme().foreground)
-                .children(banner)
-                .child(div().flex_1().min_h_0().child(self.exam.clone()))
-                .into_any_element();
-        }
-        // Notes and Current affairs have panes that scroll on their own;
-        // every other place is one column that scrolls as a whole, with its
-        // own scroll position.
-        let content = match place {
-            Place::Note(_) | Place::Screen(Screen::Notes) => div()
-                .flex_1()
-                .min_w_0()
-                .h_full()
-                .child(self.notes.clone())
-                .into_any_element(),
-            Place::Story(_) | Place::Screen(Screen::CurrentAffairs) => div()
-                .flex_1()
-                .min_w_0()
-                .h_full()
-                .child(self.current_affairs.clone())
-                .into_any_element(),
-            place => {
-                let (page, scroll) = match place {
-                    Place::Screen(Screen::Settings) => {
-                        (self.settings.clone().into_any_element(), 0)
-                    }
-                    Place::Screen(Screen::Syllabus) => {
-                        (self.syllabus.clone().into_any_element(), 1)
-                    }
-                    Place::Screen(Screen::Practice) => {
-                        (self.practice.clone().into_any_element(), 2)
-                    }
-                    Place::Screen(Screen::Today) => (self.today.clone().into_any_element(), 6),
-                    Place::Screen(Screen::Analysis) => {
-                        (self.analysis.clone().into_any_element(), 7)
-                    }
-                    Place::Screen(Screen::Revision) => {
-                        (self.revision.clone().into_any_element(), 8)
-                    }
-                    Place::Screen(Screen::Notebook) => {
-                        (self.notebook.clone().into_any_element(), 9)
-                    }
-                    Place::Screen(Screen::Mains) => (self.mains.clone().into_any_element(), 10),
-                    Place::Result(_) => (self.review.clone().into_any_element(), 3),
-                    Place::Paper(_) => (self.review.clone().into_any_element(), 4),
-                    Place::Question(_) => (self.review.clone().into_any_element(), 5),
-                    // Notes, Current affairs and the exam room are drawn above.
-                    _ => (div().into_any_element(), 11usize),
-                };
+        // Every screen draws its own header and body; the shell only gives
+        // it the canvas.
+        let screen = match place {
+            Place::Exam => self.exam.clone().into_any_element(),
+            Place::Note(_) | Place::Screen(Screen::Notes) => self.notes.clone().into_any_element(),
+            Place::Story(_) | Place::Screen(Screen::CurrentAffairs) => {
+                self.current_affairs.clone().into_any_element()
+            }
+            Place::Screen(Screen::Today) => self.today.clone().into_any_element(),
+            Place::Screen(Screen::Practice) => self.practice.clone().into_any_element(),
+            Place::Screen(Screen::Analysis) => self.analysis.clone().into_any_element(),
+            Place::Screen(Screen::Revision) => self.revision.clone().into_any_element(),
+            Place::Screen(Screen::Mains) => self.mains.clone().into_any_element(),
+            Place::Screen(Screen::Syllabus) => self.syllabus.clone().into_any_element(),
+            Place::Screen(Screen::Notebook) => self.notebook.clone().into_any_element(),
+            Place::Screen(Screen::Settings) => self.settings.clone().into_any_element(),
+            Place::Result(_) | Place::Paper(_) | Place::Question(_) => {
+                self.review.clone().into_any_element()
+            }
+        };
+        // The exam room takes the whole window: no sidebar.
+        let focus = place == Place::Exam;
+        div()
+            .flex()
+            .size_full()
+            .bg(t.chrome)
+            .text_color(t.text)
+            .when(!focus, |this| this.child(self.sidebar(window, cx)))
+            .child(
                 div()
                     .flex_1()
                     .min_w_0()
                     .h_full()
-                    .overflow_y_scrollbar()
-                    .id(("screen", scroll))
-                    .child(page)
-                    .into_any_element()
-            }
-        };
-
-        v_flex()
-            .size_full()
-            .bg(cx.theme().background)
-            .text_color(cx.theme().foreground)
-            .child(self.title_bar(cx))
-            .children(banner)
-            .child(
-                // Not `h_flex`: that centres its children vertically, and the
-                // sidebar and the screen must fill the height.
-                div()
-                    .flex()
-                    .flex_1()
-                    .min_h_0()
-                    .child(self.sidebar(window, cx))
-                    .child(content),
+                    .p(px(8.))
+                    .when(!focus, |this| this.pl_0())
+                    .child(
+                        ui::canvas(cx)
+                            .children(banner)
+                            .child(div().flex_1().min_h_0().child(screen)),
+                    ),
             )
-            .into_any_element()
     }
 }
 

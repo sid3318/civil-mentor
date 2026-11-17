@@ -28,6 +28,7 @@ use crate::mentor::{self, DIMENSIONS, MAINS_SCORING_MINUTES};
 use crate::notes::IDLE;
 use crate::screens::{count, page};
 use crate::store::{MainsAnswer, SCORES, Study};
+use crate::ui;
 
 /// The tabs of the list.
 const TABS: [&str; 2] = ["Questions", "History"];
@@ -92,30 +93,25 @@ fn now(cx: &App) -> NaiveDateTime {
 
 fn muted(text: impl Into<SharedString>, cx: &App) -> Div {
     div()
-        .text_sm()
-        .text_color(cx.theme().muted_foreground)
+        .text_size(px(13.))
+        .text_color(ui::tokens(cx).text_3)
         .child(text.into())
 }
 
 fn card(cx: &App) -> Div {
-    v_flex()
-        .min_w_0()
-        .p_4()
-        .gap_3()
-        .rounded(cx.theme().radius_lg)
-        .border_1()
-        .border_color(cx.theme().border)
+    ui::card(cx).p_4().gap(px(12.))
 }
 
 /// A column wider than a page, for the editor and the scoring sheet.
-fn wide(cx: &App) -> Div {
+fn wide() -> Div {
     v_flex()
         .w_full()
         .max_w(px(WIDE))
         .mx_auto()
-        .p_8()
-        .gap_5()
-        .text_color(cx.theme().foreground)
+        .px_8()
+        .pt_6()
+        .pb_10()
+        .gap(px(18.))
 }
 
 /// "GS-2 · Constitution and polity", from the question's first topic.
@@ -402,9 +398,7 @@ impl MainsScreen {
         } else {
             self.questions(cx).into_any_element()
         };
-        page("Mains", summary, cx)
-            .child(h_flex().child(tabs))
-            .child(body)
+        page(summary, cx).child(h_flex().child(tabs)).child(body)
     }
 
     fn questions(&self, cx: &Context<Self>) -> impl IntoElement + use<> {
@@ -800,7 +794,7 @@ impl MainsScreen {
         });
         let past: Vec<_> = past.collect();
 
-        page("Mains", place(&question, cx), cx)
+        page(place(&question, cx), cx)
             .child(h_flex().child(self.back_button("All questions", 0, cx)))
             .child(
                 card(cx)
@@ -942,13 +936,21 @@ impl MainsScreen {
         let answer = &writing.answer;
         let left = mentor::seconds_left(&question, answer.seconds);
         let words = word_count(&answer.text);
-        let theme = cx.theme();
+        let t = ui::tokens(cx);
         let clock_text = if left >= 0 {
             format!("{} left", clock(left as u32))
         } else {
             format!("{} over", clock(-left as u32))
         };
-        wide(cx)
+        let over = words > question.words as usize;
+        let warn = if left <= 0 {
+            Some(t.danger)
+        } else if left <= LOW_TIME {
+            Some(t.attention)
+        } else {
+            None
+        };
+        wide()
             .id("mains-writing")
             .test_support()
             .child(
@@ -957,7 +959,10 @@ impl MainsScreen {
                     .child(muted(format!("{} · {}", place(&question, cx), terms(&question)), cx))
                     .child(
                         div()
-                            .text_size(px(17.))
+                            .font_family(ui::SERIF)
+                            .text_size(px(19.))
+                            .line_height(relative(1.45))
+                            .font_medium()
                             .child(TextView::markdown("mains-writing-question", question.question.clone())),
                     ),
             )
@@ -968,19 +973,40 @@ impl MainsScreen {
                         h_flex()
                             .id("mains-clock")
                             .test_support()
-                            .gap_1()
+                            .h(px(30.))
+                            .px(px(13.))
+                            .gap(px(7.))
+                            .rounded_full()
+                            .bg(t.sunken)
+                            .border_1()
+                            .border_color(warn.unwrap_or(t.border))
+                            .text_size(px(14.))
                             .font_semibold()
-                            .when(left <= LOW_TIME, |this| this.text_color(theme.danger))
-                            .child(Icon::new(IconName::Timer).small())
+                            .text_color(warn.unwrap_or(t.text))
+                            .child(Icon::new(IconName::Timer).size(px(15.)).text_color(warn.unwrap_or(t.text_3)))
                             .child(clock_text),
                     )
                     .child(
-                        div()
+                        h_flex()
                             .id("mains-words")
                             .test_support()
-                            .font_medium()
-                            .when(words > question.words as usize, |this| this.text_color(theme.danger))
-                            .child(format!("{words} / {} words", question.words)),
+                            .gap(px(10.))
+                            .child(
+                                div()
+                                    .w(px(120.))
+                                    .child(ui::progress(
+                                        words as f32 / question.words.max(1) as f32,
+                                        if over { t.danger } else { t.accent },
+                                        cx,
+                                    )),
+                            )
+                            .child(
+                                div()
+                                    .text_size(px(13.))
+                                    .font_medium()
+                                    .when(over, |this| this.text_color(t.danger))
+                                    .child(format!("{words} / {} words", question.words)),
+                            ),
                     )
                     .child(div().flex_1())
                     .child(
@@ -1007,11 +1033,12 @@ impl MainsScreen {
                         .id("time-up")
                         .test_support()
                         .px_4()
-                        .py_2()
-                        .rounded(theme.radius)
-                        .bg(theme.warning)
-                        .text_color(theme.warning_foreground)
-                        .text_sm()
+                        .py(px(10.))
+                        .rounded(px(8.))
+                        .bg(t.attention.opacity(0.14))
+                        .border_1()
+                        .border_color(t.attention.opacity(0.5))
+                        .text_size(px(13.))
                         .child(
                             "Time is up. In the exam you would move on now: finish your sentence and submit. \
                              The overrun is kept with your answer.",
@@ -1022,7 +1049,9 @@ impl MainsScreen {
                 div()
                     .id("mains-editor")
                     .test_support()
-                    .child(Textarea::new(&writing.editor).h(px(400.))),
+                    .font_family(ui::SERIF)
+                    .text_size(px(16.))
+                    .child(Textarea::new(&writing.editor).h(px(420.))),
             )
             .child(muted(
                 "Saved as you type. If you leave or the app closes, the draft and its clock wait for you.",
@@ -1035,7 +1064,7 @@ impl MainsScreen {
     fn scoring(&self, id: i64, cx: &Context<Self>) -> AnyElement {
         let state = AppState::get(cx);
         let Some(answer) = state.mains.iter().find(|a| a.id == id).cloned() else {
-            return page("Mains", "This answer is not in your data.", cx).into_any_element();
+            return page("This answer is not in your data.", cx).into_any_element();
         };
         let question = state
             .library
@@ -1100,7 +1129,7 @@ impl MainsScreen {
             None => format!("{given} of {SCORES} scored"),
         };
 
-        wide(cx)
+        wide()
             .id("mains-scoring")
             .test_support()
             .child(h_flex().child(self.back_button("History", 1, cx)))
@@ -1172,8 +1201,8 @@ impl MainsScreen {
     }
 }
 
-impl Render for MainsScreen {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+impl MainsScreen {
+    fn body(&mut self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         match &self.view {
             View::List => self.list(cx).into_any_element(),
             View::Question { ix, model_shown } => {
@@ -1182,6 +1211,13 @@ impl Render for MainsScreen {
             View::Writing(writing) => self.writing_view(writing, cx).into_any_element(),
             View::Scoring(id) => self.scoring(*id, cx),
         }
+    }
+}
+
+impl Render for MainsScreen {
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let header = ui::header(cx).child(ui::title(IconName::PenLine, "Mains", cx));
+        ui::screen(header, ("screen", 10usize), self.body(cx))
     }
 }
 

@@ -4,16 +4,16 @@
 use std::collections::{HashMap, HashSet};
 
 use gpui_kit::assets::IconName;
-use gpui_kit::component::progress::Progress;
 use gpui_kit::component::{ActiveTheme as _, Icon, Sizable as _, StyledExt as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
 use crate::AppState;
-use crate::app::{Screen, Shell};
+use crate::app::Shell;
 use crate::content::{Library, Target, covers, is_under, within};
 use crate::screens::{count, page};
 use crate::store::Reading;
+use crate::ui;
 
 /// How far the student has got with a note, or with a topic.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -122,12 +122,13 @@ impl SyllabusScreen {
     }
 }
 
-impl Render for SyllabusScreen {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+impl SyllabusScreen {
+    fn body(&mut self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         let state = AppState::get(cx);
         let (library, reading) = (&state.library, &state.reading);
         let statuses = statuses(library, reading);
-        let muted = cx.theme().muted_foreground;
+        let t = ui::tokens(cx);
+        let muted = t.text_3;
 
         // Stages and papers always show; any other topic shows when its parent
         // shows and is open. Parents come before children, so one pass does it.
@@ -146,28 +147,40 @@ impl Render for SyllabusScreen {
                 rows.push(
                     v_flex()
                         .pt_6()
-                        .pb_2()
-                        .child(div().text_xl().font_semibold().child(topic.title.clone()))
+                        .pb_3()
+                        .gap(px(2.))
+                        .child(
+                            div()
+                                .font_family(ui::DISPLAY)
+                                .text_size(px(20.))
+                                .font_semibold()
+                                .child(topic.title.clone()),
+                        )
                         .when_some(topic.official.clone(), |this, official| {
-                            this.child(div().text_sm().text_color(muted).child(official))
+                            this.child(ui::meta(official, cx))
                         })
                         .into_any_element(),
                 );
                 continue;
             }
 
-            let indent = px(18. * (topic.depth - 1) as f32);
+            let indent = px(10. + 20. * (topic.depth - 1) as f32);
             let row = h_flex()
                 .id(("topic", ix))
                 .test_support()
                 .items_start()
                 .gap_3()
-                .py_2()
-                .pr_2()
+                .py(px(7.))
+                .pr_3()
                 .pl(indent)
-                .border_t_1()
-                .border_color(cx.theme().border)
-                .when(topic.depth == 1, |this| this.py_3());
+                .rounded(px(6.))
+                .text_size(px(13.5))
+                .when(topic.depth == 1, |this| {
+                    this.py(px(10.))
+                        .border_t_1()
+                        .border_color(t.border)
+                        .rounded_none()
+                });
 
             if !topic.leaf {
                 let open = self.open.contains(&ix);
@@ -194,7 +207,7 @@ impl Render for SyllabusScreen {
                                 .child(
                                     div()
                                         .when(topic.depth <= 2, |this| this.font_medium())
-                                        .when(topic.depth == 1, |this| this.text_lg())
+                                        .when(topic.depth == 1, |this| this.text_size(px(15.)))
                                         .child(topic.title.clone()),
                                 )
                                 // UPSC's wording shows once the student opens the row.
@@ -202,7 +215,14 @@ impl Render for SyllabusScreen {
                                     topic.official.clone().filter(|_| open),
                                     |this, official| {
                                         this.child(
-                                            div().text_sm().text_color(muted).child(official),
+                                            div()
+                                                .mt_1()
+                                                .pl_3()
+                                                .border_l_2()
+                                                .border_color(t.border_3)
+                                                .text_size(px(12.5))
+                                                .text_color(muted)
+                                                .child(official),
                                         )
                                     },
                                 ),
@@ -211,17 +231,25 @@ impl Render for SyllabusScreen {
                             div()
                                 .flex_shrink_0()
                                 .pt(px(2.))
-                                .text_sm()
+                                .text_size(px(12.))
                                 .text_color(muted)
                                 .child(format!("{} of {} read", covered.0, covered.1)),
                         )
                         .child(
-                            div().flex_shrink_0().pt(px(8.)).child(
-                                Progress::new(("coverage", ix))
-                                    .small()
-                                    .w(px(72.))
-                                    .value(percent(covered)),
-                            ),
+                            div()
+                                .id(("coverage", ix))
+                                .flex_shrink_0()
+                                .w(px(80.))
+                                .pt(px(9.))
+                                .child(ui::progress(
+                                    percent(covered) / 100.,
+                                    if topic.depth == 1 {
+                                        t.accent
+                                    } else {
+                                        ui::subject_color(&topic.id, cx)
+                                    },
+                                    cx,
+                                )),
                         )
                         .on_click(cx.listener(move |this, _, _, cx| {
                             if !this.open.remove(&ix) {
@@ -261,7 +289,7 @@ impl Render for SyllabusScreen {
                     .child(
                         div()
                             .flex_shrink_0()
-                            .text_sm()
+                            .text_size(px(12.))
                             .text_color(muted)
                             .child(linked.join(" · ")),
                     )
@@ -269,7 +297,7 @@ impl Render for SyllabusScreen {
                         div()
                             .flex_shrink_0()
                             .w(px(96.))
-                            .text_sm()
+                            .text_size(px(12.5))
                             .when(status == Status::NoNotes, |this| this.text_color(muted))
                             .child(status.label()),
                     )
@@ -296,7 +324,56 @@ impl Render for SyllabusScreen {
             "You have read {done} of {total} topics. A topic counts once every note on it is \
              marked read. Open a paper to see its subjects, chapters and topics."
         );
-        page(Screen::Syllabus.title(), summary, cx).child(v_flex().children(rows))
+        let papers: Vec<AnyElement> = library
+            .topics
+            .iter()
+            .enumerate()
+            .filter(|(_, topic)| topic.depth == 1)
+            .map(|(ix, paper)| {
+                let covered = coverage(library, &statuses, &paper.id);
+                let open = self.open.contains(&ix);
+                ui::card(cx)
+                    .id(("paper-card", ix))
+                    .w(px(148.))
+                    .flex_shrink_0()
+                    .p(px(12.))
+                    .gap(px(6.))
+                    .cursor_pointer()
+                    .when(open, |this| this.border_color(t.accent))
+                    .hover(|this| this.border_color(t.border_3))
+                    .child(
+                        div()
+                            .truncate()
+                            .text_size(px(12.5))
+                            .font_medium()
+                            .child(paper.title.clone()),
+                    )
+                    .child(
+                        div()
+                            .text_size(px(20.))
+                            .font_semibold()
+                            .child(format!("{:.0}%", percent(covered))),
+                    )
+                    .child(ui::progress(percent(covered) / 100., t.accent, cx))
+                    .on_click(cx.listener(move |this, _, _, cx| {
+                        if !this.open.remove(&ix) {
+                            this.open.insert(ix);
+                        }
+                        cx.notify();
+                    }))
+                    .into_any_element()
+            })
+            .collect();
+        page(summary, cx)
+            .child(h_flex().flex_wrap().gap(px(10.)).children(papers))
+            .child(v_flex().children(rows))
+    }
+}
+
+impl Render for SyllabusScreen {
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let header = ui::header(cx).child(ui::title(IconName::ListTree, "Syllabus", cx));
+        ui::screen(header, ("screen", 1usize), self.body(cx))
     }
 }
 

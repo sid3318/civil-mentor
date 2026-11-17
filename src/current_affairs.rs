@@ -5,7 +5,7 @@
 
 use chrono::{Datelike as _, NaiveDate};
 use gpui_kit::assets::IconName;
-use gpui_kit::component::button::{Button, ButtonGroup, ButtonVariants as _};
+use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::text::TextView;
 use gpui_kit::component::{
@@ -25,6 +25,7 @@ use crate::notes::ReadingClock;
 use crate::review::marks;
 use crate::screens::count;
 use crate::store::{Attempt, MarkKind, NewMark, Study};
+use crate::ui;
 
 /// The reading column, as wide as the notes reader's narrow one.
 const COLUMN: f32 = 720.;
@@ -149,20 +150,21 @@ pub(crate) fn quiz_score(test: &Attempt) -> String {
     )
 }
 
+/// A section label in the story reader: "Context", "Key facts".
 fn heading(text: &str, cx: &App) -> Div {
     div()
         .pt_6()
-        .pb_1()
-        .text_xs()
+        .pb(px(6.))
+        .text_size(px(12.))
         .font_semibold()
-        .text_color(cx.theme().muted_foreground)
-        .child(text.to_uppercase())
+        .text_color(ui::tokens(cx).text_3)
+        .child(text.to_string())
 }
 
 fn muted(text: impl Into<SharedString>, cx: &App) -> Div {
     div()
-        .text_sm()
-        .text_color(cx.theme().muted_foreground)
+        .text_size(px(13.))
+        .text_color(ui::tokens(cx).text_3)
         .child(text.into())
 }
 
@@ -340,7 +342,20 @@ impl CurrentAffairsScreen {
         }
     }
 
+    /// Full or Rapid reading of the day's stories.
+    fn set_mode(&mut self, rapid: bool, cx: &mut Context<Self>) {
+        self.rapid = rapid;
+        if self.view == View::Month {
+            self.view = View::Day;
+        }
+        self.scroll.set_offset(Point::default());
+        cx.notify();
+    }
+
+    /// The header: the day with the days either side, the calendar, Full
+    /// or Rapid, the month's issue, and how much of the day is read.
     fn date_bar(&self, brief: usize, cx: &Context<Self>) -> impl IntoElement {
+        let t = ui::tokens(cx);
         let state = AppState::get(cx);
         let library = &state.library;
         let day = &library.briefs[brief];
@@ -351,13 +366,10 @@ impl CurrentAffairsScreen {
             .count();
         let month = self.view == View::Month;
         let older = brief + 1 < library.briefs.len();
+        let rapid = self.rapid;
         h_flex()
-            .flex_shrink_0()
-            .h(px(48.))
-            .px_3()
+            .flex_1()
             .gap_1()
-            .border_b_1()
-            .border_color(cx.theme().border)
             .child(
                 Button::new("older-brief")
                     .ghost()
@@ -371,8 +383,8 @@ impl CurrentAffairsScreen {
                 div()
                     .id("brief-date")
                     .test_support()
-                    .w(px(150.))
-                    .text_center()
+                    .px_1()
+                    .text_size(px(13.5))
                     .font_semibold()
                     .child(day.date.format("%a, %-d %b %Y").to_string()),
             )
@@ -392,40 +404,31 @@ impl CurrentAffairsScreen {
                     .ghost()
                     .small()
                     .icon(Icon::new(IconName::Calendar))
-                    .label("Calendar")
+                    .tooltip("Every day's brief")
                     .selected(self.calendar)
                     .on_click(cx.listener(|this, _, _, cx| {
                         this.calendar = !this.calendar;
                         cx.notify();
                     })),
             )
-            .child(div().w(px(8.)))
             .child(
-                ButtonGroup::new("ca-mode")
-                    .outline()
-                    .small()
-                    .child(Button::new("full-mode").label("Full").selected(!self.rapid))
+                ui::segmented(cx)
+                    .ml_2()
                     .child(
-                        Button::new("rapid-mode")
-                            .label("Rapid")
-                            .selected(self.rapid),
+                        ui::segment("full-mode", "Full", !rapid, cx)
+                            .on_click(cx.listener(|this, _, _, cx| this.set_mode(false, cx))),
                     )
-                    .on_click(cx.listener(|this, clicked: &Vec<usize>, _, cx| {
-                        if let Some(&button) = clicked.first() {
-                            this.rapid = button == 1;
-                            if this.view == View::Month {
-                                this.view = View::Day;
-                            }
-                            this.scroll.set_offset(Point::default());
-                            cx.notify();
-                        }
-                    })),
+                    .child(
+                        ui::segment("rapid-mode", "Rapid", rapid, cx)
+                            .on_click(cx.listener(|this, _, _, cx| this.set_mode(true, cx))),
+                    ),
             )
-            .child(div().w(px(8.)))
             .child(
                 Button::new("monthly-issue")
-                    .outline()
+                    .ghost()
                     .small()
+                    .ml_1()
+                    .icon(Icon::new(IconName::Newspaper))
                     .label(format!("{} issue", day.date.format("%B")))
                     .selected(month)
                     .on_click(cx.listener(move |this, _, _, cx| {
@@ -436,14 +439,25 @@ impl CurrentAffairsScreen {
             )
             .child(div().flex_1())
             .child(
-                div()
+                h_flex()
                     .id("brief-count")
                     .test_support()
-                    .text_sm()
-                    .text_color(cx.theme().muted_foreground)
-                    .child(format!(
-                        "{} · {read} read",
-                        count(day.stories.len(), "story", "stories")
+                    .gap(px(8.))
+                    .pr_1()
+                    .child(ui::ring(
+                        read as f32 / day.stories.len().max(1) as f32,
+                        18.,
+                        3.,
+                        t.accent,
+                        div(),
+                        cx,
+                    ))
+                    .child(ui::meta(
+                        format!(
+                            "{read} of {} read",
+                            count(day.stories.len(), "story", "stories")
+                        ),
+                        cx,
                     )),
             )
     }
@@ -538,34 +552,45 @@ impl CurrentAffairsScreen {
 
     /// The day's stories by subject, its editorials and its quiz.
     fn list(&self, brief: usize, cx: &Context<Self>) -> impl IntoElement {
+        let t = ui::tokens(cx);
         let state = AppState::get(cx);
         let day = &state.library.briefs[brief];
-        let theme = cx.theme();
         let row = |id: ElementId, title: &str, read: bool, selected: bool, target: Target| {
             h_flex()
                 .id(id)
                 .test_support()
                 .items_start()
-                .gap_2()
-                .px_2()
-                .py_1()
-                .rounded(theme.radius)
-                .text_sm()
+                .gap(px(9.))
+                .px(px(8.))
+                .py(px(7.))
+                .rounded(px(6.))
+                .text_size(px(13.))
                 .cursor_pointer()
-                .hover(|this| this.bg(theme.accent))
-                .when(selected, |this| this.bg(theme.accent).font_medium())
+                .hover(|this| this.bg(t.hover))
+                .when(selected, |this| this.bg(t.accent_soft).font_medium())
                 .child(
-                    div().pt(px(2.)).child(
+                    div().pt(px(1.)).child(
                         Icon::new(if read {
                             IconName::CircleCheck
                         } else {
                             IconName::Circle
                         })
-                        .small()
-                        .when(read, |icon| icon.text_color(theme.success)),
+                        .size(px(15.))
+                        .text_color(if read {
+                            t.success
+                        } else {
+                            t.text_4
+                        }),
                     ),
                 )
-                .child(div().flex_1().min_w_0().child(title.to_string()))
+                .child(
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .line_clamp(2)
+                        .text_ellipsis()
+                        .child(title.to_string()),
+                )
                 .on_click(self.opener(target))
         };
         let groups = by_subject(
@@ -574,66 +599,85 @@ impl CurrentAffairsScreen {
                 .enumerate()
                 .map(|(ix, story)| (ix, subject_of(story))),
         );
-        let header = |text: String| {
-            div()
-                .px_2()
-                .pt_3()
-                .pb_1()
-                .text_xs()
-                .font_medium()
-                .text_color(theme.muted_foreground)
-                .child(text)
+        let header = |text: String, color: Option<Hsla>| {
+            h_flex()
+                .gap(px(7.))
+                .px(px(8.))
+                .pt(px(14.))
+                .pb(px(4.))
+                .when_some(color, |this, color| this.child(ui::dot(color)))
+                .child(ui::caption(text, cx))
         };
         let kind = TestKind::Quiz(day.date);
         let questions = state.library.brief_questions(day).len();
         let last = sittings(&kind, cx).into_iter().next();
         v_flex()
-            .w(px(270.))
+            .w(px(280.))
             .flex_shrink_0()
             .h_full()
-            .p_2()
             .border_r_1()
-            .border_color(theme.border)
-            .overflow_y_scrollbar()
-            .id("ca-list")
-            .children(groups.into_iter().map(|(subject, stories)| {
-                v_flex()
-                    .child(header(subject.to_string()))
-                    .children(stories.into_iter().map(|ix| {
-                        let story = &day.stories[ix];
-                        row(
-                            ("story", ix).into(),
-                            &story.title,
-                            mentor::story_read(&state.reading, story),
-                            self.view == View::Story(ix),
-                            Target::Story { brief, story: ix },
-                        )
-                    }))
-            }))
-            .when(!day.editorials.is_empty(), |list| {
-                list.child(header(format!("Editorials ({})", day.editorials.len())))
-                    .children(day.editorials.iter().enumerate().map(|(ix, editorial)| {
-                        let read = state
-                            .reading
-                            .get(&editorial.reading_key())
-                            .is_some_and(|r| r.done.is_some());
-                        row(
-                            ("editorial", ix).into(),
-                            &editorial.title,
-                            read,
-                            self.view == View::Editorial(ix),
-                            Target::Editorial {
-                                brief,
-                                editorial: ix,
-                            },
-                        )
-                    }))
-            })
+            .border_color(t.border)
             .child(
                 v_flex()
-                    .pt_4()
-                    .px_2()
-                    .gap_2()
+                    .flex_1()
+                    .min_h_0()
+                    .px(px(8.))
+                    .pb_2()
+                    .overflow_y_scrollbar()
+                    .id("ca-list")
+                    .children(groups.into_iter().map(|(subject, stories)| {
+                        let color = stories
+                            .first()
+                            .and_then(|&ix| {
+                                day.stories[ix]
+                                    .topics
+                                    .iter()
+                                    .find(|topic| !topic.starts_with("pre.gs.current"))
+                            })
+                            .map(|topic| ui::subject_color(topic, cx));
+                        v_flex().child(header(subject.to_string(), color)).children(
+                            stories.into_iter().map(|ix| {
+                                let story = &day.stories[ix];
+                                row(
+                                    ("story", ix).into(),
+                                    &story.title,
+                                    mentor::story_read(&state.reading, story),
+                                    self.view == View::Story(ix),
+                                    Target::Story { brief, story: ix },
+                                )
+                            }),
+                        )
+                    }))
+                    .when(!day.editorials.is_empty(), |list| {
+                        list.child(header(
+                            format!("Editorials ({})", day.editorials.len()),
+                            None,
+                        ))
+                        .children(day.editorials.iter().enumerate().map(|(ix, editorial)| {
+                            let read = state
+                                .reading
+                                .get(&editorial.reading_key())
+                                .is_some_and(|r| r.done.is_some());
+                            row(
+                                ("editorial", ix).into(),
+                                &editorial.title,
+                                read,
+                                self.view == View::Editorial(ix),
+                                Target::Editorial {
+                                    brief,
+                                    editorial: ix,
+                                },
+                            )
+                        }))
+                    }),
+            )
+            .child(
+                v_flex()
+                    .flex_shrink_0()
+                    .p(px(12.))
+                    .gap(px(6.))
+                    .border_t_1()
+                    .border_color(t.border)
                     .child(
                         Button::new("take-quiz")
                             .primary()
@@ -648,10 +692,10 @@ impl CurrentAffairsScreen {
                             div()
                                 .id("quiz-last")
                                 .test_support()
-                                .text_xs()
-                                .text_color(theme.muted_foreground)
+                                .text_size(px(12.))
+                                .text_color(t.text_3)
                                 .cursor_pointer()
-                                .hover(|this| this.underline())
+                                .hover(|this| this.text_color(t.accent))
                                 .child(format!("Last time: {}. Review it", quiz_score(&test)))
                                 .on_click(self.result_opener(test.id)),
                         )
@@ -834,7 +878,6 @@ impl CurrentAffairsScreen {
             .get(&key)
             .is_some_and(|reading| reading.bookmarked);
         Button::new("ca-bookmark")
-            .outline()
             .small()
             .icon(Icon::new(if saved {
                 IconName::BookmarkCheck
@@ -871,12 +914,17 @@ impl CurrentAffairsScreen {
             .or(topics.first())
             .map(|t| library.subject_label(t))
             .unwrap_or_default();
+        let color = topics
+            .iter()
+            .find(|t| t.starts_with("mains."))
+            .or(topics.first())
+            .map(|t| ui::subject_color(t, cx))
+            .unwrap_or(ui::tokens(cx).text_3);
         h_flex()
             .flex_wrap()
             .gap_2()
-            .text_sm()
-            .text_color(cx.theme().muted_foreground)
-            .child(format!("{paper} · {}", date.format("%-d %b %Y")))
+            .child(ui::subject_chip(paper, color, cx))
+            .child(ui::meta(date.format("%-d %b %Y").to_string(), cx))
             .children(notes.iter().enumerate().filter_map(|(k, id)| {
                 let ix = library.notes.iter().position(|note| &note.id == id)?;
                 Some(
@@ -1026,12 +1074,15 @@ impl CurrentAffairsScreen {
         let library = &state.library;
         let day = &library.briefs[brief];
         let story = &day.stories[ix];
-        let theme = cx.theme();
+        let t = ui::tokens(cx);
         let text = |label: &str, part: &str| {
             v_flex().child(heading(label, cx)).child(
                 div()
                     .id(SharedString::from(format!("story-{part}")))
                     .test_support()
+                    .font_family(ui::SERIF)
+                    .text_size(px(17.))
+                    .line_height(relative(1.6))
                     .child(self.blocks.view(part)),
             )
         };
@@ -1064,8 +1115,9 @@ impl CurrentAffairsScreen {
             .child(self.byline(&story.topics, &story.notes, day.date, cx))
             .child(
                 div()
-                    .pt_2()
-                    .text_2xl()
+                    .pt_3()
+                    .font_family(ui::DISPLAY)
+                    .text_size(px(26.))
                     .line_height(relative(1.25))
                     .font_semibold()
                     .child(story.title.clone()),
@@ -1078,18 +1130,38 @@ impl CurrentAffairsScreen {
                     .id("key-facts")
                     .test_support()
                     .child(heading("Key facts", cx))
-                    .child(div().child(self.blocks.view("facts"))),
+                    .child(
+                        div()
+                            .font_family(ui::SERIF)
+                            .text_size(px(16.5))
+                            .line_height(relative(1.6))
+                            .child(self.blocks.view("facts")),
+                    ),
             )
             .when(story.trap.is_some(), |this| {
                 this.child(
                     v_flex()
-                        .mt_4()
-                        .p_3()
+                        .mt_5()
+                        .px_4()
+                        .py_3()
                         .gap_1()
-                        .rounded(theme.radius_lg)
-                        .bg(theme.muted)
-                        .child(div().text_xs().font_semibold().child("THE TRAP"))
-                        .child(div().child(self.blocks.view("trap"))),
+                        .rounded(px(8.))
+                        .bg(t.attention.opacity(0.1))
+                        .border_l_2()
+                        .border_color(t.attention)
+                        .child(
+                            h_flex()
+                                .gap(px(6.))
+                                .text_size(px(12.))
+                                .font_semibold()
+                                .child(
+                                    Icon::new(IconName::TriangleAlert)
+                                        .size(px(13.))
+                                        .text_color(t.attention),
+                                )
+                                .child("The trap"),
+                        )
+                        .child(div().text_size(px(14.5)).child(self.blocks.view("trap"))),
                 )
             })
             .when(story.pyq.is_some(), |this| {
@@ -1100,35 +1172,54 @@ impl CurrentAffairsScreen {
                     let right = shown && Some(option) == question.answer;
                     h_flex()
                         .items_start()
-                        .gap_2()
-                        .when(right, |this| this.font_medium().text_color(theme.success))
+                        .gap(px(10.))
+                        .text_size(px(13.5))
+                        .when(right, |this| this.font_medium().text_color(t.success))
                         .child(
                             div()
                                 .flex_shrink_0()
-                                .w(px(28.))
-                                .child(format!("({})", LETTERS[option])),
+                                .size(px(22.))
+                                .rounded_full()
+                                .flex()
+                                .items_center()
+                                .justify_center()
+                                .text_size(px(11.))
+                                .font_semibold()
+                                .border_1()
+                                .border_color(if right { t.success } else { t.border_2 })
+                                .when(right, |this| this.bg(t.success).text_color(t.on_accent))
+                                .child(LETTERS[option]),
                         )
-                        .child(div().min_w_0().child(text.clone()))
-                        .when(right, |this| this.child(Icon::new(IconName::Check)))
+                        .child(div().min_w_0().pt(px(2.)).child(text.clone()))
                 });
                 this.child(heading("Practice question", cx)).child(
                     v_flex()
                         .id("practice-question")
                         .test_support()
                         .p_4()
-                        .gap_3()
-                        .rounded(theme.radius_lg)
+                        .gap(px(12.))
+                        .rounded(px(8.))
+                        .bg(t.card)
                         .border_1()
-                        .border_color(theme.border)
-                        .child(TextView::markdown("story-stem", question.stem.clone()))
-                        .child(v_flex().gap_1().children(options))
+                        .border_color(t.border)
+                        .shadow(ui::lift(cx))
+                        .child(
+                            div()
+                                .text_size(px(14.5))
+                                .child(TextView::markdown("story-stem", question.stem.clone())),
+                        )
+                        .child(v_flex().gap(px(8.)).children(options))
                         .when(shown, |card| {
-                            card.child(div().child(question.explanation.clone()))
+                            card.child(
+                                div()
+                                    .text_size(px(13.5))
+                                    .text_color(t.text_2)
+                                    .child(question.explanation.clone()),
+                            )
                         })
                         .child(
                             h_flex().child(
                                 Button::new("story-answer")
-                                    .outline()
                                     .small()
                                     .label(if shown {
                                         "Hide the answer"
@@ -1142,22 +1233,37 @@ impl CurrentAffairsScreen {
             })
             .when(story.mains.is_some(), |this| {
                 this.child(heading("Mains question", cx))
-                    .child(div().font_medium().child(self.blocks.view("mains")))
+                    .child(
+                        div()
+                            .font_family(ui::SERIF)
+                            .text_size(px(17.))
+                            .font_medium()
+                            .child(self.blocks.view("mains")),
+                    )
                     .when(!story.frame.is_empty(), |this| {
-                        this.child(muted("Answer frame", cx).pt_2()).children(
-                            story.frame.iter().enumerate().map(|(k, point)| {
+                        this.child(muted("Answer frame", cx).pt_3().pb_1())
+                            .children(story.frame.iter().enumerate().map(|(k, point)| {
                                 h_flex()
                                     .items_start()
-                                    .gap_2()
+                                    .gap(px(10.))
+                                    .py(px(4.))
+                                    .text_size(px(14.))
                                     .child(
                                         div()
                                             .flex_shrink_0()
-                                            .w(px(20.))
-                                            .child(format!("{}.", k + 1)),
+                                            .size(px(20.))
+                                            .rounded_full()
+                                            .flex()
+                                            .items_center()
+                                            .justify_center()
+                                            .bg(t.accent_soft)
+                                            .text_color(t.accent)
+                                            .text_size(px(11.))
+                                            .font_semibold()
+                                            .child((k + 1).to_string()),
                                     )
                                     .child(div().min_w_0().child(point.clone()))
-                            }),
-                        )
+                            }))
                     })
             })
             .child(
@@ -1171,8 +1277,8 @@ impl CurrentAffairsScreen {
                             Button::new("next-story")
                                 .primary()
                                 .small()
-                                .label("Next")
-                                .icon(Icon::new(IconName::ChevronRight))
+                                .label("Next story")
+                                .icon(Icon::new(IconName::ArrowRight))
                                 .on_click(self.opener(next)),
                         )
                     }),
@@ -1314,8 +1420,8 @@ impl CurrentAffairsScreen {
     }
 }
 
-impl Render for CurrentAffairsScreen {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+impl CurrentAffairsScreen {
+    fn panes(&mut self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         let Some(brief) = self.brief else {
             return v_flex()
                 .size_full()
@@ -1328,7 +1434,6 @@ impl Render for CurrentAffairsScreen {
         v_flex()
             .size_full()
             .on_mouse_move(cx.listener(|this, _, _, cx| this.touch(cx)))
-            .child(self.date_bar(brief, cx))
             .when(self.calendar, |this| this.child(self.calendar(brief, cx)))
             .child(
                 div()
@@ -1339,5 +1444,18 @@ impl Render for CurrentAffairsScreen {
                     .child(self.reader(brief, cx)),
             )
             .into_any_element()
+    }
+}
+
+impl Render for CurrentAffairsScreen {
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let header = match self.brief {
+            Some(brief) => ui::header(cx).child(self.date_bar(brief, cx)),
+            None => ui::header(cx).child(ui::title(IconName::Newspaper, "Current affairs", cx)),
+        };
+        v_flex()
+            .size_full()
+            .child(header)
+            .child(div().flex_1().min_h_0().child(self.panes(cx)))
     }
 }

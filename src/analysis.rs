@@ -7,18 +7,19 @@
 use std::collections::BTreeMap;
 
 use chrono::{Datelike as _, Duration, NaiveDate};
+use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::chart::{BarChart, LineChart};
 use gpui_kit::component::progress::Progress;
 use gpui_kit::component::tab::{Tab, TabBar};
 use gpui_kit::component::{
-    ActiveTheme as _, Disableable as _, Sizable as _, StyledExt as _, h_flex, v_flex,
+    ActiveTheme as _, Disableable as _, Icon, Sizable as _, StyledExt as _, h_flex, v_flex,
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
 use crate::AppState;
-use crate::app::{Screen, Shell};
+use crate::app::Shell;
 use crate::content::Target;
 use crate::mentor::{
     self, DRILL_QUESTIONS, Insights, RECENT_TESTS, SECONDS_PER_QUESTION, SUBJECTS, TopicScore,
@@ -27,6 +28,7 @@ use crate::mentor::{
 use crate::review::marks;
 use crate::store::{Attempt, Confidence, Past};
 use crate::syllabus::{coverage, statuses};
+use crate::ui;
 
 pub const TABS: [&str; 5] = ["Overview", "Subjects", "Tests", "Time", "Coverage"];
 /// The study calendar covers this many weeks, ending with this one.
@@ -68,27 +70,26 @@ impl AnalysisScreen {
     }
 }
 
+/// A card with a title and a line saying what it shows.
 fn panel(title: impl Into<SharedString>, note: impl Into<SharedString>, cx: &App) -> Div {
     let note = note.into();
-    v_flex()
+    ui::card(cx)
         .flex_1()
         .min_w_0()
-        .p_4()
-        .gap_3()
-        .rounded(cx.theme().radius_lg)
-        .border_1()
-        .border_color(cx.theme().border)
+        .px(px(16.))
+        .pt(px(14.))
+        .pb(px(14.))
+        .gap(px(12.))
         .child(
             v_flex()
-                .child(div().font_semibold().child(title.into()))
-                .when(!note.is_empty(), |this| {
-                    this.child(
-                        div()
-                            .text_sm()
-                            .text_color(cx.theme().muted_foreground)
-                            .child(note),
-                    )
-                }),
+                .gap(px(2.))
+                .child(
+                    div()
+                        .text_size(px(13.5))
+                        .font_semibold()
+                        .child(title.into()),
+                )
+                .when(!note.is_empty(), |this| this.child(ui::meta(note, cx))),
         )
 }
 
@@ -97,20 +98,17 @@ fn empty_note(text: &'static str, cx: &App) -> Div {
 }
 
 fn empty(text: &'static str, cx: &App) -> Div {
-    div()
-        .py_6()
-        .text_sm()
-        .text_color(cx.theme().muted_foreground)
-        .child(text)
+    ui::meta(text, cx).py_6().text_size(px(13.))
 }
 
 fn row(cx: &App) -> Div {
     h_flex()
         .gap_3()
-        .py_1p5()
+        .min_h(px(36.))
+        .py(px(6.))
         .border_t_1()
-        .border_color(cx.theme().border)
-        .text_sm()
+        .border_color(ui::tokens(cx).border)
+        .text_size(px(13.))
 }
 
 fn cell(width: f32, text: impl Into<SharedString>) -> Div {
@@ -189,9 +187,9 @@ fn short(id: &str) -> &'static str {
 /// The colour of a day in the study calendar: empty, or darker the nearer
 /// the day came to the daily goal.
 pub(crate) fn heat(seconds: u32, goal: u32, cx: &App) -> Hsla {
-    let theme = cx.theme();
+    let t = ui::tokens(cx);
     if seconds == 0 {
-        return theme.muted;
+        return t.selected;
     }
     let share = seconds as f32 / goal.max(1) as f32;
     let opacity = match share {
@@ -200,7 +198,7 @@ pub(crate) fn heat(seconds: u32, goal: u32, cx: &App) -> Hsla {
         s if s < 1.0 => 0.75,
         _ => 1.0,
     };
-    theme.primary.opacity(opacity)
+    t.accent.opacity(opacity)
 }
 
 /// The last 12 weeks of study, a column a week and a row a weekday,
@@ -215,7 +213,7 @@ fn calendar(record: &Record, cx: &App) -> impl IntoElement {
         .gap(px(3.))
         .pr_1()
         .text_size(px(11.))
-        .text_color(cx.theme().muted_foreground)
+        .text_color(ui::tokens(cx).text_3)
         .children(["M", "", "W", "", "F", "", "S"].map(|label| div().h(size).child(label)));
     let weeks = (0..WEEKS).map(|week| {
         v_flex().gap(px(3.)).children((0..7).map(|weekday| {
@@ -223,8 +221,11 @@ fn calendar(record: &Record, cx: &App) -> impl IntoElement {
             let seconds = record.study.get(&day).copied().unwrap_or(0);
             div()
                 .size(size)
-                .rounded(px(3.))
+                .rounded(px(4.))
                 .when(day <= record.today, |this| this.bg(heat(seconds, goal, cx)))
+                .when(day > record.today, |this| {
+                    this.border_1().border_color(ui::tokens(cx).border)
+                })
         }))
     });
     h_flex()
@@ -256,6 +257,8 @@ impl AnalysisScreen {
                 LineChart::new(points)
                     .x(|point: &(SharedString, f64)| point.0.clone())
                     .y(|point| point.1)
+                    .stroke(ui::tokens(cx).accent)
+                    .natural()
                     .dot()
                     .x_tick_count(labels)
                     .y_axis(true)
@@ -272,7 +275,7 @@ impl AnalysisScreen {
             "Share of answers right, all tests",
             cx,
         );
-        let bars: Vec<(SharedString, f64)> = SUBJECTS
+        let bars: Vec<(SharedString, f64, Hsla)> = SUBJECTS
             .iter()
             .zip(subject_scores(&record.history))
             .filter(|(_, (_, total))| *total > 0)
@@ -280,6 +283,7 @@ impl AnalysisScreen {
                 (
                     SharedString::from(short(subject.id)),
                     right as f64 * 100.0 / total as f64,
+                    ui::subject_id_color(subject.id, cx),
                 )
             })
             .collect();
@@ -293,8 +297,9 @@ impl AnalysisScreen {
                 .h(px(height))
                 .child(
                     BarChart::new(bars)
-                        .band(|bar: &(SharedString, f64)| bar.0.clone())
+                        .band(|bar: &(SharedString, f64, Hsla)| bar.0.clone())
                         .value(|bar| bar.1)
+                        .fill(|bar, _, _, _| bar.2)
                         .label(|bar| format!("{:.0}%", bar.1))
                         .tooltip_value(|_, value| format!("{value:.0}% right").into())
                         .name("Accuracy"),
@@ -333,6 +338,7 @@ impl AnalysisScreen {
                         .child(cell(44., format!("{} Q", score.total)))
                         .child(
                             Button::new(("drill-topic", ix))
+                                .primary()
                                 .outline()
                                 .xsmall()
                                 .label("Drill")
@@ -359,23 +365,71 @@ impl AnalysisScreen {
                 cx,
             ));
         }
-        let theme = cx.theme();
+        let t = ui::tokens(cx);
+        let most = record
+            .insights
+            .confidence
+            .iter()
+            .map(|(_, score)| score.marks.abs())
+            .fold(1.0_f64, f64::max);
         panel.children(record.insights.confidence.iter().map(|(level, score)| {
             let label = level.map_or("Not tagged", Confidence::label);
             let color = match score.marks {
-                marks if marks < 0.0 => theme.danger,
-                marks if marks > 0.0 => theme.success,
-                _ => theme.muted_foreground,
+                marks if marks < 0.0 => t.danger,
+                marks if marks > 0.0 => t.success,
+                _ => t.text_3,
             };
+            // Half the bar's track is either side of zero.
+            let share = (score.marks.abs() / most * 0.5) as f32;
             row(cx)
                 .id(SharedString::from(format!("confidence-{label}")))
                 .test_support()
-                .child(div().flex_1().child(label))
-                .child(cell(
-                    90.,
-                    format!("{}% right", percent(score.right, score.answered())),
-                ))
-                .child(cell(100., format!("{} marks", signed(score.marks))).text_color(color))
+                .child(
+                    v_flex()
+                        .w(px(92.))
+                        .flex_shrink_0()
+                        .child(div().font_medium().child(label))
+                        .child(ui::meta(
+                            format!("{}% right", percent(score.right, score.answered())),
+                            cx,
+                        )),
+                )
+                .child(
+                    div()
+                        .flex_1()
+                        .relative()
+                        .h(px(8.))
+                        .child(
+                            div()
+                                .absolute()
+                                .left(relative(0.5))
+                                .top(px(-6.))
+                                .bottom(px(-6.))
+                                .w(px(1.))
+                                .bg(t.border_3),
+                        )
+                        .child(
+                            div()
+                                .absolute()
+                                .top_0()
+                                .h(px(8.))
+                                .rounded_full()
+                                .bg(color)
+                                .w(relative(share.max(0.01)))
+                                .map(|this| {
+                                    if score.marks < 0.0 {
+                                        this.right(relative(0.5))
+                                    } else {
+                                        this.left(relative(0.5))
+                                    }
+                                }),
+                        ),
+                )
+                .child(
+                    cell(104., format!("{} marks", signed(score.marks)))
+                        .font_semibold()
+                        .text_color(color),
+                )
         }))
     }
 
@@ -398,21 +452,87 @@ impl AnalysisScreen {
             .filter(|(title, _)| !title.contains("CSAT") && !title.starts_with("Paper"))
             .map(|(title, counts)| format!("{title} {}%", percent(counts.0, counts.1)))
             .collect();
+        let points = score_points(&record.tests);
+        let average = (!points.is_empty())
+            .then(|| points.iter().map(|(_, share)| share).sum::<f64>() / points.len() as f64);
+        let overall = &record.insights.overall;
+        let asked = overall.answered() + overall.blank;
+        let tile = |label: &'static str, value: String, note: String| {
+            ui::card(cx)
+                .flex_1()
+                .min_w_0()
+                .px(px(14.))
+                .py(px(12.))
+                .gap(px(2.))
+                .child(ui::caption(label, cx).text_size(px(12.)))
+                .child(
+                    div()
+                        .text_size(px(24.))
+                        .line_height(px(30.))
+                        .font_semibold()
+                        .child(value),
+                )
+                .child(ui::meta(note, cx))
+        };
         v_flex()
-            .gap_4()
+            .gap(px(14.))
             .child(
                 h_flex()
-                    .items_start()
-                    .gap_4()
-                    .child(self.score_chart(record, 5, cx))
-                    .child(self.subject_chart(record, 180., cx)),
+                    .id("kpis")
+                    .test_support()
+                    .gap(px(12.))
+                    .child(tile(
+                        "Net score, average",
+                        average.map_or("–".into(), |share| format!("{share:.0}%")),
+                        recent(record.tests.len()),
+                    ))
+                    .child(tile(
+                        "Accuracy",
+                        if overall.answered() > 0 {
+                            format!("{}%", percent(overall.right, overall.answered()))
+                        } else {
+                            "–".into()
+                        },
+                        "of the questions you answered".into(),
+                    ))
+                    .child(tile(
+                        "Attempt rate",
+                        if asked > 0 {
+                            format!("{}%", percent(overall.answered(), asked))
+                        } else {
+                            "–".into()
+                        },
+                        "of the questions asked".into(),
+                    ))
+                    .child(tile(
+                        "Study this week",
+                        mentor::hours(record.insights.week_seconds),
+                        format!("against {}", mentor::hours(record.insights.week_goal)),
+                    )),
             )
             .child(
                 h_flex()
                     .items_start()
-                    .gap_4()
-                    .child(self.weak_topics(record, cx))
-                    .child(self.guesses(record, cx)),
+                    .gap(px(14.))
+                    .child(
+                        div()
+                            .flex_1()
+                            .min_w_0()
+                            .child(self.score_chart(record, 5, cx)),
+                    )
+                    .child(
+                        div()
+                            .w(px(340.))
+                            .flex_shrink_0()
+                            .child(self.guesses(record, cx)),
+                    ),
+            )
+            .child(
+                h_flex()
+                    .items_start()
+                    .gap(px(14.))
+                    .child(self.subject_chart(record, 180., cx))
+                    .child(self.weak_topics(record, cx)),
             )
             .child(
                 panel(
@@ -826,8 +946,8 @@ fn days(n: u32) -> String {
     crate::screens::count(n as usize, "day", "days")
 }
 
-impl Render for AnalysisScreen {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+impl AnalysisScreen {
+    fn body(&mut self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         let today = AppState::today(cx);
         let state = AppState::get(cx);
         let tests = state.store.finished(RECENT_TESTS).unwrap_or_default();
@@ -851,14 +971,6 @@ impl Render for AnalysisScreen {
             daily_minutes: state.settings.daily_minutes,
             demo: state.store.has_demo().unwrap_or(false),
         };
-        let tabs = TabBar::new("analysis-tabs")
-            .segmented()
-            .selected_index(self.tab)
-            .children(TABS.map(|title| Tab::new().label(title)))
-            .on_click(cx.listener(|this, ix: &usize, _, cx| {
-                this.tab = *ix;
-                cx.notify();
-            }));
         let body = match self.tab {
             1 => self.subjects(&record, cx),
             2 => self.tests_tab(&record, cx),
@@ -866,43 +978,61 @@ impl Render for AnalysisScreen {
             4 => self.coverage_tab(&record, cx),
             _ => self.overview(&record, cx),
         };
-        v_flex()
-            .w_full()
-            .max_w(px(1040.))
-            .mx_auto()
-            .p_8()
-            .gap_5()
-            .child(
-                h_flex()
-                    .justify_between()
-                    .gap_4()
-                    .child(
-                        v_flex()
-                            .gap_1()
-                            .child(div().text_2xl().font_semibold().child(Screen::Analysis.title()))
-                            .child(
-                                div()
-                                    .text_color(cx.theme().muted_foreground)
-                                    .child("Where your marks come from and where they go"),
-                            ),
-                    )
-                    .child(tabs),
-            )
+        let t = ui::tokens(cx);
+        ui::column(1080.)
+            .gap(px(14.))
             .when(record.demo, |this| {
                 this.child(
-                    div()
+                    h_flex()
                         .id("demo-banner")
                         .test_support()
-                        .px_3()
-                        .py_2()
-                        .rounded(cx.theme().radius)
-                        .bg(cx.theme().muted)
-                        .text_sm()
-                        .text_color(cx.theme().muted_foreground)
-                        .child("This includes made-up demo history. Remove it in Settings when you are done looking."),
+                        .h(px(34.))
+                        .pl(px(12.))
+                        .pr(px(6.))
+                        .gap_2()
+                        .rounded(px(8.))
+                        .bg(t.sunken)
+                        .border_1()
+                        .border_color(t.border)
+                        .text_size(px(12.5))
+                        .text_color(t.text_2)
+                        .child(
+                            Icon::new(IconName::FlaskConical)
+                                .size(px(14.))
+                                .text_color(t.text_3),
+                        )
+                        .child(div().flex_1().child("This includes made-up demo history."))
+                        .child(
+                            Button::new("demo-remove")
+                                .ghost()
+                                .xsmall()
+                                .label("Remove it")
+                                .on_click(|_, _, cx| AppState::set_demo(cx, false)),
+                        ),
                 )
             })
             .child(body)
-            .child(div().h(px(24.)))
+    }
+}
+
+impl Render for AnalysisScreen {
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let tabs = TabBar::new("analysis-tabs")
+            .segmented()
+            .small()
+            .selected_index(self.tab)
+            .children(TABS.map(|title| Tab::new().label(title)))
+            .on_click(cx.listener(|this, ix: &usize, _, cx| {
+                this.tab = *ix;
+                cx.notify();
+            }));
+        let header = ui::header(cx).child(
+            h_flex()
+                .flex_1()
+                .gap_3()
+                .child(ui::title(IconName::ChartColumn, "Analysis", cx))
+                .child(tabs),
+        );
+        ui::screen(header, ("screen", 7usize), self.body(cx))
     }
 }
