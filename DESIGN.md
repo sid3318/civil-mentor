@@ -406,9 +406,20 @@ The sketches show structure. The colours and type are in the mockup.
 
 ### Syllabus
 
-- The header shows "Syllabus" with the overall coverage as a ring chip.
-- A row of paper cards (Prelims GS, CSAT, GS-1 to GS-4, Essay), each with a coverage bar. Choosing one scrolls the tree to it.
-- The **tree** keeps today's behaviour, restyled: 30 px rows, chevrons in `text-3`, status icons, a coverage bar and figures right-aligned in `meta`, and UPSC's wording as an indented quote once a row is open.
+Redesigned on 18 Nov 2026: the folding tree hid the syllabus behind five levels of rows, so the screen now shows one paper at a time in full.
+
+- The header shows "Syllabus" with the overall coverage as a ring and "x of y topics read".
+- **The exam map** is a 256 px pane on the left. It lists Prelims and Mains, each with UPSC's wording for the stage, then its papers. A paper's row has a coverage ring, its title, and its marks, plus "qualifying" where UPSC says so. Both are read from UPSC's wording of the paper. The chosen paper is on `accent-soft`. A last line says the optional papers are not in the app yet.
+- **The sheet** shows the chosen paper. Its title is `title-1`, with UPSC's line for the paper under it and its coverage on the right. Below them are the paper's subjects as links that jump down the sheet, then a legend for the topic marks.
+- **UPSC's wording is quoted** in Source Serif 4 between quotation marks: 17 px above the subjects it covers, 15 px above the chapters it covers. Siblings that share a line show it once. Everything in sans is our breakdown, and the sheet's last line says so.
+- **Subjects** have a heading with their dot, "x of y read" and a bar in the subject colour. **Chapters** are rows, with the title and count in a 184 px column and the topics beside them. Below 720 px of sheet width the title sits above the topics.
+- **Topics** run on in a line, split by dots. A topic with subtopics starts its own line ("Important sites: …"). Each is marked the way a student marks a printed syllabus:
+  - read: highlighted in `success` at 16%;
+  - in progress: highlighted in `accent` at 14%;
+  - not started: underlined;
+  - no notes yet: plain `text-2`.
+
+  A topic with a note opens it. The tooltip gives the status and the number of notes and questions.
 
 ### Notebook
 

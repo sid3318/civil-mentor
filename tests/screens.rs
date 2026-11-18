@@ -613,37 +613,43 @@ fn main() {
     app.press("secondary-]");
     assert_eq!(app.note(), Some(rights));
 
-    // Syllabus: papers start folded and open row by row down to the topics.
+    // Syllabus: one paper at a time, every topic on show. The map of the exam
+    // switches papers, and the paper's list of subjects jumps down the sheet.
     app.click("1-0-2");
     assert_eq!(app.screen(), Screen::Syllabus);
     let leaf = app.topic_ix("pre.gs.polity.rights.fundamental-rights.right-to-equality");
-    assert!(!app.shows(("topic", leaf)), "folded at first");
-    let steps: Vec<usize> = [
-        "pre.gs",
-        "pre.gs.polity",
-        "pre.gs.polity.rights",
-        "pre.gs.polity.rights.fundamental-rights",
-    ]
-    .into_iter()
-    .map(|id| app.topic_ix(id))
-    .collect();
-    // The rows run past the bottom of the window, so each is scrolled into
-    // view first, at whichever row of the path is showing.
-    let path: Vec<ElementId> = steps.iter().map(|&row| ("topic", row).into()).collect();
-    for &row in &steps {
-        app.centre(("topic", row), &path);
-        app.click(("topic", row));
-    }
-    assert!(app.shows(("topic", leaf)), "open down to the topic");
-    app.centre(("topic", leaf), &path);
+    let (prelims, gs2) = (app.topic_ix("pre.gs"), app.topic_ix("mains.gs2"));
+    let polity = app.topic_ix("pre.gs.polity");
+    assert!(app.shows(("topic", leaf)), "Prelims GS opens first");
+    app.click(("paper", gs2));
+    assert!(!app.shows(("topic", leaf)), "one paper at a time");
+    app.shot("syllabus-gs2");
+    app.click(("paper", prelims));
+    app.click(("jump", polity));
+    let anchors: Vec<ElementId> = vec![("heading", polity).into(), ("topic", leaf).into()];
+    app.centre(("topic", leaf), &anchors);
     app.shot("syllabus-read");
+    app.click("theme-toggle");
+    app.shot("syllabus-dark");
+    app.click("theme-toggle");
+    // At the smallest window each chapter's title sits above its topics.
+    let resize = |app: &mut Harness, width: f32, height: f32| {
+        app.act(|window, cx| {
+            window.resize(size(px(width), px(height)));
+            window.bounds_changed(cx);
+        })
+    };
+    resize(&mut app, 900., 600.);
+    app.shot("syllabus-small");
+    resize(&mut app, 1280., 820.);
+    app.centre(("topic", leaf), &anchors);
 
-    // A topic opens the note that covers it, and back returns to the tree.
+    // A topic opens the note that covers it, and back returns to the sheet.
     app.click(("topic", leaf));
     assert_eq!(app.note(), Some(rights));
     app.press("secondary-[");
     assert_eq!(app.screen(), Screen::Syllabus, "back to the syllabus");
-    assert!(app.shows(("topic", leaf)), "still open");
+    assert!(app.shows(("topic", leaf)), "still on its paper");
 
     // When the data file cannot be opened the app still starts, on a
     // throwaway store, and says so on every screen.
