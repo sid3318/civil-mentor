@@ -613,26 +613,113 @@ fn main() {
     app.press("secondary-]");
     assert_eq!(app.note(), Some(rights));
 
-    // Syllabus: one paper at a time, every topic on show. The map of the exam
-    // switches papers, and the paper's list of subjects jumps down the sheet.
+    // Syllabus: one paper at a time, in five designs picked in the header.
+    // Flow comes first: the paper's subjects, the open subject's chapters and
+    // the open chapter's topics, each column hanging from its card.
     app.click("1-0-2");
     assert_eq!(app.screen(), Screen::Syllabus);
-    let leaf = app.topic_ix("pre.gs.polity.rights.fundamental-rights.right-to-equality");
-    let (prelims, gs2) = (app.topic_ix("pre.gs"), app.topic_ix("mains.gs2"));
-    let polity = app.topic_ix("pre.gs.polity");
-    assert!(app.shows(("topic", leaf)), "Prelims GS opens first");
+    let current = app.topic_ix("pre.gs.current");
+    let gs2 = app.topic_ix("mains.gs2");
+    let polity = app.topic_ix("mains.gs2.polity");
+    let constitution = app.topic_ix("mains.gs2.polity.constitution");
+    let legislature = app.topic_ix("mains.gs2.polity.legislature");
+    let provisions = app.topic_ix("mains.gs2.polity.constitution.provisions");
+    let leaf = app.topic_ix("mains.gs2.polity.constitution.provisions.fundamental-rights");
+    assert!(app.shows(("node", current)), "Prelims GS opens first");
     app.click(("paper", gs2));
-    assert!(!app.shows(("topic", leaf)), "one paper at a time");
-    app.shot("syllabus-gs2");
-    app.click(("paper", prelims));
-    app.click(("jump", polity));
-    let anchors: Vec<ElementId> = vec![("heading", polity).into(), ("topic", leaf).into()];
+    assert!(!app.shows(("node", current)), "one paper at a time");
+    assert!(app.shows(("node", polity)) && app.shows(("node", constitution)));
+    assert!(
+        app.shows(("topic", leaf)),
+        "the first chapter's topics, with their subtopics"
+    );
+    app.shot("syllabus-flow");
+    app.click(("node", legislature));
+    assert!(!app.shows(("topic", leaf)), "another chapter's topics");
+    app.shot("syllabus-flow-chapter");
+    app.click(("node", constitution));
+    let anchors: Vec<ElementId> = vec![("node", polity).into(), ("topic", leaf).into()];
     app.centre(("topic", leaf), &anchors);
-    app.shot("syllabus-read");
+    app.click(("topic", leaf));
+    assert_eq!(app.note(), Some(rights), "a topic opens the note on it");
+    app.press("secondary-[");
+    assert_eq!(app.screen(), Screen::Syllabus, "back to the syllabus");
+    assert!(app.shows(("topic", leaf)), "where it was");
+
+    // Mind map: the paper in the middle, its subjects around it and their
+    // chapters beyond. Anything with parts goes in the middle; the path
+    // above goes back up.
+    app.click(("design", 1usize));
+    assert!(app.shows(("part", polity)), "the paper's subjects");
+    app.shot("syllabus-mindmap");
+    app.click(("part", polity));
+    assert!(
+        app.shows(("part", provisions)),
+        "a subject in the middle, its chapters' topics beyond"
+    );
+    app.shot("syllabus-mindmap-polity");
+    app.click(("part", provisions));
+    app.shot("syllabus-mindmap-zoom");
+    app.click(("topic", leaf));
+    assert_eq!(app.note(), Some(rights));
+    app.press("secondary-[");
+    app.click(("crumb", gs2));
+    assert!(app.shows(("part", polity)), "back up to the paper");
+
+    // Mosaic: every topic of the exam as a square. Picking a paper scrolls
+    // to it, pointing at a square names it, and one with a note opens it.
+    app.click(("design", 2usize));
+    app.shot("syllabus-mosaic");
+    app.click(("paper", gs2));
+    app.act(|window, cx| {
+        let at = window.find(("tile", leaf)).bounds().center();
+        window.pointer_move(at, None, cx);
+    });
+    app.shot("syllabus-mosaic-gs2");
+    app.click(("tile", leaf));
+    assert_eq!(app.note(), Some(rights));
+    app.press("secondary-[");
+
+    // Treemap: the paper's subjects sized by their topics, chapters inside,
+    // and a chapter zooms in.
+    app.click(("design", 3usize));
+    app.shot("syllabus-treemap");
+    app.click(("cell", constitution));
+    assert!(app.shows(("cell", provisions)), "the chapter's topics");
+    app.shot("syllabus-treemap-zoom");
+    app.click(("crumb", gs2));
+
+    // Sunburst: the paper as rings. Pointing at an arc shows it beside the
+    // chart, clicking it zooms in, and the disc in the middle goes back.
+    app.click(("design", 4usize));
+    app.shot("syllabus-sunburst");
+    let polity_arc = app.act(|window, _| {
+        let bounds = window.find("sunburst").bounds();
+        let (w, h) = (f32::from(bounds.size.width), f32::from(bounds.size.height));
+        // Half way across the first ring, at three o'clock: polity, the
+        // first subject, runs from twelve o'clock to about six.
+        let radius = w.min(h) / 2. - 18.;
+        point(px(w / 2. + radius * 0.4), px(h / 2.))
+    });
+    app.act(|window, cx| {
+        let at = window.find("sunburst").bounds().origin + polity_arc;
+        window.pointer_move(at, None, cx);
+    });
+    app.shot("syllabus-sunburst-point");
+    app.act(|window, cx| window.click_at("sunburst", polity_arc, cx));
+    assert!(app.shows(("part", constitution)), "polity zoomed in");
+    app.shot("syllabus-sunburst-polity");
+    app.click("sunburst-middle");
+    assert!(app.shows(("part", polity)), "back to the paper");
+
+    // Every design in the dark, and at the smallest window.
+    let designs = ["flow", "mindmap", "mosaic", "treemap", "sunburst"];
     app.click("theme-toggle");
-    app.shot("syllabus-dark");
+    for (n, name) in designs.iter().enumerate() {
+        app.click(("design", n));
+        app.shot(&format!("syllabus-dark-{name}"));
+    }
     app.click("theme-toggle");
-    // At the smallest window each chapter's title sits above its topics.
     let resize = |app: &mut Harness, width: f32, height: f32| {
         app.act(|window, cx| {
             window.resize(size(px(width), px(height)));
@@ -640,16 +727,12 @@ fn main() {
         })
     };
     resize(&mut app, 900., 600.);
-    app.shot("syllabus-small");
+    for (n, name) in designs.iter().enumerate() {
+        app.click(("design", n));
+        app.shot(&format!("syllabus-small-{name}"));
+    }
     resize(&mut app, 1280., 820.);
-    app.centre(("topic", leaf), &anchors);
-
-    // A topic opens the note that covers it, and back returns to the sheet.
-    app.click(("topic", leaf));
-    assert_eq!(app.note(), Some(rights));
-    app.press("secondary-[");
-    assert_eq!(app.screen(), Screen::Syllabus, "back to the syllabus");
-    assert!(app.shows(("topic", leaf)), "still on its paper");
+    app.click(("design", 0usize));
 
     // When the data file cannot be opened the app still starts, on a
     // throwaway store, and says so on every screen.

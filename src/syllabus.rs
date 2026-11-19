@@ -1,13 +1,29 @@
-//! The Syllabus screen. On the left, a map of the exam as UPSC lays it out:
-//! each stage in UPSC's words, then its papers with their marks and how much
-//! of each is read. On the right, the open paper as a syllabus sheet: UPSC's
-//! wording, with every chapter and topic under it, each topic marked by how
-//! far the student has got with it.
+//! The Syllabus screen. The exam is a tree: two stages, nine papers, then
+//! subjects, chapters and topics, with UPSC's own wording on the upper
+//! levels. The screen draws one paper of it in one of five designs, picked
+//! in its header, so the student can compare them and keep one:
+//!
+//! - [`flow`]: a canvas of cards joined by connectors, a column per level,
+//!   with an overview of the paper beside it;
+//! - [`mindmap`]: a node in the middle with its parts branching out on both
+//!   sides and their parts beyond them;
+//! - [`mosaic`]: the whole exam, one square per topic, filled in as it is read;
+//! - [`treemap`]: a node's parts as rectangles sized by how many topics they
+//!   hold, with their own parts nested inside;
+//! - [`sunburst`]: a node's parts as rings around it, sized the same way.
+//!
+//! Every design marks how far the student has got, and a topic with a note
+//! opens the note.
+
+mod flow;
+mod mindmap;
+mod mosaic;
+mod sunburst;
+mod treemap;
 
 use std::collections::HashMap;
 
 use gpui_kit::assets::IconName;
-use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::tooltip::Tooltip;
 use gpui_kit::component::{ActiveTheme as _, Icon, StyledExt as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
@@ -15,7 +31,7 @@ use gpui_kit::*;
 
 use crate::AppState;
 use crate::app::Shell;
-use crate::content::{Library, Target, covers, is_under, within};
+use crate::content::{Library, Target, Topic, covers, is_under, within};
 use crate::screens::count;
 use crate::store::Reading;
 use crate::ui;
@@ -77,6 +93,17 @@ impl Status {
         };
         Icon::new(icon).text_color(color)
     }
+
+    /// How strongly a topic takes its subject's colour: solid once read,
+    /// half way while reading, a tint with a note waiting, a trace with none.
+    fn fill(self) -> f32 {
+        match self {
+            Status::Done => 1.,
+            Status::Reading => 0.55,
+            Status::NotStarted => 0.24,
+            Status::NoNotes => 0.1,
+        }
+    }
 }
 
 /// Every topic's status, by index into the library's topics.
@@ -132,8 +159,16 @@ fn facts(official: &str) -> String {
         .join(" · ")
 }
 
-/// UPSC's own wording, set in the reading face between quotation marks. Every
-/// quoted line on the screen is UPSC's; everything else is our breakdown.
+/// A paper's name in the paper strip, under its stage's name: "Prelims GS"
+/// is "GS", "CSAT (GS Paper II)" is "CSAT" and "Paper I: Essay" is "Essay".
+fn short<'a>(title: &'a str, stage: &str) -> &'a str {
+    let title = title.strip_prefix(stage).map_or(title, str::trim_start);
+    let title = title.split(" (").next().unwrap_or(title);
+    title.rsplit(": ").next().unwrap_or(title)
+}
+
+/// UPSC's own wording, set in the reading face between quotation marks.
+/// Every quoted line on the screen is UPSC's; the rest is our breakdown.
 fn quote(text: &str, size: f32, color: Hsla) -> Div {
     div()
         .font_family(ui::SERIF)
@@ -141,21 +176,6 @@ fn quote(text: &str, size: f32, color: Hsla) -> Div {
         .line_height(relative(1.45))
         .text_color(color)
         .child(format!("“{}”", text.trim()))
-}
-
-/// Marks a topic by its status, the way a student marks a printed syllabus:
-/// read topics highlighted in green, those under way in the accent, those
-/// with a note not opened yet underlined, and the rest plain.
-fn marked<E: Styled>(element: E, status: Status, t: &ui::Tokens) -> E {
-    match status {
-        Status::Done => element.bg(t.success.opacity(0.16)).text_color(t.text),
-        Status::Reading => element.bg(t.accent.opacity(0.14)).text_color(t.text),
-        Status::NotStarted => element
-            .text_color(t.text)
-            .underline()
-            .text_decoration_color(t.text_3),
-        Status::NoNotes => element.text_color(t.text_2),
-    }
 }
 
 /// The note a topic opens: the first one on it that is not read yet, or the
@@ -197,293 +217,470 @@ fn describe(library: &Library, reading: &HashMap<String, Reading>, topic: &str) 
     parts.join(" · ")
 }
 
-/// A centred column on the sheet.
-fn column() -> Div {
-    v_flex().w_full().max_w(px(880.)).mx_auto().px_8()
+/// A topic's tooltip: its title, which a design may have cut short, and
+/// how far the student has got with it. The text is worked out when it
+/// shows: a paper has hundreds of topics, and most are never pointed at.
+fn topic_tip(id: String) -> impl Fn(&mut Window, &mut App) -> AnyView + 'static {
+    move |window, cx| {
+        let state = AppState::get(cx);
+        let title = state
+            .library
+            .topics
+            .iter()
+            .find(|topic| topic.id == id)
+            .map_or("", |topic| topic.title.as_str());
+        let about = describe(&state.library, &state.reading, &id);
+        Tooltip::new(format!("{title} · {about}")).build(window, cx)
+    }
 }
 
-/// Below this width the sheet puts each chapter's title above its topics,
-/// not beside them.
-const NARROW: Pixels = px(720.);
+/// A tooltip with fixed text.
+fn tip(text: impl Into<SharedString>) -> impl Fn(&mut Window, &mut App) -> AnyView + 'static {
+    let text = text.into();
+    move |window, cx| Tooltip::new(text.clone()).build(window, cx)
+}
 
-/// What the parts of the sheet need to draw themselves.
-struct Sheet<'a> {
+/// How the bottom-level topics under a node stand, by status.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+struct Tally {
+    done: usize,
+    reading: usize,
+    not_started: usize,
+    no_notes: usize,
+}
+
+impl Tally {
+    fn add(&mut self, status: Status) {
+        match status {
+            Status::Done => self.done += 1,
+            Status::Reading => self.reading += 1,
+            Status::NotStarted => self.not_started += 1,
+            Status::NoNotes => self.no_notes += 1,
+        }
+    }
+
+    fn merge(&mut self, other: Tally) {
+        self.done += other.done;
+        self.reading += other.reading;
+        self.not_started += other.not_started;
+        self.no_notes += other.no_notes;
+    }
+
+    fn total(self) -> usize {
+        self.done + self.reading + self.not_started + self.no_notes
+    }
+
+    /// The share that is read, 0 to 1.
+    fn share(self) -> f32 {
+        percent((self.done, self.total())) / 100.
+    }
+
+    /// How strongly the node takes its subject's colour: the average of its
+    /// topics' [`Status::fill`].
+    fn fill(self) -> f32 {
+        let sum = self.done as f32 * Status::Done.fill()
+            + self.reading as f32 * Status::Reading.fill()
+            + self.not_started as f32 * Status::NotStarted.fill()
+            + self.no_notes as f32 * Status::NoNotes.fill();
+        sum / self.total().max(1) as f32
+    }
+}
+
+/// The syllabus with the student's progress through it, as the designs
+/// draw it.
+struct Tree<'a> {
     library: &'a Library,
     reading: &'a HashMap<String, Reading>,
-    statuses: &'a [Status],
-    /// Each topic's children in syllabus order, by the parent's id.
-    children: HashMap<&'a str, Vec<usize>>,
-    shell: WeakEntity<Shell>,
-    narrow: bool,
-    t: ui::Tokens,
+    statuses: Vec<Status>,
+    /// Each node's topics by status.
+    tally: Vec<Tally>,
+    parent: Vec<Option<usize>>,
+    /// Each node's children, in syllabus order.
+    kids: Vec<Vec<usize>>,
 }
 
-impl<'a> Sheet<'a> {
-    fn new(
-        library: &'a Library,
-        reading: &'a HashMap<String, Reading>,
-        statuses: &'a [Status],
-        shell: WeakEntity<Shell>,
-        narrow: bool,
-        cx: &App,
-    ) -> Self {
-        let mut children: HashMap<&str, Vec<usize>> = HashMap::new();
-        for (ix, topic) in library.topics.iter().enumerate() {
-            if let Some((parent, _)) = topic.id.rsplit_once('.') {
-                children.entry(parent).or_default().push(ix);
+impl<'a> Tree<'a> {
+    fn new(cx: &'a App) -> Self {
+        let state = AppState::get(cx);
+        let library = &state.library;
+        let statuses = statuses(library, &state.reading);
+        let index: HashMap<&str, usize> = library
+            .topics
+            .iter()
+            .enumerate()
+            .map(|(ix, topic)| (topic.id.as_str(), ix))
+            .collect();
+        let parent: Vec<Option<usize>> = library
+            .topics
+            .iter()
+            .map(|topic| {
+                let (up, _) = topic.id.rsplit_once('.')?;
+                index.get(up).copied()
+            })
+            .collect();
+        let mut kids = vec![Vec::new(); library.topics.len()];
+        for (ix, up) in parent.iter().enumerate() {
+            if let Some(up) = *up {
+                kids[up].push(ix);
             }
         }
-        Sheet {
-            library,
-            reading,
-            statuses,
-            children,
-            shell,
-            narrow,
-            t: ui::tokens(cx),
+        // Deepest first, so that every node is summed before its parent.
+        let mut order: Vec<usize> = (0..library.topics.len()).collect();
+        order.sort_by_key(|&ix| std::cmp::Reverse(library.topics[ix].depth));
+        let mut tally = vec![Tally::default(); library.topics.len()];
+        for ix in order {
+            if library.topics[ix].leaf {
+                tally[ix].add(statuses[ix]);
+            }
+            if let Some(up) = parent[ix] {
+                let below = tally[ix];
+                tally[up].merge(below);
+            }
         }
+        Tree {
+            library,
+            reading: &state.reading,
+            statuses,
+            tally,
+            parent,
+            kids,
+        }
+    }
+
+    fn topic(&self, ix: usize) -> &'a Topic {
+        &self.library.topics[ix]
     }
 
     fn kids(&self, ix: usize) -> &[usize] {
-        self.children
-            .get(self.library.topics[ix].id.as_str())
-            .map_or(&[], Vec::as_slice)
+        &self.kids[ix]
     }
 
-    /// One topic. One with a note opens the first note on it not read yet.
-    fn topic(&self, ix: usize) -> impl IntoElement + use<> {
-        let t = self.t;
-        let topic = &self.library.topics[ix];
-        let status = self.statuses[ix];
-        let note = (status != Status::NoNotes)
-            .then(|| next_note(self.library, self.reading, &topic.id))
-            .flatten();
-        let shell = self.shell.clone();
-        let id = topic.id.clone();
-        marked(
-            div()
-                .id(("topic", ix))
-                .test_support()
-                // GPUI measures text unwrapped, so without this a long
-                // title runs past the edge instead of wrapping.
-                .min_w_0()
-                .px(px(3.))
-                .rounded(px(3.))
-                .child(topic.title.clone()),
-            status,
-            &t,
-        )
-        .when_some(note, |this, note| {
-            this.cursor_pointer()
-                .hover(|this| this.underline().text_decoration_color(t.text))
-                // Not a listener: the shell may update this screen.
-                .on_click(move |_, _, cx| {
-                    let _ = shell.update(cx, |shell, cx| shell.open(Target::Note(note), cx));
-                })
-        })
-        // Worked out on hover: a paper has hundreds of topics.
-        .tooltip(move |window, cx| {
-            let state = AppState::get(cx);
-            Tooltip::new(describe(&state.library, &state.reading, &id)).build(window, cx)
-        })
+    /// The stages, the tree's roots.
+    fn stages(&self) -> Vec<usize> {
+        (0..self.parent.len())
+            .filter(|&ix| self.parent[ix].is_none())
+            .collect()
     }
 
-    /// Topics running on as one line, split by dots. A topic with subtopics
-    /// leads its own line with its title.
-    fn flow(&self, lead: Option<usize>, items: &[usize]) -> AnyElement {
-        let t = self.t;
-        let last = items.len().saturating_sub(1);
-        h_flex()
-            .flex_wrap()
-            .items_start()
-            .gap_y(px(3.))
-            .when_some(lead, |this, lead| {
-                this.child(
-                    div()
-                        .min_w_0()
-                        .pl(px(3.))
-                        .pr(px(3.))
-                        .text_color(t.text_3)
-                        .child(format!("{}:", self.library.topics[lead].title)),
-                )
-            })
-            .children(items.iter().enumerate().map(|(n, &ix)| {
-                h_flex()
-                    .items_start()
-                    .min_w_0()
-                    .child(self.topic(ix))
-                    .when(n < last, |this| {
-                        this.child(div().px(px(3.)).text_color(t.text_4).child("·"))
-                    })
-            }))
-            .into_any_element()
+    fn color(&self, ix: usize, cx: &App) -> Hsla {
+        ui::subject_color(&self.topic(ix).id, cx)
     }
 
-    /// Topics in syllabus order: each run of plain topics is one flowing
-    /// line, and each topic with subtopics is a line of its own.
-    fn lines(&self, topics: &[usize]) -> Vec<AnyElement> {
-        let mut lines = Vec::new();
-        let mut run = Vec::new();
-        for &ix in topics {
-            if self.library.topics[ix].leaf {
-                run.push(ix);
-                continue;
-            }
-            if !run.is_empty() {
-                lines.push(self.flow(None, &run));
-                run.clear();
-            }
-            lines.push(self.flow(Some(ix), self.kids(ix)));
-        }
-        if !run.is_empty() {
-            lines.push(self.flow(None, &run));
-        }
-        lines
-    }
-
-    /// A row of the sheet: a chapter's title and count on the left, its
-    /// topics on the right, or above them when the sheet is narrow. Topics
-    /// that sit straight under the subject have no chapter to show.
-    fn row(&self, chapter: Option<usize>, topics: &[usize], cx: &App) -> AnyElement {
-        let t = self.t;
-        let label = chapter.map(|ix| {
-            let topic = &self.library.topics[ix];
-            let (done, total) = coverage(self.library, self.statuses, &topic.id);
-            let title = div()
-                .min_w_0()
-                .text_size(px(13.))
-                .line_height(px(20.))
-                .font_medium()
-                .text_color(t.text)
-                .child(topic.title.clone());
-            (title, ui::meta(format!("{done} of {total}"), cx))
-        });
-        let row = if self.narrow {
-            v_flex()
-                .gap(px(4.))
-                .when_some(label, |this, (title, count)| {
-                    this.child(
-                        h_flex()
-                            .gap(px(8.))
-                            .child(title)
-                            .child(count.flex_shrink_0()),
-                    )
-                })
-        } else {
-            h_flex().items_start().gap(px(20.)).child(
-                v_flex()
-                    .w(px(184.))
-                    .flex_shrink_0()
-                    .gap(px(2.))
-                    .when_some(label, |this, (title, count)| this.child(title).child(count)),
-            )
-        };
-        row.py(px(10.))
-            .border_b_1()
-            .border_color(t.border)
-            .child(
-                v_flex()
-                    .flex_1()
-                    .min_w_0()
-                    .gap(px(6.))
-                    .text_size(px(13.))
-                    .line_height(px(20.))
-                    .children(self.lines(topics)),
-            )
-            .into_any_element()
-    }
-
-    /// A subject: UPSC's line above it when it starts one, its heading with
-    /// how much of it is read, then its chapters. A line of UPSC's that
-    /// covers some of the chapters sits above them.
-    fn subject(&self, ix: usize, line: Option<&str>, cx: &App) -> AnyElement {
-        let t = self.t;
-        let topic = &self.library.topics[ix];
-        let (done, total) = coverage(self.library, self.statuses, &topic.id);
-        let color = ui::subject_color(&topic.id, cx);
-        // A subject with nothing under it is a topic, so it is marked as one.
-        let title = if topic.leaf {
-            self.topic(ix).into_any_element()
-        } else {
-            div().child(topic.title.clone()).into_any_element()
-        };
-
-        let mut rows = Vec::new();
-        let mut run = Vec::new();
-        let mut said: Option<&str> = None;
-        for &kid in self.kids(ix) {
-            let chapter = &self.library.topics[kid];
-            let official = chapter.official.as_deref();
-            if let Some(official) = official.filter(|&official| Some(official) != said) {
-                if !run.is_empty() {
-                    rows.push(self.row(None, &run, cx));
-                    run.clear();
+    /// The nodes from `from` down to `ix`, both included.
+    fn path(&self, from: usize, ix: usize) -> Vec<usize> {
+        let mut path = vec![ix];
+        let mut at = ix;
+        while at != from {
+            match self.parent[at] {
+                Some(up) => {
+                    path.push(up);
+                    at = up;
                 }
-                rows.push(
-                    quote(official, 15., t.text)
-                        .pt(px(16.))
-                        .pb(px(4.))
-                        .into_any_element(),
-                );
-            }
-            said = official;
-            if chapter.leaf {
-                run.push(kid);
-            } else {
-                if !run.is_empty() {
-                    rows.push(self.row(None, &run, cx));
-                    run.clear();
-                }
-                rows.push(self.row(Some(kid), self.kids(kid), cx));
+                None => break,
             }
         }
-        if !run.is_empty() {
-            rows.push(self.row(None, &run, cx));
-        }
+        path.reverse();
+        path
+    }
 
-        v_flex()
-            .pt(px(36.))
-            .when_some(line, |this, line| {
-                this.child(quote(line, 17., t.text).pb(px(14.)))
+    /// Where `ix` sits, from its paper down to its parent: "Prelims GS ›
+    /// Indian polity and governance › Parliament".
+    fn trail(&self, ix: usize) -> String {
+        // From the top: `usize::MAX` is above every node.
+        let path = self.path(usize::MAX, ix);
+        let above = path.get(1..path.len().saturating_sub(1)).unwrap_or(&[]);
+        above
+            .iter()
+            .map(|&node| self.topic(node).title.as_str())
+            .collect::<Vec<_>>()
+            .join(" › ")
+    }
+
+    /// The bottom-level topics under `ix`, in syllabus order.
+    fn leaves(&self, ix: usize) -> Vec<usize> {
+        if self.topic(ix).leaf {
+            return vec![ix];
+        }
+        self.kids(ix)
+            .iter()
+            .flat_map(|&kid| self.leaves(kid))
+            .collect()
+    }
+
+    /// UPSC's wording nearest above `ix`, `ix` included, and its node.
+    fn official(&self, ix: usize) -> Option<(usize, &'a str)> {
+        let mut at = Some(ix);
+        while let Some(node) = at {
+            if let Some(official) = self.topic(node).official.as_deref() {
+                return Some((node, official));
+            }
+            at = self.parent[node];
+        }
+        None
+    }
+
+    /// The note a topic opens, when a note covers it.
+    fn note(&self, ix: usize) -> Option<usize> {
+        (self.statuses[ix] != Status::NoNotes)
+            .then(|| next_note(self.library, self.reading, &self.topic(ix).id))
+            .flatten()
+    }
+
+    /// How many notes are on anything under `ix`, and how many questions.
+    fn material(&self, ix: usize) -> (usize, usize) {
+        let id = &self.topic(ix).id;
+        let notes = self
+            .library
+            .notes
+            .iter()
+            .filter(|note| {
+                note.topics
+                    .iter()
+                    .any(|tag| within(tag, id) || within(id, tag))
             })
-            .child(
-                h_flex()
-                    .id(("heading", ix))
-                    .test_support()
-                    .gap(px(10.))
-                    .pb(px(10.))
-                    .border_b_1()
-                    .border_color(t.border_3)
-                    .child(ui::dot(color))
-                    .child(
-                        div()
-                            .flex_1()
-                            .min_w_0()
-                            .text_size(px(15.))
-                            .font_semibold()
-                            .text_color(t.text)
-                            .child(title),
-                    )
-                    .child(ui::meta(format!("{done} of {total} read"), cx).flex_shrink_0())
-                    .child(div().w(px(64.)).flex_shrink_0().child(ui::progress(
-                        percent((done, total)) / 100.,
-                        color,
-                        cx,
-                    ))),
-            )
-            .children(rows)
-            .into_any_element()
+            .count();
+        let questions = self
+            .library
+            .questions
+            .iter()
+            .filter(|question| is_under(&question.topics, id))
+            .count();
+        (notes, questions)
+    }
+
+    /// The topics under `ix` the student could read next: the ones with a
+    /// note that is not read yet.
+    fn next(&self, ix: usize, most: usize) -> Vec<usize> {
+        self.leaves(ix)
+            .into_iter()
+            .filter(|&leaf| matches!(self.statuses[leaf], Status::NotStarted | Status::Reading))
+            .take(most)
+            .collect()
     }
 }
 
-/// The syllabus a paper at a time, beside a map of the whole exam.
+/// A thin bar split by status: read, in progress and not started, on a
+/// track that stands for the topics with no notes yet.
+fn status_bar(tally: Tally, height: f32, t: &ui::Tokens) -> Div {
+    let total = tally.total().max(1) as f32;
+    let part =
+        |count: usize, color: Hsla| div().h_full().w(relative(count as f32 / total)).bg(color);
+    h_flex()
+        .w_full()
+        .h(px(height))
+        .rounded(px(height / 2.))
+        .overflow_hidden()
+        .bg(t.selected)
+        .child(part(tally.done, t.success))
+        .child(part(tally.reading, t.accent))
+        .child(part(tally.not_started, t.text_4))
+}
+
+/// The counts behind a [`status_bar`], each with its colour.
+fn status_legend(tally: Tally, t: &ui::Tokens) -> Div {
+    let item = |color: Hsla, count: usize, label: &str| {
+        h_flex()
+            .gap(px(5.))
+            .child(div().size(px(7.)).rounded_full().bg(color))
+            .child(format!("{count} {label}"))
+    };
+    h_flex()
+        .flex_wrap()
+        .gap_x(px(12.))
+        .gap_y(px(4.))
+        .text_size(px(11.5))
+        .text_color(t.text_3)
+        .child(item(t.success, tally.done, "read"))
+        .child(item(t.accent, tally.reading, "in progress"))
+        .child(item(t.text_4, tally.not_started, "not started"))
+        .child(item(t.selected, tally.no_notes, "no notes yet"))
+}
+
+/// What clicking something does.
+type Action = Box<dyn Fn(&mut App)>;
+
+/// What a design needs from the screen once the layout knows its size:
+/// the screen's choices, and handles to change them and to open notes.
+#[derive(Clone)]
+struct View {
+    screen: WeakEntity<SyllabusScreen>,
+    shell: WeakEntity<Shell>,
+    paper: usize,
+    /// The node the mind map, treemap and sunburst centre on: the paper,
+    /// or a node under it.
+    focus: usize,
+    /// The flow's open subject and chapter.
+    subject: Option<usize>,
+    chapter: Option<usize>,
+    /// The topic under the pointer, in the mosaic and the sunburst.
+    hovered: Option<usize>,
+    scroll: ScrollHandle,
+}
+
+impl View {
+    /// Changes the screen and draws it again.
+    fn update(&self, cx: &mut App, change: impl FnOnce(&mut SyllabusScreen)) {
+        let _ = self.screen.update(cx, |screen, cx| {
+            change(screen);
+            cx.notify();
+        });
+    }
+
+    /// Points at `ix`, or at nothing, drawing again only when that changes.
+    fn hover(&self, ix: Option<usize>, cx: &mut App) {
+        let _ = self.screen.update(cx, |screen, cx| {
+            if screen.hovered != ix {
+                screen.hovered = ix;
+                cx.notify();
+            }
+        });
+    }
+
+    /// The pointer came onto `ix`, or left it. Leaving one square for the
+    /// next can report the arrival first, so leaving clears only `ix`.
+    fn pointed(&self, ix: usize, on: bool, cx: &mut App) {
+        let _ = self.screen.update(cx, |screen, cx| {
+            let next = match (on, screen.hovered) {
+                (true, _) => Some(ix),
+                (false, Some(was)) if was == ix => None,
+                (false, was) => was,
+            };
+            if screen.hovered != next {
+                screen.hovered = next;
+                cx.notify();
+            }
+        });
+    }
+
+    fn open_note(&self, note: usize, cx: &mut App) {
+        // The shell may update this screen, so this is not a listener.
+        let _ = self
+            .shell
+            .update(cx, |shell, cx| shell.open(Target::Note(note), cx));
+    }
+
+    /// Opens what `ix` leads to: a topic's note, or the node as the focus.
+    /// Topics with no note lead nowhere.
+    fn open(&self, ix: usize, tree: &Tree) -> Option<Action> {
+        if tree.topic(ix).leaf {
+            let note = tree.note(ix)?;
+            let view = self.clone();
+            Some(Box::new(move |cx| view.open_note(note, cx)))
+        } else {
+            let view = self.clone();
+            Some(Box::new(move |cx| {
+                view.update(cx, |screen| screen.focus_on(ix))
+            }))
+        }
+    }
+}
+
+/// The way down from the paper to the focus, each step a link back up, and
+/// UPSC's wording for the focus, for the designs that zoom.
+fn focus_bar(tree: &Tree, view: &View, cx: &App) -> Div {
+    let t = ui::tokens(cx);
+    let path = tree.path(view.paper, view.focus);
+    let last = path.len() - 1;
+    let mut crumbs = h_flex().flex_wrap().gap(px(4.)).text_size(px(12.5));
+    for (n, &ix) in path.iter().enumerate() {
+        if n > 0 {
+            crumbs = crumbs.child(
+                Icon::new(IconName::ChevronRight)
+                    .size(px(12.))
+                    .text_color(t.text_4),
+            );
+        }
+        let view = view.clone();
+        crumbs = crumbs.child(
+            div()
+                .id(("crumb", ix))
+                .test_support()
+                .px(px(4.))
+                .rounded(px(4.))
+                .child(tree.topic(ix).title.clone())
+                .map(|this| {
+                    if n == last {
+                        this.text_color(t.text).font_medium()
+                    } else {
+                        this.text_color(t.text_3)
+                            .cursor_pointer()
+                            .hover(|this| this.bg(t.hover).text_color(t.text))
+                            .on_click(move |_, _, cx| view.update(cx, |screen| screen.focus_on(ix)))
+                    }
+                }),
+        );
+    }
+    let tally = tree.tally[view.focus];
+    v_flex()
+        .flex_shrink_0()
+        .px(px(16.))
+        .py(px(10.))
+        .gap(px(4.))
+        .border_b_1()
+        .border_color(t.border)
+        .child(
+            h_flex()
+                .gap(px(12.))
+                .child(div().flex_1().min_w_0().child(crumbs))
+                .child(
+                    ui::meta(
+                        format!("{} of {} topics read", tally.done, tally.total()),
+                        cx,
+                    )
+                    .flex_shrink_0(),
+                ),
+        )
+        .when_some(tree.official(view.focus), |this, (_, official)| {
+            this.child(quote(official, 13.5, t.text_2).px(px(4.)).line_clamp(2))
+        })
+}
+
+/// The five designs, in the order the header offers them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Design {
+    Flow,
+    MindMap,
+    Mosaic,
+    Treemap,
+    Sunburst,
+}
+
+impl Design {
+    const ALL: [Design; 5] = [
+        Design::Flow,
+        Design::MindMap,
+        Design::Mosaic,
+        Design::Treemap,
+        Design::Sunburst,
+    ];
+
+    fn label(self) -> &'static str {
+        match self {
+            Design::Flow => "Flow",
+            Design::MindMap => "Mind map",
+            Design::Mosaic => "Mosaic",
+            Design::Treemap => "Treemap",
+            Design::Sunburst => "Sunburst",
+        }
+    }
+}
+
+/// The syllabus a paper at a time, in the design the student picks.
 pub struct SyllabusScreen {
     shell: WeakEntity<Shell>,
-    /// The paper on the sheet, by index into the library's topics; the first
-    /// paper until the student picks one.
+    // ponytail: in memory only. The switcher is for choosing a design; once
+    // one is chosen the others go, and so does this.
+    design: Design,
+    /// The open paper, by index into the library's topics; the first paper
+    /// until the student picks one.
     paper: Option<usize>,
-    /// The sheet's scroll, so that a paper opens at its top and the subject
-    /// list can jump down to a subject.
+    /// What the zooming designs centre on, under the paper.
+    focus: Option<usize>,
+    subject: Option<usize>,
+    chapter: Option<usize>,
+    hovered: Option<usize>,
+    /// The design's scroll, so that a paper or a zoom starts at the top and
+    /// the mosaic can jump to a paper.
     scroll: ScrollHandle,
 }
 
@@ -491,352 +688,191 @@ impl SyllabusScreen {
     pub fn new(shell: WeakEntity<Shell>) -> Self {
         SyllabusScreen {
             shell,
+            design: Design::Flow,
             paper: None,
+            focus: None,
+            subject: None,
+            chapter: None,
+            hovered: None,
             scroll: ScrollHandle::new(),
         }
     }
 
-    fn open_paper(&mut self, paper: usize, cx: &mut Context<Self>) {
-        self.paper = Some(paper);
+    fn set_design(&mut self, design: Design, cx: &mut Context<Self>) {
+        self.design = design;
+        self.hovered = None;
         self.scroll.set_offset(Point::default());
         cx.notify();
     }
 
-    /// The exam as UPSC lays it out: each stage in its own words, then its
-    /// papers, with their marks and how much of each is read.
-    fn map(
-        &self,
-        paper: usize,
-        statuses: &[Status],
-        cx: &Context<Self>,
-    ) -> impl IntoElement + use<> {
+    /// Opens a paper; `order` is its place among all the papers, which is
+    /// where the mosaic draws it.
+    fn open_paper(&mut self, paper: usize, order: usize, cx: &mut Context<Self>) {
+        self.paper = Some(paper);
+        self.focus = None;
+        self.subject = None;
+        self.chapter = None;
+        self.hovered = None;
+        if self.design == Design::Mosaic {
+            self.scroll.scroll_to_top_of_item(order);
+        } else {
+            self.scroll.set_offset(Point::default());
+        }
+        cx.notify();
+    }
+
+    fn focus_on(&mut self, ix: usize) {
+        self.focus = Some(ix);
+        self.hovered = None;
+        self.scroll.set_offset(Point::default());
+    }
+
+    /// The nine papers under their stages, each with how much of it is read.
+    fn papers(&self, tree: &Tree, paper: usize, cx: &Context<Self>) -> impl IntoElement + use<> {
         let t = ui::tokens(cx);
-        let library = &AppState::get(cx).library;
-        let rows = library
-            .topics
-            .iter()
-            .enumerate()
-            .filter(|(_, topic)| topic.depth <= 1)
-            .map(|(ix, topic)| {
-                if topic.depth == 0 {
-                    return v_flex()
-                        .gap(px(4.))
-                        .px(px(8.))
-                        .pt(px(16.))
-                        .pb(px(6.))
-                        .child(
-                            div()
-                                .text_size(px(13.))
-                                .font_semibold()
-                                .text_color(t.text)
-                                .child(topic.title.clone()),
-                        )
-                        .when_some(topic.official.as_deref(), |this, official| {
-                            this.child(quote(official, 12.5, t.text_3))
-                        })
-                        .into_any_element();
-                }
-                let (done, total) = coverage(library, statuses, &topic.id);
-                let chosen = ix == paper;
-                let tip = format!("{done} of {total} topics read");
-                h_flex()
-                    .id(("paper", ix))
-                    .test_support()
-                    .items_start()
-                    .gap(px(9.))
-                    .px(px(8.))
-                    .py(px(6.))
-                    .rounded(px(6.))
-                    .cursor_pointer()
-                    .map(|this| {
-                        if chosen {
-                            this.bg(t.accent_soft)
-                        } else {
-                            this.hover(|this| this.bg(t.hover))
-                        }
-                    })
-                    .child(div().pt(px(1.)).child(ui::ring(
-                        percent((done, total)) / 100.,
-                        16.,
-                        2.5,
-                        t.accent,
-                        div(),
-                        cx,
-                    )))
-                    .child(
-                        v_flex()
-                            .flex_1()
-                            .min_w_0()
-                            .child(
-                                div()
-                                    .truncate()
-                                    .text_size(px(13.))
-                                    .text_color(t.text)
-                                    .when(chosen, |this| this.font_medium())
-                                    .child(topic.title.clone()),
-                            )
-                            .child(
-                                div()
-                                    .truncate()
-                                    .text_size(px(12.))
-                                    .text_color(t.text_3)
-                                    .child(facts(topic.official.as_deref().unwrap_or_default())),
-                            ),
-                    )
-                    .tooltip(move |window, cx| Tooltip::new(tip.clone()).build(window, cx))
-                    .on_click(cx.listener(move |this, _, _, cx| this.open_paper(ix, cx)))
-                    .into_any_element()
-            });
-        v_flex()
-            .w(px(256.))
+        let mut strip = h_flex()
+            .id("papers")
             .flex_shrink_0()
-            .h_full()
-            .border_r_1()
+            .h(px(40.))
+            .px(px(12.))
+            .gap(px(2.))
+            .border_b_1()
             .border_color(t.border)
-            .child(
-                div()
-                    .flex_1()
-                    .min_h_0()
-                    .overflow_y_scrollbar()
-                    .id("exam-map")
-                    .child(
-                        v_flex().px(px(10.)).pb_4().children(rows).child(
-                            // ponytail: content/syllabus.toml leaves them out
-                            // for now; drop this line when they are added.
-                            ui::meta(
-                                "Papers VI and VII, the optional subject, are not in the app yet.",
-                                cx,
-                            )
-                            .px(px(8.))
-                            .pt(px(12.)),
-                        ),
-                    ),
-            )
-    }
-
-    /// The open paper: its title and UPSC's line for it, a list of its
-    /// subjects to jump to, then each subject in full. It is laid out for
-    /// the width it gets, which only the layout knows.
-    fn sheet(&self, paper: usize, statuses: Vec<Status>) -> impl IntoElement + use<> {
-        let (shell, scroll) = (self.shell.clone(), self.scroll.clone());
-        div()
-            .relative()
-            .flex_1()
-            .min_w_0()
-            .h_full()
-            .child(container_query({
-                let scroll = scroll.clone();
-                move |size, _, cx| {
-                    sheet_body(paper, &statuses, shell, scroll, size.width < NARROW, cx)
-                }
-            }))
-            .vertical_scrollbar(&scroll)
-    }
-}
-
-/// The sheet itself, for [`SyllabusScreen::sheet`].
-fn sheet_body(
-    paper: usize,
-    statuses: &[Status],
-    shell: WeakEntity<Shell>,
-    scroll: ScrollHandle,
-    narrow: bool,
-    cx: &mut App,
-) -> impl IntoElement + use<> {
-    let state = AppState::get(cx);
-    let library = &state.library;
-    let sheet = Sheet::new(library, &state.reading, statuses, shell, narrow, cx);
-    let t = sheet.t;
-    let topic = &library.topics[paper];
-    let (done, total) = coverage(library, statuses, &topic.id);
-    let subjects = sheet.kids(paper);
-
-    // A subject with nothing under it needs no jump: it is a line long.
-    let jumps: Vec<AnyElement> = subjects
-        .iter()
-        .enumerate()
-        .filter(|(_, subject)| !library.topics[**subject].leaf)
-        .map(|(n, &ix)| {
-            let subject = &library.topics[ix];
-            let scroll = scroll.clone();
-            h_flex()
-                .id(("jump", ix))
-                .test_support()
-                .h(px(26.))
-                .px(px(8.))
-                .gap(px(6.))
-                .rounded(px(6.))
-                .cursor_pointer()
-                .text_size(px(12.5))
-                .text_color(t.text_2)
-                .hover(|this| this.bg(t.hover).text_color(t.text))
-                .child(ui::dot(ui::subject_color(&subject.id, cx)))
-                .child(subject.title.clone())
-                .on_click(move |_, window, _| {
-                    // The heading is the sheet's first child, then a child per subject.
-                    scroll.scroll_to_top_of_item(n + 1);
-                    window.refresh();
-                })
-                .into_any_element()
-        })
-        .collect();
-    let legend = h_flex()
-        .flex_wrap()
-        .gap_x(px(14.))
-        .gap_y(px(4.))
-        .text_size(px(12.))
-        .child(quote("UPSC's own words", 13., t.text))
-        .children(
-            [
-                Status::Done,
-                Status::Reading,
-                Status::NotStarted,
-                Status::NoNotes,
-            ]
-            .map(|status| {
-                marked(div().px(px(3.)).rounded(px(3.)), status, &t).child(status.label())
-            }),
-        );
-    let head = column()
-        .pt(px(28.))
-        .gap(px(16.))
-        .child(
-            h_flex()
-                .items_start()
-                .gap(px(16.))
-                .child(
-                    v_flex()
-                        .flex_1()
-                        .min_w_0()
-                        .gap(px(8.))
-                        .child(
-                            div()
-                                .font_family(ui::DISPLAY)
-                                .text_size(px(26.))
-                                .line_height(px(32.))
-                                .font_semibold()
-                                .text_color(t.text)
-                                .child(topic.title.clone()),
-                        )
-                        .when_some(topic.official.as_deref(), |this, official| {
-                            this.child(quote(official, 16., t.text_2))
-                        }),
-                )
-                .child(
-                    h_flex()
+            .overflow_x_scroll();
+        let mut order = 0;
+        for (n, stage) in tree.stages().into_iter().enumerate() {
+            let stage_title = &tree.topic(stage).title;
+            if n > 0 {
+                strip = strip.child(
+                    div()
                         .flex_shrink_0()
-                        .gap(px(10.))
-                        .pt(px(2.))
-                        .child(
-                            v_flex()
-                                .items_end()
-                                .child(
-                                    div()
-                                        .text_size(px(13.))
-                                        .font_medium()
-                                        .text_color(t.text)
-                                        .child(format!("{:.0}% read", percent((done, total)))),
-                                )
-                                .child(ui::meta(format!("{done} of {total} topics"), cx)),
-                        )
-                        .child(ui::ring(
-                            percent((done, total)) / 100.,
-                            36.,
-                            4.,
-                            t.accent,
-                            div(),
-                            cx,
-                        )),
-                ),
-        )
-        .when(jumps.len() > 2, |this| {
-            this.child(h_flex().flex_wrap().gap(px(2.)).ml(px(-8.)).children(jumps))
-        })
-        .child(legend);
-
-    // Subjects that share a line of UPSC's follow one another; the first
-    // of them carries it.
-    let mut said: Option<&str> = None;
-    let blocks: Vec<AnyElement> = subjects
-        .iter()
-        .map(|&subject| {
-            let official = library.topics[subject].official.as_deref();
-            let line = official.filter(|&official| Some(official) != said);
-            said = official;
-            column()
-                .child(sheet.subject(subject, line, cx))
-                .into_any_element()
-        })
-        .collect();
-    let foot = column().pt(px(28.)).pb(px(48.)).child(ui::meta(
-        "Quoted lines are UPSC's own wording, from the official exam notice. The chapters and \
-             topics under them are Civil Mentor's breakdown.",
-        cx,
-    ));
-
-    div()
-        .id("sheet")
-        .size_full()
-        .flex()
-        .flex_col()
-        .overflow_y_scroll()
-        .track_scroll(&scroll)
-        .child(head)
-        .children(blocks)
-        .child(foot)
+                        .w(px(1.))
+                        .h(px(16.))
+                        .mx(px(10.))
+                        .bg(t.border_2),
+                );
+            }
+            strip = strip.child(ui::caption(stage_title.clone(), cx).px(px(6.)));
+            for &ix in tree.kids(stage) {
+                let topic = tree.topic(ix);
+                let tally = tree.tally[ix];
+                let chosen = ix == paper;
+                let at = order;
+                order += 1;
+                let facts = facts(topic.official.as_deref().unwrap_or_default());
+                strip = strip.child(
+                    h_flex()
+                        .id(("paper", ix))
+                        .test_support()
+                        .flex_shrink_0()
+                        .h_full()
+                        .px(px(8.))
+                        .gap(px(6.))
+                        .border_b_2()
+                        .cursor_pointer()
+                        .text_size(px(13.))
+                        .map(|this| {
+                            if chosen {
+                                this.border_color(t.accent).text_color(t.text).font_medium()
+                            } else {
+                                this.border_color(transparent_black())
+                                    .text_color(t.text_2)
+                                    .hover(|this| this.text_color(t.text))
+                            }
+                        })
+                        .child(ui::ring(tally.share(), 12., 2., t.accent, div(), cx))
+                        .child(short(&topic.title, stage_title).to_string())
+                        .tooltip(tip(format!(
+                            "{} · {facts} · {} of {} topics read",
+                            topic.title,
+                            tally.done,
+                            tally.total()
+                        )))
+                        .on_click(cx.listener(move |this, _, _, cx| this.open_paper(ix, at, cx))),
+                );
+            }
+        }
+        strip
+    }
 }
 
 impl Render for SyllabusScreen {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let t = ui::tokens(cx);
-        let state = AppState::get(cx);
-        let library = &state.library;
-        let statuses = statuses(library, &state.reading);
-        let (done, total) = library
-            .topics
-            .iter()
-            .filter(|topic| topic.depth == 0)
-            .map(|stage| coverage(library, &statuses, &stage.id))
-            .fold((0, 0), |(done, total), (d, t)| (done + d, total + t));
+        let tree = Tree::new(cx);
+        let mut whole = Tally::default();
+        for stage in tree.stages() {
+            whole.merge(tree.tally[stage]);
+        }
+        let switcher = ui::segmented(cx)
+            .ml(px(16.))
+            .children(Design::ALL.map(|design| {
+                ui::segment(
+                    ("design", design as usize),
+                    design.label(),
+                    design == self.design,
+                    cx,
+                )
+                .on_click(cx.listener(move |this, _, _, cx| this.set_design(design, cx)))
+            }));
         let header = ui::header(cx)
             .child(ui::title(IconName::ListTree, "Syllabus", cx))
+            .child(switcher)
             .child(div().flex_1())
             .child(
                 h_flex()
                     .gap(px(8.))
                     .pr_1()
-                    .child(ui::ring(
-                        percent((done, total)) / 100.,
-                        18.,
-                        3.,
-                        t.accent,
-                        div(),
+                    .child(ui::ring(whole.share(), 18., 3., t.accent, div(), cx))
+                    .child(ui::meta(
+                        format!("{} of {} topics read", whole.done, whole.total()),
                         cx,
-                    ))
-                    .child(ui::meta(format!("{done} of {total} topics read"), cx)),
+                    )),
             );
-        let paper = self
+        let papers: Vec<usize> = tree
+            .stages()
+            .into_iter()
+            .flat_map(|stage| tree.kids(stage).to_vec())
+            .collect();
+        let Some(paper) = self
             .paper
-            .filter(|&ix| library.topics.get(ix).is_some_and(|topic| topic.depth == 1))
-            .or_else(|| library.topics.iter().position(|topic| topic.depth == 1));
-        let body = match paper {
-            Some(paper) => div()
-                .flex()
-                .size_full()
-                .child(self.map(paper, &statuses, cx))
-                .child(self.sheet(paper, statuses))
-                .into_any_element(),
-            None => column()
-                .pt_6()
-                .child(ui::meta(
+            .filter(|ix| papers.contains(ix))
+            .or(papers.first().copied())
+        else {
+            return v_flex().size_full().child(header).child(
+                ui::meta(
                     "The syllabus did not load. Settings lists what is wrong with the content.",
                     cx,
-                ))
-                .into_any_element(),
+                )
+                .p_6(),
+            );
+        };
+        let paper_id = &tree.topic(paper).id;
+        let focus = self
+            .focus
+            .filter(|&ix| within(&tree.topic(ix).id, paper_id) && !tree.topic(ix).leaf)
+            .unwrap_or(paper);
+        let view = View {
+            screen: cx.entity().downgrade(),
+            shell: self.shell.clone(),
+            paper,
+            focus,
+            subject: self.subject,
+            chapter: self.chapter,
+            hovered: self.hovered,
+            scroll: self.scroll.clone(),
+        };
+        let body = match self.design {
+            Design::Flow => flow::view(&tree, view, cx),
+            Design::MindMap => mindmap::view(&tree, view, cx),
+            Design::Mosaic => mosaic::view(&tree, view, cx),
+            Design::Treemap => treemap::view(&tree, view, cx),
+            Design::Sunburst => sunburst::view(&tree, view, cx),
         };
         v_flex()
             .size_full()
             .child(header)
+            .child(self.papers(&tree, paper, cx))
             .child(div().flex_1().min_h_0().child(body))
     }
 }
@@ -844,7 +880,7 @@ impl Render for SyllabusScreen {
 #[cfg(test)]
 mod tests {
     // Not `super::*`: that brings in `gpui_kit::test`, which shadows `#[test]`.
-    use super::{Status, coverage, facts, percent, statuses};
+    use super::{Status, Tally, coverage, facts, percent, short, statuses};
     use crate::content::Library;
     use crate::store::Reading;
     use chrono::NaiveDate;
@@ -967,5 +1003,48 @@ title = "Soils"
             .collect();
         assert_eq!(papers, expected);
         assert_eq!(facts("No marks given here"), "", "no number, no marks");
+    }
+
+    #[test]
+    fn papers_go_by_short_names_under_their_stage() {
+        let library = Library::embedded();
+        let names: Vec<&str> = library
+            .topics
+            .iter()
+            .filter(|topic| topic.depth == 1)
+            .map(|topic| {
+                let stage = topic.id.split('.').next().unwrap();
+                let stage = &library.topics.iter().find(|t| t.id == stage).unwrap().title;
+                short(&topic.title, stage)
+            })
+            .collect();
+        assert_eq!(
+            names,
+            [
+                "GS",
+                "CSAT",
+                "Indian language",
+                "English",
+                "Essay",
+                "GS-1",
+                "GS-2",
+                "GS-3",
+                "GS-4"
+            ]
+        );
+    }
+
+    #[test]
+    fn a_node_is_coloured_by_the_average_of_its_topics() {
+        let tally = Tally {
+            done: 1,
+            reading: 0,
+            not_started: 0,
+            no_notes: 1,
+        };
+        assert_eq!(tally.total(), 2);
+        assert_eq!(tally.share(), 0.5);
+        assert!((tally.fill() - (1. + Status::NoNotes.fill()) / 2.).abs() < 1e-6);
+        assert_eq!(Tally::default().fill(), 0., "an empty node has no colour");
     }
 }

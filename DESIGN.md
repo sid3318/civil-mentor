@@ -406,20 +406,18 @@ The sketches show structure. The colours and type are in the mockup.
 
 ### Syllabus
 
-Redesigned on 18 Nov 2026: the folding tree hid the syllabus behind five levels of rows, so the screen now shows one paper at a time in full.
+Redesigned again on 19 Nov 2026. The one-page syllabus sheet read as a long list, so the screen now offers **five designs** behind a switcher, for the student to compare. Once one is chosen, the other four and the switcher are deleted (`src/syllabus/<design>.rs`, one file each).
 
-- The header shows "Syllabus" with the overall coverage as a ring and "x of y topics read".
-- **The exam map** is a 256 px pane on the left. It lists Prelims and Mains, each with UPSC's wording for the stage, then its papers. A paper's row has a coverage ring, its title, and its marks, plus "qualifying" where UPSC says so. Both are read from UPSC's wording of the paper. The chosen paper is on `accent-soft`. A last line says the optional papers are not in the app yet.
-- **The sheet** shows the chosen paper. Its title is `title-1`, with UPSC's line for the paper under it and its coverage on the right. Below them are the paper's subjects as links that jump down the sheet, then a legend for the topic marks.
-- **UPSC's wording is quoted** in Source Serif 4 between quotation marks: 17 px above the subjects it covers, 15 px above the chapters it covers. Siblings that share a line show it once. Everything in sans is our breakdown, and the sheet's last line says so.
-- **Subjects** have a heading with their dot, "x of y read" and a bar in the subject colour. **Chapters** are rows, with the title and count in a 184 px column and the topics beside them. Below 720 px of sheet width the title sits above the topics.
-- **Topics** run on in a line, split by dots. A topic with subtopics starts its own line ("Important sites: …"). Each is marked the way a student marks a printed syllabus:
-  - read: highlighted in `success` at 16%;
-  - in progress: highlighted in `accent` at 14%;
-  - not started: underlined;
-  - no notes yet: plain `text-2`.
-
-  A topic with a note opens it. The tooltip gives the status and the number of notes and questions.
+- **The header** shows "Syllabus", the switcher as a segmented control (Flow, Mind map, Mosaic, Treemap, Sunburst), and the overall coverage as a ring with "x of y topics read".
+- **The paper strip** under it is a 40 px row of underline tabs: Prelims (GS, CSAT), then Mains (Indian language, English, Essay, GS-1 to GS-4). Each tab has a 12 px coverage ring. Its tooltip gives the marks, "qualifying" where UPSC says so, and the topics read.
+- **Colour means progress everywhere.** A topic takes its subject's colour, solid once read, at 55% in progress, at 24% with a border when a note is waiting, and at 10% with no notes yet. A group takes the average of its topics. Each design also shows UPSC's own wording in Source Serif 4 between quotation marks.
+- **Flow** (after the Korsa canvas reference) is a dotted `sunken` canvas of cards: the paper's card, then columns for subjects, the open subject's chapters, and the open chapter's topics. Topics with subtopics list them inside the card. Elbow connectors with port dots join the columns, and a pill at the head of each column says what it holds. The open path is drawn in the subject colour and the rest in grey or a lighter tint. Cards show a ring in a tinted tile and chips for topics read, notes and questions. A 272 px overview on the right has the paper's coverage, UPSC's line for what is open, three topics to read next, and each subject's status bar. The overview hides below 880 px.
+- **Mind map** puts the focus in a card in the middle, its parts in pills on both sides (on one side when narrow), and each part's own parts as labels on curved branches beyond. Clicking a part puts it in the middle. The middle card, and the path in the focus bar, go back up.
+- **Mosaic** is the whole exam on one page, one 13 px square per topic. It runs paper by paper and subject by subject, and each chapter's squares are grouped with a small gap after them. A strip above names the square under the pointer and shows the key to the colours. Picking a paper scrolls to it.
+- **Treemap** splits the focus into rectangles sized by topic count (squarified, kept in syllabus order). Each part is a framed rectangle with its title and count, and its own parts are nested inside. Clicking zooms in.
+- **Sunburst** draws the focus as a disc with a ring per level, each arc sized by topic count, down to single topics at the edge. Pointing at an arc shows it in a 300 px panel: its path, UPSC's line, its status bar, and the parts inside it as chips that open them. Clicking an arc zooms in, and the disc goes back up.
+- **The focus bar** sits above the mind map, treemap and sunburst. It shows the path from the paper to the focus, each step a link, then UPSC's line for the focus.
+- A topic with a note opens the note in every design. Its tooltip gives the title, status, and the number of notes and questions.
 
 ### Notebook
 
