@@ -8,7 +8,6 @@ stem = "A geostationary satellite orbits above the Earth's equator at an altitud
 options = ["400 km", "2,000 km", "20,200 km", "36,000 km"]
 answer = "D"
 explanation = "A geostationary orbit is about 35,786 km above the equator. At that height a satellite takes one sidereal day to circle the Earth, so it stays over the same point. Navigation satellites such as GPS orbit at about 20,200 km."
-note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "science-tech-0002"
@@ -18,7 +17,6 @@ stem = "The spot near the lunar south pole where the Chandrayaan-3 lander touche
 options = ["Tiranga Point", "Shiv Shakti Point", "Jawahar Point", "Vikram Point"]
 answer = "B"
 explanation = "The Chandrayaan-3 landing site is Shiv Shakti Point. Tiranga Point marks where the Chandrayaan-2 lander hit the surface in 2019, and Jawahar Point is where the Chandrayaan-1 Moon Impact Probe struck in 2008."
-note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "science-tech-0003"
@@ -57,7 +55,6 @@ options = ["They pass over a given place at the same local solar time on every o
 answer = "A"
 explanation = "A sun-synchronous orbit at about 600 to 800 km passes over each place at the same local time, so images taken on different days have the same lighting and can be compared."
 trap = "Remote-sensing satellites are low. The geostationary orbit is for communication and weather satellites, which need to stay over one place."
-note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "science-tech-0006"
@@ -68,7 +65,6 @@ options = ["PSLV", "GSLV Mk II", "LVM3", "SSLV"]
 answer = "C"
 explanation = "LVM3 is the heaviest launcher of ISRO. It launched Chandrayaan-2 in 2019 and Chandrayaan-3 in 2023, and it is the vehicle chosen for the Gaganyaan crewed mission."
 trap = "PSLV launched Chandrayaan-1 and the Mars Orbiter Mission, which makes it the first guess. Chandrayaan-3 needed the heavier LVM3."
-note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "science-tech-0007"
@@ -79,7 +75,6 @@ options = ["36,000 km from the Earth, towards the Sun", "384,000 km from the Ear
 answer = "D"
 explanation = "The Lagrange point L1 lies on the line between the Earth and the Sun at about 1.5 million km from the Earth. A spacecraft there can watch the Sun without interruption from eclipses."
 trap = "The Earth is 150 million km from the Sun. L1 is only one per cent of that distance away."
-note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "science-tech-0008"
@@ -90,7 +85,6 @@ options = ["The first Asian country to reach Mars orbit, and the first country i
 answer = "A"
 explanation = "The spacecraft was launched on a PSLV in November 2013 and entered Mars orbit in September 2014. India was the first Asian country to reach Mars orbit and the first country anywhere to succeed on its first attempt."
 trap = "The mission was an orbiter. It did not land on Mars."
-note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "science-tech-0009"
@@ -101,7 +95,6 @@ options = ["500 km", "1,000 km", "1,500 km", "3,000 km"]
 answer = "C"
 explanation = "NavIC, or the Navigation with Indian Constellation, provides positioning over India and a region about 1,500 km around it, using satellites in geostationary and geosynchronous orbits."
 trap = "NavIC is a regional system. GPS works worldwide from medium Earth orbit satellites."
-note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "science-tech-0010"

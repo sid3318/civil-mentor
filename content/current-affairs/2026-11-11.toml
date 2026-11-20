@@ -79,7 +79,6 @@ facts = [
   "They are the main reason Jammu and Kashmir, Himachal Pradesh and Uttarakhand get winter snowfall.",
 ]
 trap = "Western disturbances bring winter rain to the north-west. The north-east monsoon brings winter rain to the south-east coast. They are separate systems."
-notes = ["gs1-geography-indian-monsoon"]
 
 [story.question]
 id = "ca-2026-11-11-3"

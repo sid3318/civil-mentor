@@ -25,7 +25,6 @@ frame = [
   "Show its limit: food and fuel shocks are outside the reach of the repo rate.",
   "Suggest complements: supply management, buffer stocks, fiscal coordination.",
 ]
-notes = ["gs3-economy-inflation"]
 
 [story.question]
 id = "ca-2026-11-14-1"
@@ -58,7 +57,7 @@ frame = [
   "Apply them to surveillance and data collection.",
   "Conclude on oversight: judicial or independent review of interception orders.",
 ]
-notes = ["gs2-polity-fundamental-rights"]
+notes = ["polity-rights-freedom"]
 
 [story.question]
 id = "ca-2026-11-14-2"
@@ -86,7 +85,6 @@ facts = [
 ]
 trap = "The convention asks for \"wise use\" of wetlands. It does not ban human activity in them."
 pyq = "Prelims has repeatedly asked to match Ramsar sites with their states, and what the Montreux Record is."
-notes = ["gs3-environment-biodiversity-conservation"]
 
 [story.question]
 id = "ca-2026-11-14-3"

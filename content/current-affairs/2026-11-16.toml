@@ -13,7 +13,6 @@ facts = [
   "Article 243K provides for a State Election Commission to conduct panchayat elections.",
 ]
 trap = "The Gram Sabha is all registered voters of a village. The gram panchayat is its elected executive body."
-notes = ["gs2-polity-panchayati-raj"]
 
 [story.question]
 id = "ca-2026-11-16-1"
@@ -135,7 +134,7 @@ frame = [
   "Show quality gaps: learning outcomes, teacher vacancies, enforcement.",
   "Suggest a shift of focus to learning outcomes and early years.",
 ]
-notes = ["gs2-polity-fundamental-rights"]
+notes = ["polity-rights-freedom"]
 
 [story.question]
 id = "ca-2026-11-16-5"

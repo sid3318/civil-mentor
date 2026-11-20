@@ -8,6 +8,7 @@ use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::text::TextView;
+use gpui_kit::component::tooltip::Tooltip;
 use gpui_kit::component::{
     Disableable as _, Icon, Selectable as _, Sizable as _, StyledExt as _, h_flex, v_flex,
 };
@@ -16,7 +17,7 @@ use gpui_kit::*;
 
 use crate::AppState;
 use crate::app::Shell;
-use crate::content::{Target, sections};
+use crate::content::{Library, Note, Target, sections};
 use crate::marks::{self, Blocks, Marking, Selection};
 use crate::mentor;
 use crate::screens::count;
@@ -57,20 +58,21 @@ pub struct NotesScreen {
     marking: Marking,
     /// The last passage the student selected in the note.
     selected: Option<Selection>,
-    /// Which notes the list shows.
-    filter: Filter,
+    /// The folders open in the list: subjects as `(subject, None)` and
+    /// sections as `(subject, Some(section))`.
+    open: HashSet<Folder>,
     /// Whether the outline and reading panel shows beside the note.
     inspector: bool,
 }
 
-/// The notes the list shows.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Filter {
-    All,
-    Unread,
-    /// Bookmarked.
-    Saved,
-}
+/// A subject, or a section of one, in the list of notes.
+type Folder = (String, Option<String>);
+
+/// A subject in the list: its name, and its sections with their notes.
+type Subject = (String, Vec<(Option<String>, Vec<usize>)>);
+
+/// Width of the list of notes.
+const LIST_WIDTH: f32 = 296.;
 
 /// Counts the time something is open in a reader, while the student is
 /// active. The notes and the current-affairs readers each keep one.
@@ -165,7 +167,7 @@ impl NotesScreen {
             blocks: Blocks::default(),
             marking: Marking::default(),
             selected: None,
-            filter: Filter::All,
+            open: HashSet::new(),
             inspector: true,
         }
     }
@@ -174,10 +176,18 @@ impl NotesScreen {
         self.note
     }
 
-    /// Opens a note in the reader and records that the student opened it.
-    /// Called by the shell, which keeps the back and forward history.
+    /// Opens a note in the reader, and its folders in the list, and records
+    /// that the student opened it. Called by the shell, which keeps the back
+    /// and forward history.
     pub fn show(&mut self, ix: usize, cx: &mut Context<Self>) {
+        let library = &AppState::get(cx).library;
+        let id = library.notes[ix].id.clone();
         if self.note != Some(ix) {
+            let (subject, section) = place(library, &library.notes[ix]);
+            if section.is_some() {
+                self.open.insert((subject.clone(), section));
+            }
+            self.open.insert((subject, None));
             self.note = Some(ix);
             self.answers.clear();
             self.scroll.set_offset(Point::default());
@@ -185,7 +195,6 @@ impl NotesScreen {
             self.marking.close();
             self.selected = None;
         }
-        let id = AppState::get(cx).library.notes[ix].id.clone();
         AppState::update_reading(cx, &id, |reading, today| reading.last = today);
         if self.clock.as_ref().is_none_or(|clock| clock.item != id) {
             self.stop_clock(cx);
@@ -241,172 +250,117 @@ impl NotesScreen {
         }
     }
 
-    /// Every note, bookmarked ones first, then grouped by paper, with the
-    /// All, Unread and Saved filter above.
+    /// Every note, in folders like a file browser: the subjects, the sections
+    /// in them, then the notes. A click opens or closes a folder.
     fn list(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         let t = ui::tokens(cx);
-        let state = AppState::get(cx);
-        let library = &state.library;
-        let filter = self.filter;
-        let shown = |ix: &usize| {
-            let reading = state.reading.get(&library.notes[*ix].id);
-            match filter {
-                Filter::All => true,
-                Filter::Unread => reading.is_none_or(|reading| reading.done.is_none()),
-                Filter::Saved => reading.is_some_and(|reading| reading.bookmarked),
+        let library = &AppState::get(cx).library;
+        let mut rows = Vec::new();
+        for (subject, sections) in tree(library) {
+            let folder = (subject, None);
+            let open = self.open.contains(&folder);
+            rows.push(self.folder(folder.clone(), 0, open, cx).into_any_element());
+            if !open {
+                continue;
             }
-        };
-        let bookmarked: Vec<usize> = (0..library.notes.len())
-            .filter(|&ix| {
-                state
-                    .reading
-                    .get(&library.notes[ix].id)
-                    .is_some_and(|reading| reading.bookmarked)
-            })
-            .collect();
-        // In syllabus order, so that each paper's notes come together.
-        let mut order: Vec<usize> = (0..library.notes.len()).filter(shown).collect();
-        order.sort_by_key(|&ix| {
-            let first = library.notes[ix].topics.first();
-            library
-                .topics
-                .iter()
-                .position(|topic| Some(&topic.id) == first)
-        });
-        let mut papers: Vec<(String, Vec<usize>)> = Vec::new();
-        for ix in order {
-            let paper = library.notes[ix]
-                .topics
-                .first()
-                .map(|topic| paper_of(library, topic))
-                .unwrap_or_default();
-            match papers.last_mut() {
-                Some((last, notes)) if *last == paper => notes.push(ix),
-                _ => papers.push((paper, vec![ix])),
+            for (section, notes) in sections {
+                let mut depth = 1;
+                if section.is_some() {
+                    let folder = (folder.0.clone(), section);
+                    let open = self.open.contains(&folder);
+                    rows.push(self.folder(folder, 1, open, cx).into_any_element());
+                    if !open {
+                        continue;
+                    }
+                    depth = 2;
+                }
+                rows.extend(
+                    notes
+                        .into_iter()
+                        .map(|ix| self.list_row(ix, depth, cx).into_any_element()),
+                );
             }
         }
-
-        let segment =
-            |id: &'static str, text: &'static str, choice: Filter, cx: &mut Context<Self>| {
-                ui::segment(id, text, filter == choice, cx)
-                    .flex_1()
-                    .on_click(cx.listener(move |this, _, _, cx| {
-                        this.filter = choice;
-                        cx.notify();
-                    }))
-            };
-        let segments = [
-            segment("filter-all", "All", Filter::All, cx),
-            segment("filter-unread", "Unread", Filter::Unread, cx),
-            segment("filter-saved", "Saved", Filter::Saved, cx),
-        ];
-        let empty = papers.is_empty();
-        let label = |text: String| ui::caption(text, cx).px(px(8.)).pt(px(14.)).pb(px(4.));
-        // ponytail: one plain list. Fold papers away once there are
-        // hundreds of notes.
-        v_flex()
-            .w(px(272.))
+        div()
+            .w(px(LIST_WIDTH))
             .flex_shrink_0()
             .h_full()
             .border_r_1()
             .border_color(t.border)
-            .child(
-                div()
-                    .px(px(10.))
-                    .pt(px(10.))
-                    .pb(px(2.))
-                    .child(ui::segmented(cx).w_full().children(segments)),
-            )
-            .child(
-                div()
-                    .flex_1()
-                    .min_h_0()
-                    .overflow_y_scrollbar()
-                    .id("notes-list")
-                    .child(
-                        v_flex()
-                            .px(px(8.))
-                            .pb_3()
-                            .when(filter == Filter::All && !bookmarked.is_empty(), |list| {
-                                list.child(label("Bookmarked".into())).children(
-                                    bookmarked
-                                        .iter()
-                                        .map(|&ix| self.list_row(("bookmarked", ix), ix, cx)),
-                                )
-                            })
-                            .children(papers.into_iter().map(|(paper, notes)| {
-                                v_flex().child(label(paper)).children(
-                                    notes
-                                        .into_iter()
-                                        .map(|ix| self.list_row(("note", ix), ix, cx)),
-                                )
-                            }))
-                            .when(empty, |list| {
-                                list.child(
-                                    ui::meta(
-                                        match filter {
-                                            Filter::Saved => "Bookmark a note and it is kept here.",
-                                            _ => "Every note is read.",
-                                        },
-                                        cx,
-                                    )
-                                    .px(px(8.))
-                                    .pt(px(14.)),
-                                )
-                            }),
-                    ),
-            )
+            .overflow_y_scrollbar()
+            .id("notes-list")
+            .child(v_flex().p(px(8.)).children(rows))
     }
 
-    fn list_row(&self, id: impl Into<ElementId>, ix: usize, cx: &App) -> impl IntoElement {
+    /// A subject or a section in the list.
+    fn folder(
+        &self,
+        folder: Folder,
+        depth: usize,
+        open: bool,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement {
+        let t = ui::tokens(cx);
+        let (id, label) = match &folder {
+            (subject, Some(section)) => (format!("folder:{subject}/{section}"), section.clone()),
+            (subject, None) => (format!("folder:{subject}"), subject.clone()),
+        };
+        // Subjects are the largest headings, sections the next; both are bold
+        // above the notes' plain 13 px.
+        let (size, icon) = if depth == 0 { (15., 16.) } else { (13.5, 15.) };
+        tree_row(id, depth, cx)
+            .text_size(px(size))
+            .font_semibold()
+            .text_color(t.text)
+            .child(
+                Icon::new(if open {
+                    IconName::ChevronDown
+                } else {
+                    IconName::ChevronRight
+                })
+                .size(px(12.))
+                .text_color(t.text_4),
+            )
+            .child(
+                Icon::new(if open {
+                    IconName::FolderOpen
+                } else {
+                    IconName::Folder
+                })
+                .size(px(icon))
+                .text_color(t.text_3),
+            )
+            .child(div().flex_1().min_w_0().truncate().child(label))
+            .test_support()
+            .on_click(cx.listener(move |this, _, _, cx| {
+                if !this.open.remove(&folder) {
+                    this.open.insert(folder.clone());
+                }
+                cx.notify();
+            }))
+    }
+
+    /// A note in the list, with how far the student has got with it.
+    fn list_row(&self, ix: usize, depth: usize, cx: &App) -> impl IntoElement {
         let t = ui::tokens(cx);
         let state = AppState::get(cx);
-        let library = &state.library;
-        let note = &library.notes[ix];
-        let topic = note.topics.first().cloned().unwrap_or_default();
-        let questions = library.questions_for(note).len();
-        let mut meta = vec![subject_of(library, &topic), format!("{} min", note.minutes)];
-        if questions > 0 {
-            meta.push(count(questions, "question", "questions"));
-        }
+        let note = &state.library.notes[ix];
+        let title = SharedString::from(note.title.clone());
         let selected = self.note == Some(ix);
         let shell = self.shell.clone();
-        h_flex()
-            .id(id)
+        tree_row(("note", ix), depth, cx)
+            .text_size(px(13.))
+            .when(selected, |this| this.bg(t.accent_soft).font_medium())
+            // The chevron's room, so a note's icon lines up with a folder's.
+            .child(div().w(px(12.)).flex_shrink_0())
+            .child(
+                Status::of(state.reading.get(&note.id))
+                    .icon(cx)
+                    .size(px(14.)),
+            )
+            .child(div().flex_1().min_w_0().truncate().child(title.clone()))
+            .tooltip(move |window, cx| Tooltip::new(title.clone()).build(window, cx))
             .test_support()
-            .items_start()
-            .gap(px(9.))
-            .px(px(8.))
-            .py(px(6.))
-            .rounded(px(6.))
-            .cursor_pointer()
-            .hover(|this| this.bg(t.hover))
-            .when(selected, |this| this.bg(t.accent_soft))
-            .child(
-                div()
-                    .pt(px(1.))
-                    .child(Status::of(state.reading.get(&note.id)).icon(cx).small()),
-            )
-            .child(
-                v_flex()
-                    .flex_1()
-                    .min_w_0()
-                    .child(
-                        div()
-                            .truncate()
-                            .text_size(px(13.))
-                            .when(selected, |this| this.font_medium())
-                            .child(note.title.clone()),
-                    )
-                    .child(
-                        h_flex()
-                            .gap(px(6.))
-                            .text_size(px(12.))
-                            .text_color(t.text_3)
-                            .child(ui::dot(ui::subject_color(&topic, cx)))
-                            .child(div().truncate().child(meta.join(" · "))),
-                    ),
-            )
             // Not a listener: the shell updates this screen when it opens the note.
             .on_click(move |_, _, cx| {
                 let _ = shell.update(cx, |shell, cx| shell.open(Target::Note(ix), cx));
@@ -1044,7 +998,7 @@ impl NotesScreen {
                 .into_any_element();
         };
         let note = &library.notes[ix];
-        let topic = note.topics.first().cloned().unwrap_or_default();
+        let (subject, section) = place(library, note);
         let bookmarked = state
             .reading
             .get(&note.id)
@@ -1074,8 +1028,19 @@ impl NotesScreen {
                     .text_size(px(13.))
                     .text_color(t.text_3)
                     .child(div().flex_shrink_0().child("Notes"))
-                    .child(chevron())
-                    .child(div().flex_shrink_0().child(library.subject_label(&topic)))
+                    // The folders the note is in, as in the list.
+                    .children(
+                        [Some(subject), section]
+                            .into_iter()
+                            .flatten()
+                            .map(|folder| {
+                                h_flex()
+                                    .flex_shrink_0()
+                                    .gap(px(6.))
+                                    .child(chevron())
+                                    .child(folder)
+                            }),
+                    )
                     .child(chevron())
                     .child(
                         div()
@@ -1208,20 +1173,59 @@ fn toggle_read(note: &str) -> impl Fn(&ClickEvent, &mut Window, &mut App) + 'sta
     }
 }
 
-/// "GS-1" for any topic in Mains GS Paper I: the paper, which the list
-/// groups notes by.
-fn paper_of(library: &crate::content::Library, topic: &str) -> String {
-    let paper: Vec<&str> = topic.split('.').take(2).collect();
-    let id = paper.join(".");
-    library.topic(&id).map_or(id, |topic| topic.title.clone())
+/// A row of the list, indented for its depth in the tree.
+fn tree_row(id: impl Into<ElementId>, depth: usize, cx: &App) -> Stateful<Div> {
+    let t = ui::tokens(cx);
+    h_flex()
+        .id(id)
+        .gap(px(6.))
+        .pl(px(6. + 16. * depth as f32))
+        .pr(px(8.))
+        .py(px(5.))
+        .rounded(px(6.))
+        .cursor_pointer()
+        .hover(|this| this.bg(t.hover))
 }
 
-/// "Constitution and polity" for a topic in it: the subject, shown on each
-/// row of the list.
-fn subject_of(library: &crate::content::Library, topic: &str) -> String {
-    let subject: Vec<&str> = topic.split('.').take(3).collect();
-    let id = subject.join(".");
-    library.topic(&id).map_or(id, |topic| topic.title.clone())
+/// The list's folders: each subject with its sections, and the notes in
+/// each, in the notes' order. Notes with no section come under `None`.
+fn tree(library: &Library) -> Vec<Subject> {
+    let mut notes: Vec<usize> = (0..library.notes.len()).collect();
+    notes.sort_by_key(|&ix| library.notes[ix].order.unwrap_or(u32::MAX));
+    let mut tree: Vec<Subject> = Vec::new();
+    for ix in notes {
+        let (subject, section) = place(library, &library.notes[ix]);
+        let at = match tree.iter().position(|(name, _)| *name == subject) {
+            Some(at) => at,
+            None => {
+                tree.push((subject, Vec::new()));
+                tree.len() - 1
+            }
+        };
+        let sections = &mut tree[at].1;
+        match sections.iter_mut().find(|(name, _)| *name == section) {
+            Some((_, notes)) => notes.push(ix),
+            None => sections.push((section, vec![ix])),
+        }
+    }
+    tree
+}
+
+/// The subject and section the list files a note under. A note with no
+/// subject goes under its paper.
+fn place(library: &Library, note: &Note) -> Folder {
+    let subject = note.subject.clone().unwrap_or_else(|| {
+        let paper: Vec<&str> = note
+            .topics
+            .first()
+            .map_or("", |t| t)
+            .split('.')
+            .take(2)
+            .collect();
+        let id = paper.join(".");
+        library.topic(&id).map_or(id, |topic| topic.title.clone())
+    });
+    (subject, note.section.clone())
 }
 
 impl Render for NotesScreen {

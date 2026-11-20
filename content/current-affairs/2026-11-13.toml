@@ -12,7 +12,6 @@ facts = [
   "North-easterly winds pick up moisture while crossing the Bay of Bengal.",
 ]
 trap = "The retreating monsoon and the north-east monsoon describe the same season from two angles: withdrawal over the north, rain over the south-east coast."
-notes = ["gs1-geography-indian-monsoon"]
 
 [story.question]
 id = "ca-2026-11-13-1"
@@ -34,7 +33,6 @@ facts = [
   "Second-generation satellites add the L1 band, which is used by most civilian devices.",
 ]
 trap = "NavIC is a regional system. GPS, GLONASS, Galileo and BeiDou are global."
-notes = ["gs3-science-tech-space-programme"]
 
 [story.question]
 id = "ca-2026-11-13-2"
@@ -68,7 +66,6 @@ frame = [
   "Give the counterpoint: the elected House must control the purse.",
   "Suggest a way forward: clear tests and review of certification.",
 ]
-notes = ["gs2-polity-parliament"]
 
 [story.question]
 id = "ca-2026-11-13-3"

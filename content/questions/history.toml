@@ -16,7 +16,6 @@ Select the correct answer using the code given below."""
 options = ["4, 1, 2, 3", "1, 4, 2, 3", "4, 2, 1, 3", "1, 2, 4, 3"]
 answer = "A"
 explanation = "Champaran Satyagraha (1917), Non-Cooperation Movement (1920), Dandi March (1930), Quit India resolution (1942)."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "history-0002"
@@ -32,7 +31,6 @@ options = [
 answer = "B"
 explanation = "The Communal Award of August 1932 gave the depressed classes separate electorates. After Gandhi's fast in Yerawada jail, the Poona Pact between Gandhi and Ambedkar replaced these with a larger number of reserved seats elected through joint electorates."
 trap = "Separate electorates were what the Communal Award gave. The Pact withdrew them."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "history-0003"
@@ -61,7 +59,6 @@ options = ["The Champaran Satyagraha, 1917", "The Kheda Satyagraha, 1918", "The 
 answer = "C"
 explanation = "In the Ahmedabad cotton mill dispute of 1918, Gandhi fasted to hold the strikers to their pledge, and this ended in a settlement. Champaran and Kheda were satyagrahas against the indigo planters and for revenue remission, respectively."
 trap = "Champaran came first in 1917, so students credit it with each early first. The fast belongs to Ahmedabad."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "history-0006"
@@ -79,7 +76,6 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "The pact of March 1931 suspended Civil Disobedience, and Gandhi went to London for the Second Round Table Conference as the sole Congress representative. The Congress did not take part in the first conference, and Gandhi did not attend the third."
 trap = "The pact is linked with the Second Round Table Conference only. The other two went ahead without the Congress."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "history-0007"
@@ -90,7 +86,6 @@ options = ["The arrests of Congress leaders after the Jallianwala Bagh massacre"
 answer = "C"
 explanation = "A crowd at Chauri Chaura in Uttar Pradesh set fire to a police station and killed policemen, and Gandhi stopped the movement because he felt the country was not ready for non-violent mass action. The Simon Commission and the Communal Award came later."
 trap = "The Jallianwala Bagh massacre of 1919 helped to launch the movement. It did not end it."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "history-0008"
@@ -108,7 +103,6 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "D"
 explanation = "With the top leaders in jail from 9 August 1942, local activists ran their own administrations. Ballia, Tamluk and Satara each had a parallel government, and the Satara one lasted the longest."
 trap = "The movement is remembered for the 'Do or die' call and the arrests, but its second phase was underground and local."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "history-0009"
@@ -126,7 +120,6 @@ options = ["Only one", "All three", "Only two", "None"]
 answer = "C"
 explanation = "Rajaraja I of the Cholas completed the Brihadeeswara temple at Thanjavur around 1010, and the Eastern Gangas built the Konark Sun Temple in the thirteenth century. The Kandariya Mahadeva temple was built by the Chandelas."
 trap = "The Pallavas built Dravida temples at Mamallapuram and Kanchipuram, not the Nagara temples of Khajuraho."
-note = "gs1-art-culture-temple-architecture"
 
 [[question]]
 id = "history-0010"
@@ -137,7 +130,6 @@ options = ["A walled enclosure with tall gateway towers called gopurams", "A cur
 answer = "A"
 explanation = "Dravida temples stand in a walled courtyard with gopurams at the gates, and the stepped vimana rises over the sanctum. The curved shikhara with an amalaka is Nagara, and the garbhagriha is common to all temple styles."
 trap = "In a later Dravida temple the gopuram is often taller than the vimana, which stands over the sanctum."
-note = "gs1-art-culture-temple-architecture"
 
 [[question]]
 id = "history-0011"
@@ -148,7 +140,6 @@ options = ["Chalukyas of Badami", "Rashtrakutas", "Cholas", "Hoysalas"]
 answer = "D"
 explanation = "The Hoysalas of Karnataka built the temples at Belur and Halebidu in the twelfth and thirteenth centuries in soapstone, on star-shaped platforms. They are often grouped under the Vesara tradition."
 trap = "The Chalukyas of Badami experimented with northern and southern forms at Aihole and Pattadakal, but the star-shaped plan is Hoysala."
-note = "gs1-art-culture-temple-architecture"
 
 [[question]]
 id = "history-0012"

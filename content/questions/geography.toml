@@ -16,7 +16,6 @@ options = ["1 only", "1 and 2 only", "2 and 3 only", "1, 2 and 3"]
 answer = "B"
 explanation = "La Niña and a positive Indian Ocean Dipole are both linked with above-normal monsoon rain. El Niño is linked with weak monsoons."
 trap = "El Niño raises the odds of a poor monsoon. It does not make one certain, which is why statement-based questions about it need care."
-note = "gs1-geography-indian-monsoon"
 
 [[question]]
 id = "geography-0002"
@@ -31,7 +30,6 @@ options = [
 ]
 answer = "C"
 explanation = "The Tamil Nadu coast lies in the rain shadow of the Western Ghats during the south-west monsoon and parallel to the Bay of Bengal branch. It gets most of its rain from the north-east monsoon between October and December."
-note = "gs1-geography-indian-monsoon"
 
 [[question]]
 id = "geography-0003"
@@ -67,7 +65,6 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "The Inter-Tropical Convergence Zone shifts to about 25 degrees north in July, and the tropical easterly jet appears over the peninsula. The westerly jet withdraws to the north of the Himalaya in summer and returns to the south in winter."
 trap = "The westerly jet's movement is the reverse of the monsoon winds. It leaves India in summer."
-note = "gs1-geography-indian-monsoon"
 
 [[question]]
 id = "geography-0006"
@@ -78,7 +75,6 @@ options = ["15 May", "20 May", "1 June", "15 June"]
 answer = "C"
 explanation = "The onset over Kerala is normally around 1 June. The monsoon then splits into the Arabian Sea branch and the Bay of Bengal branch, and covers the whole country by about 8 July."
 trap = "The date varies from year to year, but the IMD treats 1 June as the normal date and not mid-June."
-note = "gs1-geography-indian-monsoon"
 
 [[question]]
 id = "geography-0007"
@@ -89,7 +85,6 @@ options = ["Western Ghats", "Coromandel coast", "Deccan plateau", "Himalayan foo
 answer = "D"
 explanation = "When the trough moves north to the foothills of the Himalaya, rain falls heavily in the foothills and north-east India, while the plains and the peninsula stay dry."
 trap = "A break means dry spells over most of the country, but the Himalayan foothills and the north-east get more rain at that time."
-note = "gs1-geography-indian-monsoon"
 
 [[question]]
 id = "geography-0008"
@@ -100,7 +95,6 @@ options = ["96 to 104 per cent", "90 to 110 per cent", "85 to 115 per cent", "98
 answer = "A"
 explanation = "Rainfall below 90 per cent of the Long Period Average is called deficient, 90 to 95 per cent below normal, 96 to 104 per cent normal, 105 to 110 per cent above normal, and above 110 per cent excess."
 trap = "The band for normal is narrower than ten per cent on each side of the average."
-note = "gs1-geography-indian-monsoon"
 
 [[question]]
 id = "geography-0009"

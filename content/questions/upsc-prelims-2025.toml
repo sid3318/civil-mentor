@@ -233,7 +233,6 @@ options = ["Only one", "Only two", "Only three", "All the four"]
 answer = "C"
 explanation = "The programme called for boycott of courts and foreign cloth, strict non-violence and private panchayats to settle disputes. It asked people to surrender titles and honours, not to keep them quietly."
 trap = "The wording of item III sounds like a compromise, but the Congress demanded giving titles up, not merely not using them."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "upsc-2025-013"
@@ -336,7 +335,6 @@ options = ["I only", "II only", "Both I and II", "Neither I nor II"]
 answer = "C"
 explanation = "At Nagpur in December 1920 the Congress adopted attainment of Swaraj by legitimate and peaceful means as its goal. The movement was planned in stages, with civil disobedience and tax refusal held back as a later step."
 trap = "Civil disobedience and tax refusal are linked with Gandhi, so one assumes they began the movement rather than being a reserve stage."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "upsc-2025-021"
@@ -1251,7 +1249,6 @@ options = ["the Champaran Satyagraha", "publicly violating Salt Law at Dandi", "
 answer = "B"
 explanation = "UPSC's key places this statement at the time of the Salt Satyagraha, when Gandhi defied the salt law at Dandi in 1930. The Civil Disobedience Movement was an open challenge to colonial law, which is why he spoke of sedition as a duty."
 trap = "'Do or Die' belongs to Quit India, so the dramatic phrase is easily attached to the wrong movement."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "upsc-2025-072"
@@ -1274,7 +1271,6 @@ options = ["C. R. Das", "Madan Mohan Malaviya and Krishna Kant", "Dr. Saifuddin 
 answer = "B"
 explanation = "Madan Mohan Malaviya led the defence of the Chauri Chaura accused before the Allahabad High Court, which reduced the number of death sentences. The other names are associated with different legal and political episodes."
 trap = "C. R. Das is famed as a lawyer in freedom-struggle trials, but the Chauri Chaura defence is credited to Malaviya."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "upsc-2025-074"
@@ -1286,7 +1282,6 @@ options = ["The Poona Pact", "The Gandhi-Irwin Agreement (Delhi Pact)", "Arrest 
 answer = "A"
 explanation = "After the Poona Pact of September 1932 ended the separate electorate for the Depressed Classes, Gandhi founded the Harijan Sevak Sangh and launched a campaign against untouchability. The campaign became part of his regular programme from then on."
 trap = "Gandhi had opposed untouchability long before 1932, so the question asks when it became a formal part of his programme."
-note = "gs1-history-gandhian-phase"
 
 [[question]]
 id = "upsc-2025-075"
@@ -1504,7 +1499,6 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "C"
 explanation = "Article 94 keeps the Speaker in office until just before the new House meets, and sets the removal rule of a majority of all members with 14 days' notice. The Constitution does not require a Speaker to resign from the party; that is only a convention."
 trap = "The convention of Speaker neutrality is so strong that it is easy to assume it is a constitutional requirement."
-note = "gs2-polity-parliament"
 
 [[question]]
 id = "upsc-2025-088"
@@ -1570,7 +1564,6 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "D"
 explanation = "States with a population below 20 lakh need not have an intermediate tier, the minimum age to contest Panchayat elections is 21, and the State Finance Commission is constituted by the Governor, not the Chief Minister. All three statements are therefore incorrect."
 trap = "The question asks for statements that are not correct, and all three contain a small factual error."
-note = "gs2-polity-panchayati-raj"
 
 [[question]]
 id = "upsc-2025-092"
@@ -1624,7 +1617,6 @@ options = ["I, II and III", "II and III only", "I only", "I and II only"]
 answer = "D"
 explanation = "GAGAN augments GPS signals with ground stations and geostationary satellites to give extra accuracy and integrity, which supports better air traffic management. It is not limited to aviation and is also usable in other modes such as railways and maritime transport."
 trap = "GAGAN was built for civil aviation, which makes the 'only in aviation' claim seem plausible."
-note = "gs3-science-tech-space-programme"
 
 [[question]]
 id = "upsc-2025-095"

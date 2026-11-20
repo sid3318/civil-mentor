@@ -117,6 +117,15 @@ impl Harness {
         panic!("{id:?} never came into view");
     }
 
+    /// Scrolls until the top of `id` sits near the top of the window, where
+    /// `select` drags along its first line.
+    fn show_top(&mut self, id: impl Into<ElementId>, anchors: &[ElementId]) {
+        let id = id.into();
+        self.reveal(id.clone(), anchors);
+        let top = self.act(|window, _| f32::from(window.find(id.clone()).bounds().origin.y));
+        self.scroll_down(anchors[0].clone(), top - 200.);
+    }
+
     /// Scrolls until `id` is near the middle of the window. `reveal` stops
     /// as soon as any part of an element shows, so a click at its centre can
     /// land past the edge of the window.
@@ -453,19 +462,19 @@ fn main() {
     app.press("secondary-k");
     assert!(app.dialog_open(), "Cmd+K opens the palette");
     app.shot("search-empty");
-    app.act(|window, cx| window.input("monsoon", cx));
-    app.shot("search-monsoon");
+    app.act(|window, cx| window.input("preamble", cx));
+    app.shot("search-preamble");
     app.press("enter");
     assert!(!app.dialog_open(), "choosing a result closes the palette");
-    let monsoon = app.note_ix("gs1-geography-indian-monsoon");
+    let preamble = app.note_ix("polity-salient-features-preamble");
     assert_eq!(app.screen(), Screen::Notes);
     assert_eq!(
         app.note(),
-        Some(monsoon),
-        "the first hit for `monsoon` opens that note"
+        Some(preamble),
+        "the first hit for `preamble` opens that note"
     );
     assert!(
-        app.reading("gs1-geography-indian-monsoon").is_some(),
+        app.reading("polity-salient-features-preamble").is_some(),
         "opening a note is recorded"
     );
 
@@ -523,12 +532,23 @@ fn main() {
     app.press("secondary-\\");
     app.shot("today");
 
-    // Notes: the reader comes back to the note it showed last, and the list
-    // opens another one.
+    // Notes: the reader comes back to the note it showed last. The list is a
+    // tree of subjects, sections and notes, open down to the note on screen;
+    // another section opens with a click, and a subject closes the same way.
     app.click("0-0-1");
-    assert_eq!(app.note(), Some(monsoon), "the reader keeps its note");
-    let rights_id = "gs2-polity-fundamental-rights";
+    assert_eq!(app.note(), Some(preamble), "the reader keeps its note");
+    let rights_id = "polity-fundamental-rights";
     let rights = app.note_ix(rights_id);
+    assert!(
+        app.shows(("note", preamble)),
+        "the open note's folders are open"
+    );
+    assert!(!app.shows(("note", rights)), "other sections are closed");
+    app.click("folder:Polity/Rights and duties");
+    app.shot("notes-tree");
+    app.click("folder:Polity");
+    assert!(!app.shows(("note", preamble)) && !app.shows("folder:Polity/Rights and duties"));
+    app.click("folder:Polity");
     app.click(("note", rights));
     assert_eq!(app.note(), Some(rights));
     assert_eq!(app.reading(rights_id).map(|r| r.done), Some(None));
@@ -538,24 +558,31 @@ fn main() {
     app.click(("outline", 3usize));
     app.shot("notes-outline");
 
-    // Distilled mode, then marking the note read moves syllabus coverage.
+    // Distilled mode, then marking the note read moves syllabus coverage. Its
+    // Prelims topics are its own, so Prelims coverage goes up; its Mains topic,
+    // Fundamental Rights, is shared with the three notes after it, so that one
+    // counts once all four are read.
     app.click("distilled-mode");
     app.shot("notes-distilled");
     let before = (app.coverage("mains.gs2"), app.coverage("pre.gs"));
+    app.centre("mark-read", &["reader".into()]);
     app.click("mark-read");
     assert!(
         app.reading(rights_id).unwrap().done.is_some(),
         "marked read"
     );
-    for (paper, before) in [("mains.gs2", before.0), ("pre.gs", before.1)] {
-        let after = app.coverage(paper);
-        assert!(after.0 > before.0, "{paper} coverage goes up");
-        assert_eq!(after.1, before.1, "{paper} keeps its topics");
-    }
+    let after = app.coverage("pre.gs");
+    assert!(after.0 > before.1.0, "Prelims coverage goes up");
+    assert_eq!(after.1, before.1.1, "Prelims keeps its topics");
+    assert_eq!(
+        app.coverage("mains.gs2"),
+        before.0,
+        "the shared Mains topic waits for the other notes on it"
+    );
     app.shot("notes-marked");
     app.click("mark-read");
     assert_eq!(app.reading(rights_id).unwrap().done, None, "and back");
-    assert_eq!(app.coverage("mains.gs2"), before.0);
+    assert_eq!(app.coverage("pre.gs"), before.1);
     app.click("mark-read");
 
     // The questions on the note, with an answer showing.
@@ -574,11 +601,9 @@ fn main() {
     app.click(("answer", question));
     app.shot("notes-answer");
 
-    // A bookmark puts the note at the top of the list.
-    assert!(!app.shows(("bookmarked", rights)));
+    // A bookmark is kept for the notebook.
     app.click("bookmark");
     assert!(app.reading(rights_id).unwrap().bookmarked);
-    assert!(app.shows(("bookmarked", rights)), "listed under Bookmarked");
 
     // Text size and column width are settings, so they are saved.
     app.click("read-mode");
@@ -602,14 +627,14 @@ fn main() {
 
     // Back and forward walk the notes that were open, by button or shortcut.
     app.press("secondary-[");
-    assert_eq!(app.note(), Some(monsoon), "back to the note before");
+    assert_eq!(app.note(), Some(preamble), "back to the note before");
     app.press("secondary-[");
     assert_eq!(app.screen(), Screen::Today);
     app.click("forward");
     app.click("forward");
     assert_eq!(app.note(), Some(rights));
     app.click("back");
-    assert_eq!(app.note(), Some(monsoon));
+    assert_eq!(app.note(), Some(preamble));
     app.press("secondary-]");
     assert_eq!(app.note(), Some(rights));
 
@@ -625,6 +650,8 @@ fn main() {
     let legislature = app.topic_ix("mains.gs2.polity.legislature");
     let provisions = app.topic_ix("mains.gs2.polity.constitution.provisions");
     let leaf = app.topic_ix("mains.gs2.polity.constitution.provisions.fundamental-rights");
+    // Four notes share this topic; with the first read, it opens the second.
+    let freedom = app.note_ix("polity-rights-freedom");
     assert!(app.shows(("node", current)), "Prelims GS opens first");
     app.click(("paper", gs2));
     assert!(!app.shows(("node", current)), "one paper at a time");
@@ -641,7 +668,11 @@ fn main() {
     let anchors: Vec<ElementId> = vec![("node", polity).into(), ("topic", leaf).into()];
     app.centre(("topic", leaf), &anchors);
     app.click(("topic", leaf));
-    assert_eq!(app.note(), Some(rights), "a topic opens the note on it");
+    assert_eq!(
+        app.note(),
+        Some(freedom),
+        "a topic opens its first note not yet read"
+    );
     app.press("secondary-[");
     assert_eq!(app.screen(), Screen::Syllabus, "back to the syllabus");
     assert!(app.shows(("topic", leaf)), "where it was");
@@ -661,7 +692,7 @@ fn main() {
     app.click(("part", provisions));
     app.shot("syllabus-mindmap-zoom");
     app.click(("topic", leaf));
-    assert_eq!(app.note(), Some(rights));
+    assert_eq!(app.note(), Some(freedom));
     app.press("secondary-[");
     app.click(("crumb", gs2));
     assert!(app.shows(("part", polity)), "back up to the paper");
@@ -677,7 +708,7 @@ fn main() {
     });
     app.shot("syllabus-mosaic-gs2");
     app.click(("tile", leaf));
-    assert_eq!(app.note(), Some(rights));
+    assert_eq!(app.note(), Some(freedom));
     app.press("secondary-[");
 
     // Treemap: the paper's subjects sized by their topics, chapters inside,
@@ -1040,7 +1071,7 @@ fn today_and_analysis() {
     app.shot("analysis-empty");
 
     // Reading counts as study time while the student is active.
-    let note_id = "gs3-economy-inflation";
+    let note_id = "polity-making-of-the-constitution";
     let note = app.note_ix(note_id);
     app.open(Target::Note(note));
     app.wait(60);
@@ -1601,8 +1632,10 @@ fn highlighting() {
     app.click("decline-diagnostic");
 
     // A passage of a note, highlighted with a comment.
-    let rights = app.note_ix("gs2-polity-fundamental-rights");
+    let rights = app.note_ix("polity-fundamental-rights");
     app.click("0-0-1");
+    app.click("folder:Polity");
+    app.click("folder:Polity/Rights and duties");
     app.click(("note", rights));
     app.select(("note-section", 0usize));
     app.click("highlight");
@@ -1617,12 +1650,13 @@ fn highlighting() {
         marks[0].comment.as_deref(),
         Some("Where is this article quoted?")
     );
-    assert_eq!(marks[0].item, "gs2-polity-fundamental-rights");
+    assert_eq!(marks[0].item, "polity-fundamental-rights");
     assert!(marks[0].quote.trim().len() > 8, "{:?}", marks[0].quote);
     assert_eq!(app.painted(), 1, "the highlight paints on the note");
     app.shot("note-highlight");
 
     // A clip keeps a passage with no comment.
+    app.show_top(("note-section", 1usize), &["reader".into()]);
     app.select(("note-section", 1usize));
     app.click("clip");
     let marks = app.marks();
@@ -1635,8 +1669,10 @@ fn highlighting() {
     // The highlight is still there after a restart.
     drop(app);
     let mut app = Harness::new(Store::open(&db).expect("the data file reopens"), None);
-    let rights = app.note_ix("gs2-polity-fundamental-rights");
+    let rights = app.note_ix("polity-fundamental-rights");
     app.click("0-0-1");
+    app.click("folder:Polity");
+    app.click("folder:Polity/Rights and duties");
     app.click(("note", rights));
     assert_eq!(app.marks().len(), 2, "both marks were saved");
     assert_eq!(
@@ -1690,10 +1726,7 @@ fn highlighting() {
     app.shot("notebook-highlight");
     app.click("open-mark");
     assert_eq!(app.screen(), Screen::Notes, "a highlight opens its note");
-    assert_eq!(
-        app.note(),
-        Some(app.note_ix("gs2-polity-fundamental-rights"))
-    );
+    assert_eq!(app.note(), Some(app.note_ix("polity-fundamental-rights")));
 
     // A note of the student's own, saved and found by search.
     app.click("1-0-3");

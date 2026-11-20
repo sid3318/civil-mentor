@@ -1,0 +1,3514 @@
+# Every Civil Mentor note, in the order they get written. One set of notes serves
+# Prelims and Mains together, filed by subject.
+#
+# [subjects] names each subject folder, in the order the subject books come in.
+# One [[note]] per file under content/notes/: its id is `file` with / as - and no
+# .md (polity/emergency.md is polity-emergency). `topics` are the syllabus nodes
+# it covers, Prelims and Mains: every topic in the syllabus belongs to a note, and
+# `notes.py check` proves it. `chunk` is the batch it is written in. Guides
+# (`kind = "guide"`) teach a method rather than a subject. The app files each
+# note under its subject and `section` (a note with none sits under the subject
+# itself), in the order of this file. Titles, sections, topics, chunks and the
+# order can change, and `notes.py run` or `check` passes the change on to
+# written notes; a file name can change only before its note exists.
+
+[subjects]
+polity = "Polity"
+economy = "Economy"
+modern-india = "Modern India"
+geography = "Geography"
+environment = "Environment"
+disaster = "Disaster management"
+ancient-india = "Ancient India"
+medieval-india = "Medieval India"
+art-culture = "Art and culture"
+science-tech = "Science and technology"
+governance = "Governance"
+social-justice = "Social justice"
+ir = "International relations"
+security = "Internal security"
+society = "Indian society"
+world-history = "World history"
+ethics = "Ethics"
+current-affairs = "Current affairs"
+essay = "Essay"
+language = "Language papers"
+csat = "CSAT"
+
+# ---- Polity ----------------------------------------------------------------
+
+[[note]]
+chunk = 1
+file = "polity/constitutional-history-company.md"
+title = "Constitutional development I: Company rule, 1773 to 1857"
+section = "Historical background"
+topics = [
+  "mains.gs2.polity.constitution.history.company-rule",
+  "pre.gs.polity.constitution.historical-background",
+  "pre.gs.modern.administration.regulating-act",
+  "pre.gs.modern.administration.charter-acts",
+  "mains.gs1.modern-history.british-rule.administrative-structure-and-constitutional-acts",
+]
+
+[[note]]
+chunk = 1
+file = "polity/constitutional-history-crown.md"
+title = "Constitutional development II: Crown rule, 1858 to 1947"
+section = "Historical background"
+topics = [
+  "mains.gs2.polity.constitution.history.crown-rule",
+  "mains.gs2.polity.constitution.history.government-of-india-acts-1919",
+  "mains.gs2.polity.constitution.history.indian-independence-act-1947",
+  "pre.gs.polity.constitution.historical-background",
+  "pre.gs.modern.administration.government-of-india-act-1858",
+  "pre.gs.modern.administration.morley-minto-reforms",
+  "pre.gs.modern.administration.montagu-chelmsford-reforms",
+  "pre.gs.modern.administration.government-of-india-act-1935",
+  "mains.gs1.freedom-struggle.militant.morley-minto-reforms-and-communal",
+  "mains.gs1.freedom-struggle.mass.montagu-chelmsford-reforms",
+  "mains.gs1.freedom-struggle.mass.government-of-india-act-1935",
+  "mains.gs1.modern-history.british-rule.administrative-structure-and-constitutional-acts",
+]
+
+[[note]]
+chunk = 2
+file = "polity/making-of-the-constitution.md"
+title = "Making of the Constitution: the Constituent Assembly to 26 January 1950"
+section = "Constitutional framework"
+topics = [
+  "mains.gs2.polity.constitution.making",
+  "pre.gs.polity.constitution.making-of-the-constitution",
+  "mains.gs1.post-independence.nation-building.making-of-the-constitution",
+]
+
+[[note]]
+chunk = 2
+file = "polity/salient-features-preamble.md"
+title = "Salient features, sources and the Preamble"
+section = "Constitutional framework"
+topics = [
+  "mains.gs2.polity.constitution.features.written-and-detailed-constitution",
+  "mains.gs2.polity.constitution.features.blend-of-rigidity-and-flexibility",
+  "mains.gs2.polity.constitution.features.secularism-adult-franchise-and-single",
+  "mains.gs2.polity.constitution.preamble",
+  "mains.gs2.polity.comparison.borrowed-features",
+  "pre.gs.polity.constitution.salient-features-and-sources",
+  "pre.gs.polity.constitution.preamble",
+]
+
+[[note]]
+chunk = 3
+file = "polity/union-territory-citizenship.md"
+title = "The Union and its territory, and citizenship"
+section = "Constitutional framework"
+topics = [
+  "mains.gs2.polity.constitution.provisions.citizenship",
+  "pre.gs.polity.constitution.union-and-its-territory",
+  "pre.gs.polity.constitution.citizenship",
+]
+
+[[note]]
+chunk = 3
+file = "polity/schedules-articles.md"
+title = "Schedules, Parts and important Articles at a glance"
+section = "Constitutional framework"
+topics = [
+  "mains.gs2.polity.constitution.provisions.schedules-and-important-articles",
+  "pre.gs.polity.constitution.schedules-of-the-constitution",
+]
+
+[[note]]
+chunk = 4
+file = "polity/fundamental-rights.md"
+title = "Fundamental Rights I: their nature, Articles 12 to 18 and the right to equality"
+section = "Rights and duties"
+topics = [
+  "mains.gs2.polity.constitution.provisions.fundamental-rights",
+  "pre.gs.polity.rights.fundamental-rights.definition-of-state-laws-inconsistent",
+  "pre.gs.polity.rights.fundamental-rights.right-to-equality",
+]
+
+[[note]]
+chunk = 4
+file = "polity/rights-freedom.md"
+title = "Fundamental Rights II: the right to freedom, Articles 19 to 22"
+section = "Rights and duties"
+topics = [
+  "mains.gs2.polity.constitution.provisions.fundamental-rights",
+  "pre.gs.polity.rights.fundamental-rights.right-to-freedom",
+]
+
+[[note]]
+chunk = 5
+file = "polity/rights-religion-culture.md"
+title = "Fundamental Rights III: exploitation, religion, culture and education (Articles 23 to 30)"
+section = "Rights and duties"
+topics = [
+  "mains.gs2.polity.constitution.provisions.fundamental-rights",
+  "pre.gs.polity.rights.fundamental-rights.right-against-exploitation",
+  "pre.gs.polity.rights.fundamental-rights.right-to-freedom-of-religion",
+  "pre.gs.polity.rights.fundamental-rights.cultural-and-educational-rights",
+]
+
+[[note]]
+chunk = 5
+file = "polity/rights-remedies-writs.md"
+title = "Fundamental Rights IV: constitutional remedies, the writs and Articles 33 to 35"
+section = "Rights and duties"
+topics = [
+  "mains.gs2.polity.constitution.provisions.fundamental-rights",
+  "pre.gs.polity.rights.fundamental-rights.right-to-constitutional-remedies",
+  "pre.gs.polity.rights.writs",
+]
+
+[[note]]
+chunk = 6
+file = "polity/dpsp-duties.md"
+title = "Directive Principles, Fundamental Duties and the rights–directives balance"
+section = "Rights and duties"
+topics = [
+  "mains.gs2.polity.constitution.provisions.directive-principles-of-state-policy",
+  "mains.gs2.polity.constitution.provisions.fundamental-duties",
+  "pre.gs.polity.rights.dpsp",
+  "pre.gs.polity.rights.fundamental-duties",
+  "pre.gs.polity.rights.rights-versus-directives",
+]
+
+[[note]]
+chunk = 6
+file = "polity/amendment.md"
+title = "Amending the Constitution: Article 368 and the major amendments"
+section = "Amendment and basic structure"
+topics = [
+  "mains.gs2.polity.constitution.amendments",
+  "pre.gs.polity.amendment.procedure-for-amendment",
+  "pre.gs.polity.amendment.important-amendments",
+]
+
+[[note]]
+chunk = 7
+file = "polity/basic-structure.md"
+title = "The basic structure doctrine"
+section = "Amendment and basic structure"
+topics = [
+  "mains.gs2.polity.constitution.basic-structure",
+  "pre.gs.polity.amendment.doctrine-of-basic-structure",
+]
+
+[[note]]
+chunk = 7
+file = "polity/parliamentary-system.md"
+title = "Parliamentary government: features, merits and the presidential alternative"
+section = "System of government"
+topics = [
+  "mains.gs2.polity.constitution.features.parliamentary-form-of-government",
+  "pre.gs.polity.system.parliamentary-system",
+]
+
+[[note]]
+chunk = 8
+file = "polity/comparative-constitutions.md"
+title = "Comparing constitutions: the UK, the US, France, Canada, Australia and others"
+section = "System of government"
+topics = [
+  "mains.gs2.polity.comparison.united-kingdom",
+  "mains.gs2.polity.comparison.united-states",
+  "mains.gs2.polity.comparison.france-canada-australia-and-others",
+]
+
+[[note]]
+chunk = 8
+file = "polity/federalism.md"
+title = "Federalism: the nature of Indian federalism, cooperative and competitive"
+section = "Federal system"
+topics = [
+  "mains.gs2.polity.federalism.challenges.nature-of-indian-federalism",
+  "mains.gs2.polity.federalism.challenges.cooperative-and-competitive-federalism",
+  "mains.gs2.polity.federalism.challenges.commissions-on-centre-state-relations",
+  "mains.gs2.polity.constitution.features.federal-system-with-a-unitary",
+  "pre.gs.polity.system.federal-system",
+]
+
+[[note]]
+chunk = 9
+file = "polity/centre-state-relations.md"
+title = "Centre–state relations: legislative, administrative and financial"
+section = "Federal system"
+topics = [
+  "mains.gs2.polity.federalism.functions",
+  "pre.gs.polity.system.centre-state",
+]
+
+[[note]]
+chunk = 9
+file = "polity/fiscal-federalism.md"
+title = "Fiscal federalism: the Finance Commission and the GST Council"
+section = "Federal system"
+topics = [
+  "mains.gs2.polity.federalism.challenges.fiscal-federalism",
+  "mains.gs2.polity.constitutional-bodies.finance-commission",
+  "mains.gs2.polity.constitutional-bodies.gst-council",
+  "pre.gs.polity.constitutional-bodies.finance-commission",
+  "pre.gs.polity.constitutional-bodies.gst-council",
+  "pre.gs.economy.fiscal.finance-commission-and-fiscal-federalism",
+]
+
+[[note]]
+chunk = 10
+file = "polity/emergency.md"
+title = "Emergency provisions: Articles 352, 356 and 360"
+section = "Federal system"
+topics = [
+  "mains.gs2.polity.constitution.provisions.emergency-provisions",
+  "mains.gs2.polity.federalism.challenges.emergency-provisions-and-article-356",
+  "pre.gs.polity.system.emergency",
+]
+
+[[note]]
+chunk = 10
+file = "polity/interstate-relations.md"
+title = "Inter-state relations: councils, water disputes and zonal councils"
+section = "Federal system"
+topics = [
+  "mains.gs2.polity.federalism.challenges.inter-state-disputes-and-councils",
+  "pre.gs.polity.system.inter-state-relations",
+]
+
+[[note]]
+chunk = 11
+file = "polity/president.md"
+title = "The President and the Vice-President: election, powers and position"
+section = "Executive"
+topics = [
+  "mains.gs2.polity.executive-judiciary.executive.president-and-vice-president",
+  "pre.gs.polity.union.president",
+  "pre.gs.polity.union.vice-president",
+]
+
+[[note]]
+chunk = 11
+file = "polity/prime-minister-cabinet.md"
+title = "The Prime Minister, the Council of Ministers and the Cabinet system"
+section = "Executive"
+topics = [
+  "mains.gs2.polity.executive-judiciary.executive.prime-minister-and-council",
+  "mains.gs2.polity.executive-judiciary.executive.cabinet-secretariat-and-the-central",
+  "mains.gs2.polity.executive-judiciary.ministries-and-departments",
+  "pre.gs.polity.union.prime-minister-and-council",
+  "pre.gs.polity.union.cabinet-committees-and-the-cabinet",
+]
+
+[[note]]
+chunk = 12
+file = "polity/governor.md"
+title = "The Governor: appointment, powers and the controversies"
+section = "Executive"
+topics = [
+  "mains.gs2.polity.federalism.challenges.role-of-the-governor",
+  "mains.gs2.polity.executive-judiciary.executive.governor-and-chief-minister",
+  "pre.gs.polity.states.governor",
+]
+
+[[note]]
+chunk = 12
+file = "polity/state-government.md"
+title = "The Chief Minister, the state Council of Ministers and the state legislature"
+section = "Executive"
+topics = [
+  "mains.gs2.polity.legislature.state-legislatures-and-legislative-councils",
+  "mains.gs2.polity.executive-judiciary.executive.governor-and-chief-minister",
+  "pre.gs.polity.states.chief-minister-and-the-state",
+  "pre.gs.polity.states.state-legislature-and-legislative-councils",
+]
+
+[[note]]
+chunk = 13
+file = "polity/parliament.md"
+title = "Parliament I: composition, presiding officers and sessions"
+section = "Parliament"
+topics = [
+  "mains.gs2.polity.legislature.structure-and-composition",
+  "mains.gs2.polity.legislature.presiding-officers",
+  "mains.gs2.polity.legislature.sessions-and-conduct-of-business",
+  "pre.gs.polity.parliament.composition-and-the-presiding-officers",
+  "pre.gs.polity.parliament.sessions-motions-and-devices",
+]
+
+[[note]]
+chunk = 13
+file = "polity/legislative-procedure.md"
+title = "Parliament II: legislative procedure, kinds of bills and the joint sitting"
+section = "Parliament"
+topics = [
+  "mains.gs2.polity.legislature.legislative-procedure",
+  "pre.gs.polity.parliament.bills",
+]
+
+[[note]]
+chunk = 14
+file = "polity/parliament-budget-committees.md"
+title = "Parliament III: the budget, financial control and parliamentary committees"
+section = "Parliament"
+topics = [
+  "mains.gs2.polity.legislature.budget-and-financial-control",
+  "mains.gs2.polity.legislature.parliamentary-committees",
+  "pre.gs.polity.parliament.budget-and-financial-procedure",
+  "pre.gs.polity.parliament.committees",
+]
+
+[[note]]
+chunk = 14
+file = "polity/parliament-privileges-issues.md"
+title = "Parliament IV: privileges, the anti-defection law and how Parliament works"
+section = "Parliament"
+topics = [
+  "mains.gs2.polity.legislature.powers-and-privileges",
+  "mains.gs2.polity.legislature.anti-defection-law",
+  "mains.gs2.polity.legislature.issues",
+  "pre.gs.polity.parliament.parliamentary-privileges",
+  "pre.gs.polity.parliament.anti-defection-law",
+]
+
+[[note]]
+chunk = 15
+file = "polity/supreme-court.md"
+title = "The Supreme Court: composition, appointment of judges and jurisdiction"
+section = "Judiciary"
+topics = [
+  "mains.gs2.polity.executive-judiciary.judiciary.supreme-court",
+  "mains.gs2.polity.executive-judiciary.judiciary.appointment-of-judges",
+  "pre.gs.polity.judiciary.supreme-court",
+]
+
+[[note]]
+chunk = 15
+file = "polity/high-courts.md"
+title = "High Courts, subordinate courts and judicial reforms"
+section = "Judiciary"
+topics = [
+  "mains.gs2.polity.executive-judiciary.judiciary.high-courts-and-subordinate-courts",
+  "mains.gs2.polity.executive-judiciary.judiciary.judicial-reforms-and-pendency",
+  "pre.gs.polity.judiciary.high-courts",
+  "pre.gs.polity.judiciary.subordinate-courts",
+]
+
+[[note]]
+chunk = 16
+file = "polity/separation-of-powers.md"
+title = "Separation of powers, judicial review and judicial activism"
+section = "Judiciary"
+topics = [
+  "mains.gs2.polity.separation.doctrine-of-separation-of-powers",
+  "mains.gs2.polity.separation.checks-and-balances",
+  "mains.gs2.polity.separation.judicial-activism-and-judicial-overreach",
+  "mains.gs2.polity.constitution.features.parliamentary-sovereignty-and-judicial-supremacy",
+  "pre.gs.polity.judiciary.judicial-review-judicial-activism",
+]
+
+[[note]]
+chunk = 16
+file = "polity/tribunals-adr.md"
+title = "Tribunals, quasi-judicial bodies and alternative dispute resolution"
+section = "Judiciary"
+topics = [
+  "mains.gs2.polity.separation.tribunals",
+  "mains.gs2.polity.separation.alternative-dispute-resolution",
+  "mains.gs2.polity.statutory-bodies.quasi-judicial-bodies-and-tribunals",
+  "pre.gs.polity.judiciary.tribunals",
+  "pre.gs.polity.judiciary.lok-adalats-gram-nyayalayas",
+]
+
+[[note]]
+chunk = 17
+file = "polity/panchayati-raj.md"
+title = "Panchayati Raj: the committees, the 73rd Amendment and PESA"
+section = "Local government"
+topics = [
+  "mains.gs2.polity.federalism.devolution.73rd-and-74th-amendments",
+  "pre.gs.polity.local.committees",
+  "pre.gs.polity.local.73rd-amendment",
+  "pre.gs.polity.local.pesa-act-1996",
+]
+
+[[note]]
+chunk = 17
+file = "polity/urban-local-bodies.md"
+title = "Urban local bodies, the 74th Amendment and local finances"
+section = "Local government"
+topics = [
+  "mains.gs2.polity.federalism.devolution.73rd-and-74th-amendments",
+  "mains.gs2.polity.federalism.devolution.functions-funds-and-functionaries",
+  "mains.gs2.polity.federalism.devolution.state-finance-commissions",
+  "mains.gs2.polity.federalism.devolution.challenges-of-local-governance",
+  "pre.gs.polity.local.74th-amendment",
+  "pre.gs.polity.local.finances-and-challenges-of-local",
+]
+
+[[note]]
+chunk = 18
+file = "polity/union-territories.md"
+title = "Union territories, Delhi and Jammu and Kashmir"
+section = "Union territories and special areas"
+topics = [
+  "pre.gs.polity.special-areas.union-territories-and-delhi",
+  "pre.gs.polity.special-areas.jammu-and-kashmir",
+]
+
+[[note]]
+chunk = 18
+file = "polity/scheduled-tribal-areas.md"
+title = "Scheduled and tribal areas (Fifth and Sixth Schedules) and Article 371"
+section = "Union territories and special areas"
+topics = [
+  "pre.gs.polity.special-areas.scheduled-and-tribal-areas",
+  "pre.gs.polity.special-areas.special-provisions-for-some-states",
+]
+
+[[note]]
+chunk = 19
+file = "polity/election-commission.md"
+title = "The Election Commission of India"
+section = "Constitutional and statutory bodies"
+topics = [
+  "mains.gs2.polity.constitutional-bodies.election-commission-of-india",
+  "pre.gs.polity.constitutional-bodies.election-commission",
+]
+
+[[note]]
+chunk = 19
+file = "polity/cag-upsc.md"
+title = "The CAG, the UPSC and the state public service commissions"
+section = "Constitutional and statutory bodies"
+topics = [
+  "mains.gs2.polity.constitutional-bodies.comptroller-and-auditor-general",
+  "mains.gs2.polity.constitutional-bodies.upsc-and-state-public-service",
+  "pre.gs.polity.constitutional-bodies.comptroller-and-auditor-general",
+  "pre.gs.polity.constitutional-bodies.upsc-and-state-public-service",
+]
+
+[[note]]
+chunk = 20
+file = "polity/other-constitutional-bodies.md"
+title = "Law officers, the commissions for SCs, STs and BCs, and the linguistic minorities officer"
+section = "Constitutional and statutory bodies"
+topics = [
+  "mains.gs2.polity.constitutional-bodies.attorney-general-and-advocate-general",
+  "mains.gs2.polity.constitutional-bodies.national-commissions-for-scs-sts",
+  "pre.gs.polity.union.attorney-general-and-solicitor-general",
+  "pre.gs.polity.constitutional-bodies.national-commissions-for-scs-sts",
+  "pre.gs.polity.constitutional-bodies.special-officer-for-linguistic-minorities",
+]
+
+[[note]]
+chunk = 20
+file = "polity/statutory-bodies.md"
+title = "Statutory bodies: NHRC, CVC, CBI, Lokpal and NCW"
+section = "Constitutional and statutory bodies"
+topics = [
+  "mains.gs2.polity.statutory-bodies.statutory-bodies",
+  "mains.gs2.governance.transparency.lokpal-whistle-blower-protection",
+  "pre.gs.polity.other-bodies.national-and-state-human-rights",
+  "pre.gs.polity.other-bodies.central-vigilance-commission-and-cbi",
+  "pre.gs.polity.other-bodies.lokpal-and-lokayuktas",
+  "pre.gs.polity.other-bodies.national-commission-for-women",
+]
+
+[[note]]
+chunk = 21
+file = "polity/regulators.md"
+title = "Regulators: RBI, SEBI, TRAI, CCI, IRDAI and the regulatory state"
+section = "Constitutional and statutory bodies"
+topics = [
+  "mains.gs2.polity.statutory-bodies.regulators",
+]
+
+[[note]]
+chunk = 21
+file = "polity/elections-rpa.md"
+title = "The electoral system and the Representation of the People Acts"
+section = "Elections and parties"
+topics = [
+  "mains.gs2.polity.rpa.rpa-1950",
+  "mains.gs2.polity.rpa.rpa-1951",
+  "mains.gs2.polity.rpa.conduct-of-elections-and-corrupt",
+  "pre.gs.polity.elections.electoral-system-and-the-representation",
+]
+
+[[note]]
+chunk = 22
+file = "polity/electoral-reforms-parties.md"
+title = "Electoral reforms, political parties and pressure groups"
+section = "Elections and parties"
+topics = [
+  "mains.gs2.polity.rpa.electoral-reforms",
+  "mains.gs2.polity.executive-judiciary.pressure-groups-and-associations",
+  "pre.gs.polity.elections.electoral-reforms",
+  "pre.gs.polity.elections.political-parties-and-their-recognition",
+  "pre.gs.polity.elections.pressure-groups",
+]
+
+[[note]]
+chunk = 22
+file = "polity/reservation.md"
+title = "Reservation and affirmative action: constitutional basis, OBCs and case law"
+section = "Other provisions"
+topics = [
+  "mains.gs2.social-justice.welfare.other-backward-classes",
+  "pre.gs.polity.policy.reservation-and-affirmative-action",
+]
+
+[[note]]
+chunk = 22
+file = "polity/official-language.md"
+title = "Official language: Part XVII, the Eighth Schedule and the language question"
+section = "Other provisions"
+topics = [
+  "pre.gs.polity.policy.official-language",
+  "mains.gs1.post-independence.nation-building.official-language-issue",
+]
+
+# ---- Economy and agriculture -----------------------------------------------
+
+[[note]]
+chunk = 23
+file = "economy/basic-concepts.md"
+title = "Economic systems, sectors, growth versus development and the HDI"
+section = "Basic concepts and growth"
+topics = [
+  "mains.gs3.economy.planning.growth.measuring-growth-and-development",
+  "pre.gs.economy.basics.economic-systems-and-sectors",
+  "pre.gs.economy.basics.growth-versus-development",
+  "pre.gs.economy.social-sector.human-development-index-and-other",
+]
+
+[[note]]
+chunk = 23
+file = "economy/national-income.md"
+title = "National income: GDP, GVA, the methods and the base year"
+section = "Basic concepts and growth"
+topics = [
+  "pre.gs.economy.basics.national-income",
+]
+
+[[note]]
+chunk = 24
+file = "economy/growth-inclusive.md"
+title = "Growth strategies, jobless growth and inclusive growth"
+section = "Basic concepts and growth"
+topics = [
+  "mains.gs3.economy.planning.growth.growth-strategies",
+  "mains.gs3.economy.planning.growth.jobless-growth-and-pro-poor",
+  "mains.gs3.economy.inclusive.concept-and-dimensions",
+  "mains.gs3.economy.inclusive.measurement-of-inclusive-growth",
+  "mains.gs3.economy.inclusive.regional-and-social-inequality",
+]
+
+[[note]]
+chunk = 24
+file = "economy/savings-investment.md"
+title = "Savings, investment and capital formation"
+section = "Basic concepts and growth"
+topics = [
+  "mains.gs3.economy.planning.resources.savings-and-investment",
+]
+
+[[note]]
+chunk = 25
+file = "economy/planning.md"
+title = "Planning in India: the Five-Year Plans to NITI Aayog"
+section = "Planning, reforms and industry"
+topics = [
+  "mains.gs3.economy.planning.planning",
+  "pre.gs.economy.planning.five-year-plans-and-their",
+  "pre.gs.economy.planning.niti-aayog",
+  "pre.gs.polity.other-bodies.niti-aayog",
+  "mains.gs1.post-independence.economy.planning-and-the-mixed-economy",
+]
+
+[[note]]
+chunk = 25
+file = "economy/reforms-1991.md"
+title = "Economic reforms since 1991: liberalisation and its effects"
+section = "Planning, reforms and industry"
+topics = [
+  "mains.gs3.economy.liberalisation.phases-of-liberalisation",
+  "mains.gs3.economy.liberalisation.effects-on-sectors",
+  "pre.gs.economy.planning.lpg-reforms-of-1991",
+  "mains.gs1.post-independence.economy.economic-reforms-of-1991",
+]
+
+[[note]]
+chunk = 26
+file = "economy/industrial-policy.md"
+title = "Industrial policy, MSMEs, Make in India and PLI"
+section = "Planning, reforms and industry"
+topics = [
+  "mains.gs3.economy.liberalisation.industrial-policies-before-and-after",
+  "mains.gs3.economy.liberalisation.msmes",
+  "mains.gs3.economy.liberalisation.make-in-india-pli-schemes",
+  "pre.gs.economy.industry.industrial-policy-and-msmes",
+  "mains.gs1.post-independence.economy.industrial-policy",
+]
+
+[[note]]
+chunk = 26
+file = "economy/disinvestment.md"
+title = "Disinvestment and privatisation"
+section = "Planning, reforms and industry"
+topics = [
+  "mains.gs3.economy.liberalisation.disinvestment-and-privatisation",
+  "pre.gs.economy.planning.disinvestment-and-privatisation",
+]
+
+[[note]]
+chunk = 27
+file = "economy/money-rbi.md"
+title = "Money supply and the Reserve Bank of India"
+section = "Money, banking and markets"
+topics = [
+  "pre.gs.economy.money.money-supply",
+  "pre.gs.economy.money.reserve-bank-of-india",
+]
+
+[[note]]
+chunk = 27
+file = "economy/inflation.md"
+title = "Inflation: types, causes, measurement and food inflation"
+section = "Money, banking and markets"
+topics = [
+  "mains.gs3.economy.planning.inflation.types-causes-measurement",
+  "mains.gs3.economy.planning.inflation.food-inflation",
+  "pre.gs.economy.inflation.types-and-causes-of-inflation",
+  "pre.gs.economy.inflation.measurement",
+  "pre.gs.economy.inflation.phillips-curve-stagflation-and-deflation",
+]
+
+[[note]]
+chunk = 28
+file = "economy/monetary-policy.md"
+title = "Monetary policy: the instruments, the MPC and inflation targeting"
+section = "Money, banking and markets"
+topics = [
+  "mains.gs3.economy.planning.inflation.monetary-policy-framework-and-inflation",
+  "pre.gs.economy.money.monetary-policy",
+  "pre.gs.economy.inflation.inflation-targeting-and-the-monetary",
+]
+
+[[note]]
+chunk = 28
+file = "economy/banking.md"
+title = "Banking: kinds of banks, NBFCs, NPAs and reforms"
+section = "Money, banking and markets"
+topics = [
+  "mains.gs3.economy.planning.inflation.banking-sector",
+  "mains.gs3.economy.planning.resources.banks-and-non-banking-financial",
+  "pre.gs.economy.money.types-of-banks",
+  "pre.gs.economy.money.non-performing-assets-and-banking",
+]
+
+[[note]]
+chunk = 29
+file = "economy/payments.md"
+title = "Payment systems and digital payments"
+section = "Money, banking and markets"
+topics = [
+  "pre.gs.economy.money.payment-systems-and-digital-payments",
+]
+
+[[note]]
+chunk = 29
+file = "economy/financial-markets.md"
+title = "Financial markets: the money market, the capital market and SEBI"
+section = "Money, banking and markets"
+topics = [
+  "mains.gs3.economy.planning.resources.capital-markets",
+  "pre.gs.economy.markets.money-market-and-its-instruments",
+  "pre.gs.economy.markets.capital-market",
+  "pre.gs.economy.markets.sebi-and-market-regulation",
+  "pre.gs.economy.markets.mutual-funds-bonds-and-derivatives",
+]
+
+[[note]]
+chunk = 30
+file = "economy/insurance-social-security.md"
+title = "Insurance, pensions and social security"
+section = "Money, banking and markets"
+topics = [
+  "pre.gs.economy.markets.insurance-and-pensions",
+  "pre.gs.economy.social-sector.social-security-schemes",
+]
+
+[[note]]
+chunk = 30
+file = "economy/budget.md"
+title = "The Union Budget: components, process and kinds of budgeting"
+section = "Public finance"
+topics = [
+  "mains.gs3.economy.budgeting.budget-components-and-process",
+  "mains.gs3.economy.budgeting.outcome-zero-based-and-gender",
+  "pre.gs.economy.fiscal.union-budget",
+]
+
+[[note]]
+chunk = 31
+file = "economy/deficits-debt.md"
+title = "Deficits, public debt and the FRBM Act"
+section = "Public finance"
+topics = [
+  "mains.gs3.economy.budgeting.deficits-and-fiscal-policy",
+  "mains.gs3.economy.budgeting.frbm-act-and-fiscal-consolidation",
+  "mains.gs3.economy.planning.resources.public-debt-management",
+  "pre.gs.economy.fiscal.deficits",
+  "pre.gs.economy.fiscal.public-debt-and-the-frbm",
+]
+
+[[note]]
+chunk = 31
+file = "economy/taxation.md"
+title = "Taxation: direct taxes, indirect taxes and GST"
+section = "Public finance"
+topics = [
+  "mains.gs3.economy.budgeting.tax-reforms-and-gst",
+  "mains.gs3.economy.planning.resources.tax-and-non-tax-revenue",
+  "pre.gs.economy.fiscal.taxation",
+]
+
+[[note]]
+chunk = 32
+file = "economy/balance-of-payments.md"
+title = "The balance of payments, exchange rates and forex reserves"
+section = "External sector"
+topics = [
+  "pre.gs.economy.external.bop",
+  "pre.gs.economy.external.exchange-rates-and-convertibility",
+  "pre.gs.economy.external.foreign-exchange-reserves",
+]
+
+[[note]]
+chunk = 32
+file = "economy/foreign-investment-trade.md"
+title = "Foreign investment, foreign trade policy and SEZs"
+section = "External sector"
+topics = [
+  "mains.gs3.economy.investment.fdi-and-fpi",
+  "mains.gs3.economy.planning.resources.external-sources",
+  "pre.gs.economy.external.foreign-investment",
+  "pre.gs.economy.external.foreign-trade-policy-and-sezs",
+]
+
+[[note]]
+chunk = 33
+file = "economy/imf-world-bank.md"
+title = "The IMF, the World Bank and the development banks"
+section = "External sector"
+topics = [
+  "mains.gs2.ir.institutions.imf-world-bank-and-wto",
+  "mains.gs2.ir.institutions.regional-development-banks",
+  "pre.gs.economy.international.imf-and-the-world-bank",
+  "pre.gs.economy.international.new-development-bank-and-aiib",
+]
+
+[[note]]
+chunk = 33
+file = "economy/wto-trade-agreements.md"
+title = "The WTO, farm subsidies and regional trade agreements"
+section = "External sector"
+topics = [
+  "mains.gs3.agriculture.subsidies.wto-and-agricultural-subsidies",
+  "mains.gs2.ir.institutions.imf-world-bank-and-wto",
+  "pre.gs.economy.international.wto-and-its-agreements",
+  "pre.gs.economy.international.regional-trade-agreements",
+]
+
+[[note]]
+chunk = 34
+file = "economy/infrastructure-ppp.md"
+title = "Infrastructure, PPP models and infrastructure financing"
+section = "Infrastructure"
+topics = [
+  "mains.gs3.economy.investment.public-private-and-public-private",
+  "mains.gs3.economy.investment.ppp-variants",
+  "mains.gs3.economy.investment.infrastructure-financing",
+  "pre.gs.economy.industry.infrastructure",
+  "pre.gs.economy.industry.ppp-models-and-investment",
+]
+
+[[note]]
+chunk = 34
+file = "economy/energy.md"
+title = "Energy: power, coal, oil and gas, and energy security"
+section = "Infrastructure"
+topics = [
+  "mains.gs3.economy.infrastructure.energy.coal-hydro-and-nuclear-power",
+  "mains.gs3.economy.infrastructure.energy.power-distribution-and-discom-reforms",
+  "mains.gs3.economy.infrastructure.energy.oil-and-natural-gas",
+  "mains.gs3.economy.infrastructure.energy.energy-security-and-transition",
+]
+
+[[note]]
+chunk = 35
+file = "economy/transport.md"
+title = "Transport: roads, railways, ports, waterways, airports and logistics"
+section = "Infrastructure"
+topics = [
+  "mains.gs3.economy.infrastructure.roads",
+  "mains.gs3.economy.infrastructure.railways",
+  "mains.gs3.economy.infrastructure.ports-and-shipping",
+  "mains.gs3.economy.infrastructure.airports-and-civil-aviation",
+  "mains.gs3.economy.infrastructure.urban-infrastructure-and-logistics",
+  "pre.gs.indian-geography.transport",
+]
+
+[[note]]
+chunk = 35
+file = "economy/poverty.md"
+title = "Poverty: measurement, multidimensional poverty and alleviation"
+section = "Inclusive development"
+topics = [
+  "mains.gs2.social-justice.poverty-hunger.measurement-and-trends-of-poverty",
+  "mains.gs2.social-justice.poverty-hunger.anti-poverty-programmes",
+  "mains.gs1.society.poverty.concepts-and-measurement-of-poverty",
+  "mains.gs1.society.poverty.causes-and-consequences-of-poverty",
+  "mains.gs1.society.poverty.poverty-alleviation-and-inclusive-development",
+  "pre.gs.economy.poverty.measurement-of-poverty",
+  "pre.gs.economy.poverty.multidimensional-poverty",
+  "pre.gs.economy.poverty.poverty-alleviation-and-employment-schemes",
+]
+
+[[note]]
+chunk = 36
+file = "economy/employment.md"
+title = "Employment: trends, the informal sector, labour codes and schemes"
+section = "Inclusive development"
+topics = [
+  "mains.gs3.economy.planning.employment",
+  "mains.gs2.social-justice.social-sector.human-resources.employment-and-labour-reforms",
+  "pre.gs.economy.poverty.unemployment",
+]
+
+[[note]]
+chunk = 36
+file = "economy/financial-inclusion.md"
+title = "Financial inclusion"
+section = "Inclusive development"
+topics = [
+  "mains.gs3.economy.inclusive.financial-inclusion",
+  "pre.gs.economy.poverty.financial-inclusion",
+]
+
+[[note]]
+chunk = 37
+file = "economy/sdgs-green-growth.md"
+title = "Sustainable development goals, green growth and the circular economy"
+section = "Inclusive development"
+topics = [
+  "pre.gs.economy.sustainable",
+]
+
+[[note]]
+chunk = 37
+file = "economy/land-reforms.md"
+title = "Land reforms"
+section = "Agriculture"
+topics = [
+  "mains.gs3.economy.land-reforms",
+  "mains.gs1.post-independence.economy.land-reforms",
+]
+
+[[note]]
+chunk = 38
+file = "economy/cropping-irrigation.md"
+title = "Cropping patterns, major crops and irrigation"
+section = "Agriculture"
+topics = [
+  "mains.gs3.agriculture.crops.major-crops-and-cropping-patterns",
+  "mains.gs3.agriculture.crops.irrigation-types-and-systems",
+  "pre.gs.indian-geography.agriculture.land-use-and-cropping-seasons",
+  "pre.gs.indian-geography.agriculture.major-crops-and-their-distribution",
+  "pre.gs.indian-geography.agriculture.irrigation-and-multipurpose-projects",
+]
+
+[[note]]
+chunk = 38
+file = "economy/green-revolution.md"
+title = "The Green Revolution, Operation Flood and agricultural regions"
+section = "Agriculture"
+topics = [
+  "pre.gs.indian-geography.agriculture.green-revolution-and-agricultural-regions",
+  "mains.gs1.post-independence.economy.green-revolution-operation-flood",
+]
+
+[[note]]
+chunk = 39
+file = "economy/msp-subsidies.md"
+title = "MSP, farm subsidies and agricultural price policy"
+section = "Agriculture"
+topics = [
+  "mains.gs3.agriculture.subsidies.minimum-support-prices",
+  "mains.gs3.agriculture.subsidies.direct-and-indirect-farm-subsidies",
+  "pre.gs.economy.agriculture.agricultural-price-policy",
+]
+
+[[note]]
+chunk = 39
+file = "economy/marketing.md"
+title = "Agricultural marketing: APMCs, e-NAM, storage and transport"
+section = "Agriculture"
+topics = [
+  "mains.gs3.agriculture.crops.storage-transport-and-marketing",
+  "mains.gs3.agriculture.crops.apmcs-e-nam-and-farmer",
+  "pre.gs.economy.agriculture.agricultural-marketing",
+]
+
+[[note]]
+chunk = 40
+file = "economy/pds-food-security.md"
+title = "The public distribution system, buffer stocks and food security"
+section = "Agriculture"
+topics = [
+  "mains.gs3.agriculture.subsidies.public-distribution-system",
+  "mains.gs3.agriculture.subsidies.buffer-stocks-and-food-security",
+  "mains.gs2.social-justice.poverty-hunger.food-security",
+  "pre.gs.economy.agriculture.food-security-and-the-public",
+]
+
+[[note]]
+chunk = 40
+file = "economy/credit-insurance.md"
+title = "Agricultural credit and crop insurance"
+section = "Agriculture"
+topics = [
+  "pre.gs.economy.agriculture.agricultural-credit-and-crop-insurance",
+]
+
+[[note]]
+chunk = 41
+file = "economy/technology-allied.md"
+title = "Farm technology, animal husbandry and fisheries"
+section = "Agriculture"
+topics = [
+  "mains.gs3.agriculture.subsidies.technology-missions",
+  "mains.gs3.agriculture.crops.e-technology-for-farmers",
+  "mains.gs3.agriculture.subsidies.economics-of-animal-rearing",
+  "pre.gs.indian-geography.agriculture.animal-husbandry-and-fisheries",
+]
+
+[[note]]
+chunk = 41
+file = "economy/food-processing.md"
+title = "Food processing industry"
+section = "Agriculture"
+topics = [
+  "mains.gs3.agriculture.food-processing",
+]
+
+# ---- Modern history and post-independence India ----------------------------
+
+[[note]]
+chunk = 42
+file = "modern-india/eighteenth-century.md"
+title = "India in the eighteenth century: Mughal decline and the successor states"
+section = "Rise of British power"
+topics = [
+  "mains.gs1.modern-history.eighteenth-century",
+  "pre.gs.modern.eighteenth-century",
+]
+
+[[note]]
+chunk = 42
+file = "modern-india/europeans.md"
+title = "The coming of the Europeans and the Carnatic wars"
+section = "Rise of British power"
+topics = [
+  "mains.gs1.modern-history.conquest.portuguese-dutch-french-and-english",
+  "mains.gs1.modern-history.conquest.carnatic-wars",
+  "pre.gs.modern.europeans",
+]
+
+[[note]]
+chunk = 43
+file = "modern-india/british-conquest.md"
+title = "British conquest: Plassey and Buxar to the annexation of Punjab"
+section = "Rise of British power"
+topics = [
+  "mains.gs1.modern-history.conquest.plassey-and-buxar",
+  "mains.gs1.modern-history.conquest.anglo-mysore-anglo-maratha",
+  "mains.gs1.modern-history.conquest.subsidiary-alliance-and-the-doctrine",
+  "mains.gs1.modern-history.british-rule.policy-towards-the-princely-states",
+  "pre.gs.modern.conquest",
+]
+
+[[note]]
+chunk = 43
+file = "modern-india/british-administration.md"
+title = "British administration: civil services, police, army and local self-government"
+section = "British administration and economy"
+topics = [
+  "mains.gs1.modern-history.british-rule.administrative-structure-and-constitutional-acts",
+  "pre.gs.modern.administration.civil-services-police-army",
+  "pre.gs.modern.administration.local-self-government",
+]
+
+[[note]]
+chunk = 44
+file = "modern-india/land-revenue.md"
+title = "Land revenue settlements: Permanent, Ryotwari and Mahalwari"
+section = "British administration and economy"
+topics = [
+  "mains.gs1.modern-history.british-rule.land-revenue-settlements",
+  "pre.gs.modern.economy.land-revenue",
+]
+
+[[note]]
+chunk = 44
+file = "modern-india/economic-impact.md"
+title = "Economic impact of British rule: drain, deindustrialisation and famines"
+section = "British administration and economy"
+topics = [
+  "mains.gs1.modern-history.british-rule.economic-policies",
+  "mains.gs1.modern-history.british-rule.famines-and-famine-policy",
+  "pre.gs.modern.economy.commercialisation-of-agriculture-and-famines",
+  "pre.gs.modern.economy.deindustrialisation-and-the-decline",
+  "pre.gs.modern.economy.drain-of-wealth-theory",
+  "pre.gs.modern.economy.railways-irrigation-and-modern-industry",
+]
+
+[[note]]
+chunk = 45
+file = "modern-india/reform-movements-hindu.md"
+title = "Reform movements I: Brahmo Samaj to the Theosophical Society"
+section = "Social and religious reform"
+topics = [
+  "mains.gs1.modern-history.reform.reform-movements-of-the-nineteenth",
+  "pre.gs.modern.reforms.raja-rammohan-roy",
+  "pre.gs.modern.reforms.prarthana-samaj-and-the-young",
+  "pre.gs.modern.reforms.swami-dayananda-and-the-arya",
+  "pre.gs.modern.reforms.ramakrishna-mission-and-swami-vivekananda",
+  "pre.gs.modern.reforms.theosophical-society",
+]
+
+[[note]]
+chunk = 45
+file = "modern-india/reform-movements-others.md"
+title = "Reform movements II: Muslim, Sikh and Parsi reform, and the anti-caste movements"
+section = "Social and religious reform"
+topics = [
+  "mains.gs1.modern-history.reform.caste-and-anti-caste-movements",
+  "mains.gs1.modern-history.reform.reform-movements-of-the-nineteenth",
+  "pre.gs.modern.reforms.aligarh-movement-and-other-muslim",
+  "pre.gs.modern.reforms.sikh-and-parsi-reform-movements",
+  "pre.gs.modern.reforms.jyotiba-phule-and-the-satyashodhak",
+  "pre.gs.modern.reforms.sree-narayana-guru",
+]
+
+[[note]]
+chunk = 46
+file = "modern-india/women-education-press.md"
+title = "The women's question, modern education, the press and social legislation"
+section = "Social and religious reform"
+topics = [
+  "mains.gs1.modern-history.reform.the-womens-question-and-reforms",
+  "mains.gs1.modern-history.british-rule.education-policy",
+  "mains.gs1.modern-history.british-rule.social-policy-and-legislation",
+  "pre.gs.modern.education-press",
+]
+
+[[note]]
+chunk = 46
+file = "modern-india/reformers-thinkers.md"
+title = "Social reformers, thinkers and educationists"
+section = "Social and religious reform"
+topics = [
+  "mains.gs1.modern-history.personalities",
+]
+
+[[note]]
+chunk = 47
+file = "modern-india/early-resistance.md"
+title = "Early resistance: civil, tribal and peasant uprisings before 1857"
+section = "Early resistance and 1857"
+topics = [
+  "mains.gs1.modern-history.resistance",
+  "pre.gs.modern.uprisings.civil-uprisings",
+  "pre.gs.modern.uprisings.tribal-uprisings",
+  "pre.gs.modern.uprisings.peasant-movements",
+]
+
+[[note]]
+chunk = 47
+file = "modern-india/revolt-1857.md"
+title = "The Revolt of 1857"
+section = "Early resistance and 1857"
+topics = [
+  "mains.gs1.modern-history.revolt-1857",
+  "pre.gs.modern.uprisings.revolt",
+]
+
+[[note]]
+chunk = 48
+file = "modern-india/rise-of-nationalism.md"
+title = "The rise of nationalism, the Indian National Congress and the Moderates"
+section = "Early nationalism"
+topics = [
+  "mains.gs1.freedom-struggle.rise",
+  "pre.gs.modern.nationalism",
+]
+
+[[note]]
+chunk = 48
+file = "modern-india/swadeshi-extremists.md"
+title = "Partition of Bengal, Swadeshi and the Extremists"
+section = "Early nationalism"
+topics = [
+  "mains.gs1.freedom-struggle.militant.partition-of-bengal",
+  "mains.gs1.freedom-struggle.militant.extremists-and-the-surat-split",
+  "pre.gs.modern.extremism.partition-of-bengal",
+  "pre.gs.modern.extremism.extremists-and-the-surat-split",
+  "pre.gs.modern.extremism.muslim-league",
+]
+
+[[note]]
+chunk = 49
+file = "modern-india/revolutionaries.md"
+title = "Revolutionary nationalism in India and abroad"
+section = "Early nationalism"
+topics = [
+  "mains.gs1.freedom-struggle.militant.revolutionary-nationalism",
+  "mains.gs1.freedom-struggle.mass.revolutionary-activity-in-the-1920s",
+  "pre.gs.modern.extremism.revolutionaries-in-india-and-abroad",
+  "pre.gs.modern.gandhian.revolutionaries",
+]
+
+[[note]]
+chunk = 49
+file = "modern-india/home-rule-first-world-war.md"
+title = "The Home Rule movement, the Lucknow Pact and the First World War"
+section = "Early nationalism"
+topics = [
+  "mains.gs1.freedom-struggle.militant.home-rule-movement",
+  "mains.gs1.freedom-struggle.militant.impact-of-the-first-world",
+  "pre.gs.modern.extremism.home-rule-league-movement",
+  "pre.gs.modern.extremism.lucknow-pact",
+]
+
+[[note]]
+chunk = 50
+file = "modern-india/gandhian-phase.md"
+title = "Gandhi's arrival: early satyagrahas, Rowlatt, Khilafat and Non-Cooperation"
+section = "The Gandhian era"
+topics = [
+  "mains.gs1.freedom-struggle.mass.gandhis-ideas-and-methods",
+  "mains.gs1.freedom-struggle.mass.rowlatt-satyagraha-and-jallianwala-bagh",
+  "mains.gs1.freedom-struggle.mass.khilafat-and-non-cooperation-movements",
+  "pre.gs.modern.gandhian.gandhis-early-satyagrahas",
+  "pre.gs.modern.gandhian.rowlatt-act-and-jallianwala-bagh",
+  "pre.gs.modern.gandhian.khilafat-and-non-cooperation-movements",
+]
+
+[[note]]
+chunk = 50
+file = "modern-india/the-1920s.md"
+title = "The 1920s: Swarajists, constructive work, new forces and the Simon Commission"
+section = "The Gandhian era"
+topics = [
+  "mains.gs1.freedom-struggle.mass.swarajists-and-constructive-work",
+  "mains.gs1.freedom-struggle.mass.new-forces",
+  "mains.gs1.freedom-struggle.mass.simon-commission-and-the-nehru",
+  "pre.gs.modern.gandhian.swarajists-and-no-changers",
+  "pre.gs.modern.gandhian.simon-commission-and-the-nehru",
+  "pre.gs.modern.gandhian.socialists-communists-and-trade-unions",
+]
+
+[[note]]
+chunk = 51
+file = "modern-india/civil-disobedience.md"
+title = "Civil Disobedience, the Round Table Conferences, the Poona Pact and the 1937 elections"
+section = "The Gandhian era"
+topics = [
+  "mains.gs1.freedom-struggle.mass.civil-disobedience-movement",
+  "mains.gs1.freedom-struggle.mass.round-table-conferences",
+  "mains.gs1.freedom-struggle.mass.communal-award-and-poona-pact",
+  "pre.gs.modern.gandhian.purna-swaraj-and-the-civil",
+  "pre.gs.modern.gandhian.round-table-conferences",
+  "pre.gs.modern.gandhian.communal-award-and-poona-pact",
+  "pre.gs.modern.gandhian.elections-of-1937",
+]
+
+[[note]]
+chunk = 51
+file = "modern-india/quit-india.md"
+title = "The Second World War to Quit India: August Offer, Cripps and 1942"
+section = "The Gandhian era"
+topics = [
+  "mains.gs1.freedom-struggle.freedom.second-world-war",
+  "mains.gs1.freedom-struggle.freedom.august-offer-and-individual-satyagraha",
+  "mains.gs1.freedom-struggle.freedom.cripps-mission",
+  "mains.gs1.freedom-struggle.freedom.quit-india-movement",
+  "pre.gs.modern.freedom.second-world-war",
+  "pre.gs.modern.freedom.individual-satyagraha-and-the-cripps",
+  "pre.gs.modern.freedom.quit-india-movement",
+]
+
+[[note]]
+chunk = 52
+file = "modern-india/bose-ina.md"
+title = "Subhas Chandra Bose, the INA and the post-war upsurge"
+section = "The Gandhian era"
+topics = [
+  "mains.gs1.freedom-struggle.freedom.subhas-chandra-bose",
+  "pre.gs.modern.freedom.subhas-chandra-bose",
+  "pre.gs.modern.freedom.rin-mutiny-and-the-post",
+]
+
+[[note]]
+chunk = 52
+file = "modern-india/independence-partition.md"
+title = "Towards independence and partition: the Wavell Plan to the Mountbatten Plan"
+section = "The Gandhian era"
+topics = [
+  "mains.gs1.freedom-struggle.freedom.wavell-plan-and-the-simla",
+  "mains.gs1.freedom-struggle.freedom.cabinet-mission",
+  "mains.gs1.freedom-struggle.freedom.communalism-and-the-demand",
+  "mains.gs1.freedom-struggle.freedom.independence-and-partition",
+  "pre.gs.modern.freedom.wavell-plan-and-the-simla",
+  "pre.gs.modern.freedom.cabinet-mission",
+  "pre.gs.modern.freedom.mountbatten-plan-indian-independence-act",
+]
+
+[[note]]
+chunk = 53
+file = "modern-india/other-streams.md"
+title = "Other streams: peasants, workers, princely states and the depressed classes"
+section = "Other streams of the struggle"
+topics = [
+  "mains.gs1.freedom-struggle.streams.peasant-movements",
+  "mains.gs1.freedom-struggle.streams.workers-and-the-trade-union",
+  "mains.gs1.freedom-struggle.streams.princely-states-peoples-movements",
+  "mains.gs1.freedom-struggle.streams.depressed-classes-movement-and-ambedkar",
+  "pre.gs.modern.gandhian.peasant-worker-and-state-peoples",
+]
+
+[[note]]
+chunk = 53
+file = "modern-india/women-tribals-freedom.md"
+title = "Women and tribal movements in the freedom struggle"
+section = "Other streams of the struggle"
+topics = [
+  "mains.gs1.freedom-struggle.streams.women-in-the-freedom-struggle",
+  "mains.gs1.freedom-struggle.streams.tribal-movements",
+  "pre.gs.modern.personalities.women-in-the-freedom-struggle",
+  "pre.gs.modern.personalities.tribal-and-peasant-leaders",
+]
+
+[[note]]
+chunk = 54
+file = "modern-india/regional-contributors.md"
+title = "Contributors to the freedom struggle from every region"
+section = "Other streams of the struggle"
+topics = [
+  "mains.gs1.freedom-struggle.regions",
+  "pre.gs.modern.personalities.leaders-from-different-regions",
+]
+
+[[note]]
+chunk = 54
+file = "modern-india/integration.md"
+title = "Partition, refugees and the integration of the princely states"
+section = "India after independence"
+topics = [
+  "mains.gs1.post-independence.nation-building.partition-refugees-and-rehabilitation",
+  "mains.gs1.post-independence.nation-building.integration-of-the-princely-states",
+]
+
+[[note]]
+chunk = 55
+file = "modern-india/reorganisation.md"
+title = "Linguistic reorganisation, the North-East and regional movements"
+section = "India after independence"
+topics = [
+  "mains.gs1.post-independence.nation-building.linguistic-reorganisation-of-states",
+  "mains.gs1.post-independence.nation-building.tribal-consolidation-and-the-north",
+  "mains.gs1.post-independence.nation-building.regional-aspirations-and-movements",
+]
+
+[[note]]
+chunk = 55
+file = "modern-india/politics.md"
+title = "Politics after independence: one-party dominance, the Emergency and coalitions"
+section = "India after independence"
+topics = [
+  "mains.gs1.post-independence.politics",
+]
+
+[[note]]
+chunk = 56
+file = "modern-india/foreign-policy.md"
+title = "Foreign policy after independence: non-alignment, wars and nuclear policy"
+section = "India after independence"
+topics = [
+  "mains.gs1.post-independence.foreign-policy",
+]
+
+[[note]]
+chunk = 56
+file = "modern-india/social-change.md"
+title = "Social change after independence: movements, women, caste politics, Naxalism and S&T policy"
+section = "India after independence"
+topics = [
+  "mains.gs1.post-independence.society",
+]
+
+# ---- Geography -------------------------------------------------------------
+
+[[note]]
+chunk = 57
+file = "geography/universe-earth.md"
+title = "The universe, the solar system and the Earth's motions"
+section = "The Earth and landforms"
+topics = [
+  "mains.gs1.geography.physical.geomorphology.origin-and-evolution",
+  "pre.gs.physical-geography.universe",
+  "pre.gs.physical-geography.earth",
+]
+
+[[note]]
+chunk = 57
+file = "geography/interior-tectonics.md"
+title = "The Earth's interior, continental drift and plate tectonics"
+section = "The Earth and landforms"
+topics = [
+  "mains.gs1.geography.physical.geomorphology.interior-of-the-earth",
+  "mains.gs1.geography.physical.geomorphology.continental-drift-and-plate-tectonics",
+  "pre.gs.physical-geography.interior.crust-mantle-and-core",
+  "pre.gs.physical-geography.interior.seismic-waves-as-sources",
+  "pre.gs.physical-geography.tectonics",
+]
+
+[[note]]
+chunk = 58
+file = "geography/earthquakes-volcanoes.md"
+title = "Earthquakes, volcanoes and tsunamis"
+section = "The Earth and landforms"
+topics = [
+  "mains.gs1.geography.geophysical.earthquakes",
+  "mains.gs1.geography.geophysical.volcanoes",
+  "mains.gs1.geography.geophysical.tsunamis",
+  "pre.gs.physical-geography.interior.earthquakes-and-volcanoes",
+]
+
+[[note]]
+chunk = 58
+file = "geography/rocks-processes.md"
+title = "Rocks and geomorphic processes"
+section = "The Earth and landforms"
+topics = [
+  "mains.gs1.geography.physical.geomorphology.rocks-and-the-rock-cycle",
+  "mains.gs1.geography.physical.geomorphology.endogenic-and-exogenic-processes",
+  "pre.gs.physical-geography.rocks",
+  "pre.gs.physical-geography.landforms.endogenic-forces",
+  "pre.gs.physical-geography.landforms.exogenic-processes",
+]
+
+[[note]]
+chunk = 59
+file = "geography/landforms.md"
+title = "Landforms: fluvial, glacial, arid, coastal and karst"
+section = "The Earth and landforms"
+topics = [
+  "mains.gs1.geography.physical.geomorphology.landforms-and-their-evolution",
+  "pre.gs.physical-geography.landforms.fluvial-landforms",
+  "pre.gs.physical-geography.landforms.glacial-landforms",
+  "pre.gs.physical-geography.landforms.arid",
+  "pre.gs.physical-geography.landforms.coastal-landforms",
+  "pre.gs.physical-geography.landforms.karst-landforms",
+]
+
+[[note]]
+chunk = 59
+file = "geography/atmosphere-heat.md"
+title = "The atmosphere, insolation, the heat budget and temperature"
+section = "Climate"
+topics = [
+  "mains.gs1.geography.physical.climatology.atmosphere",
+  "mains.gs1.geography.physical.climatology.insolation-heat-budget-and-temperature",
+  "pre.gs.physical-geography.climatology.composition-and-structure",
+  "pre.gs.physical-geography.climatology.insolation-and-heat-budget",
+  "pre.gs.physical-geography.climatology.temperature-distribution-and-inversion",
+]
+
+[[note]]
+chunk = 60
+file = "geography/pressure-winds.md"
+title = "Pressure belts, planetary winds, jet streams and local winds"
+section = "Climate"
+topics = [
+  "mains.gs1.geography.physical.climatology.pressure-winds-and-atmospheric-circulation",
+  "pre.gs.physical-geography.climatology.pressure-belts-and-planetary-winds",
+  "pre.gs.physical-geography.climatology.monsoons-local-winds-and-jet",
+]
+
+[[note]]
+chunk = 60
+file = "geography/moisture-cyclones.md"
+title = "Humidity, precipitation, air masses, fronts and cyclones"
+section = "Climate"
+topics = [
+  "mains.gs1.geography.physical.climatology.air-masses-fronts-and-cyclones",
+  "mains.gs1.geography.geophysical.cyclones",
+  "pre.gs.physical-geography.climatology.humidity-clouds-and-precipitation",
+  "pre.gs.physical-geography.climatology.air-masses-and-fronts",
+  "pre.gs.physical-geography.climatology.tropical-and-temperate-cyclones",
+]
+
+[[note]]
+chunk = 61
+file = "geography/world-climates.md"
+title = "World climates, biomes and the distribution of plants and animals"
+section = "Climate"
+topics = [
+  "mains.gs1.geography.physical.climatology.world-climates",
+  "mains.gs1.geography.physical.soils.biomes",
+  "pre.gs.physical-geography.climatology.world-climate-classification",
+  "pre.gs.physical-geography.biogeography.major-biomes-of-the-world",
+  "pre.gs.physical-geography.biogeography.distribution-of-flora-and-fauna",
+]
+
+[[note]]
+chunk = 61
+file = "geography/oceanography.md"
+title = "Oceans: relief, temperature, salinity, waves, tides and currents"
+section = "Oceans, soils and change"
+topics = [
+  "mains.gs1.geography.physical.oceanography.ocean-floor-relief",
+  "mains.gs1.geography.physical.oceanography.temperature-and-salinity",
+  "mains.gs1.geography.physical.oceanography.waves-tides-and-currents",
+  "pre.gs.physical-geography.oceanography.ocean-floor-relief",
+  "pre.gs.physical-geography.oceanography.temperature-and-salinity",
+  "pre.gs.physical-geography.oceanography.waves-tides-and-ocean-currents",
+]
+
+[[note]]
+chunk = 62
+file = "geography/ocean-resources-corals.md"
+title = "Ocean resources, the law of the sea and coral reefs"
+section = "Oceans, soils and change"
+topics = [
+  "mains.gs1.geography.physical.oceanography.marine-resources",
+  "pre.gs.physical-geography.oceanography.ocean-resources-and-the-law",
+  "pre.gs.physical-geography.oceanography.coral-reefs",
+]
+
+[[note]]
+chunk = 62
+file = "geography/soils.md"
+title = "Soils: formation, classification and the soils of India"
+section = "Oceans, soils and change"
+topics = [
+  "mains.gs1.geography.physical.soils.soil-formation-and-types",
+  "mains.gs1.geography.india.soils-and-natural-vegetation",
+  "pre.gs.physical-geography.biogeography.soil-formation-and-classification",
+  "pre.gs.indian-geography.soils",
+]
+
+[[note]]
+chunk = 63
+file = "geography/critical-features.md"
+title = "Changes in critical geographical features: water bodies, ice caps, flora and fauna"
+section = "Oceans, soils and change"
+topics = [
+  "mains.gs1.geography.changes",
+]
+
+[[note]]
+chunk = 63
+file = "geography/india-himalaya-plains.md"
+title = "India: location, the Himalaya and the northern plains"
+section = "India's physical geography"
+topics = [
+  "mains.gs1.geography.india.physiography",
+  "pre.gs.indian-geography.location",
+  "pre.gs.indian-geography.physiography.himalayas",
+  "pre.gs.indian-geography.physiography.northern-plains",
+]
+
+[[note]]
+chunk = 64
+file = "geography/india-peninsula-coasts.md"
+title = "India: the peninsular plateau, the desert, the coastal plains and the islands"
+section = "India's physical geography"
+topics = [
+  "mains.gs1.geography.india.physiography",
+  "pre.gs.indian-geography.physiography.peninsular-plateau",
+  "pre.gs.indian-geography.physiography.indian-desert",
+  "pre.gs.indian-geography.physiography.coastal-plains",
+  "pre.gs.indian-geography.physiography.islands",
+]
+
+[[note]]
+chunk = 64
+file = "geography/himalayan-rivers.md"
+title = "Drainage I: the Himalayan rivers"
+section = "India's physical geography"
+topics = [
+  "mains.gs1.geography.india.drainage",
+  "pre.gs.indian-geography.drainage.himalayan",
+]
+
+[[note]]
+chunk = 65
+file = "geography/peninsular-rivers.md"
+title = "Drainage II: peninsular rivers, lakes and river linking"
+section = "India's physical geography"
+topics = [
+  "mains.gs1.geography.india.drainage",
+  "pre.gs.indian-geography.drainage.peninsular",
+  "pre.gs.indian-geography.drainage.lakes",
+  "pre.gs.indian-geography.drainage.river-linking-projects-and-dams",
+]
+
+[[note]]
+chunk = 65
+file = "geography/indian-monsoon.md"
+title = "The Indian monsoon: mechanism, ENSO and the seasons"
+section = "India's physical geography"
+topics = [
+  "mains.gs1.geography.india.climate-and-the-monsoon",
+  "pre.gs.indian-geography.climate.mechanism-of-the-indian-monsoon",
+  "pre.gs.indian-geography.climate.el-nino-la-nina",
+  "pre.gs.indian-geography.climate.seasons-and-rainfall-distribution",
+]
+
+[[note]]
+chunk = 66
+file = "geography/vegetation-forests.md"
+title = "Natural vegetation, forest cover and forest policy"
+section = "India's physical geography"
+topics = [
+  "mains.gs1.geography.resources.forest-resources",
+  "mains.gs1.geography.india.soils-and-natural-vegetation",
+  "pre.gs.indian-geography.vegetation.forest-types",
+  "pre.gs.indian-geography.vegetation.forest-cover-and-forest-policy",
+]
+
+[[note]]
+chunk = 66
+file = "geography/resources-land-water.md"
+title = "Natural resources: classification, land, water, farm resources and South Asia"
+section = "Resources and people"
+topics = [
+  "mains.gs1.geography.resources.classification-of-resources",
+  "mains.gs1.geography.resources.land-resources-and-land-use",
+  "mains.gs1.geography.resources.water-resources",
+  "mains.gs1.geography.resources.agricultural-resources-and-food-security",
+  "mains.gs1.geography.resources.resources-of-south-asia",
+]
+
+[[note]]
+chunk = 67
+file = "geography/mineral-energy-resources.md"
+title = "Mineral and energy resources of India and the world"
+section = "Resources and people"
+topics = [
+  "mains.gs1.geography.resources.mineral-resources",
+  "mains.gs1.geography.resources.energy-resources",
+  "pre.gs.indian-geography.resources",
+  "pre.gs.world-geography.resources.minerals-and-energy-resources",
+]
+
+[[note]]
+chunk = 67
+file = "geography/industrial-location.md"
+title = "Industrial location: factors, sectors and the industrial regions"
+section = "Resources and people"
+topics = [
+  "mains.gs1.geography.industry",
+  "pre.gs.indian-geography.industries",
+  "pre.gs.world-geography.resources.major-industrial-regions",
+]
+
+[[note]]
+chunk = 68
+file = "geography/population-settlement.md"
+title = "Population, census, migration and settlements"
+section = "Resources and people"
+topics = [
+  "mains.gs1.geography.india.human-and-economic-geography",
+  "pre.gs.indian-geography.population.distribution-density-and-growth",
+  "pre.gs.indian-geography.population.census",
+  "pre.gs.indian-geography.population.migration",
+  "pre.gs.indian-geography.population.rural-and-urban-settlements",
+  "pre.gs.economy.demographics.census",
+  "pre.gs.world-geography.human.world-population-and-migration",
+]
+
+[[note]]
+chunk = 68
+file = "geography/tribes-races.md"
+title = "Tribes of India, and races, tribes and languages of the world"
+section = "Resources and people"
+topics = [
+  "pre.gs.indian-geography.population.tribes-and-their-distribution",
+  "pre.gs.world-geography.human.races-tribes-and-languages",
+]
+
+[[note]]
+chunk = 69
+file = "geography/asia-europe-africa.md"
+title = "World geography I: Asia, Europe and Africa"
+section = "World geography"
+topics = [
+  "pre.gs.world-geography.regions.asia",
+  "pre.gs.world-geography.regions.europe",
+  "pre.gs.world-geography.regions.africa",
+]
+
+[[note]]
+chunk = 69
+file = "geography/americas-oceania-polar.md"
+title = "World geography II: the Americas, Oceania and the polar regions"
+section = "World geography"
+topics = [
+  "pre.gs.world-geography.regions.north-and-central-america",
+  "pre.gs.world-geography.regions.south-america",
+  "pre.gs.world-geography.regions.australia-and-oceania",
+  "pre.gs.world-geography.regions.polar-regions",
+]
+
+[[note]]
+chunk = 70
+file = "geography/world-physical-features.md"
+title = "World physical features: mountains, rivers, deserts, grasslands, straits and seas"
+section = "World geography"
+topics = [
+  "pre.gs.world-geography.features",
+]
+
+[[note]]
+chunk = 70
+file = "geography/world-economic.md"
+title = "World agriculture, economic activities and trade routes"
+section = "World geography"
+topics = [
+  "pre.gs.world-geography.resources.agricultural-regions-and-major-crops",
+  "pre.gs.world-geography.human.economic-activities",
+  "pre.gs.world-geography.human.transport-routes-and-world-trade",
+]
+
+[[note]]
+chunk = 70
+file = "geography/map-work.md"
+title = "Map work: places in the news, conflict zones and boundaries"
+section = "World geography"
+topics = [
+  "pre.gs.world-geography.maps",
+  "pre.gs.current.places",
+]
+
+# ---- Environment and disaster management -----------------------------------
+
+[[note]]
+chunk = 71
+file = "environment/ecology-basics.md"
+title = "Ecology: ecosystems, food chains, energy flow, cycles and succession"
+section = "Ecology and biodiversity"
+topics = [
+  "pre.gs.environment.ecology",
+]
+
+[[note]]
+chunk = 71
+file = "environment/ecosystems.md"
+title = "Ecosystems: terrestrial, aquatic, wetlands, mangroves and coral reefs"
+section = "Ecology and biodiversity"
+topics = [
+  "pre.gs.environment.ecosystems",
+]
+
+[[note]]
+chunk = 72
+file = "environment/biodiversity.md"
+title = "Biodiversity: levels, hotspots, biogeographic zones, threats and the Red List"
+section = "Ecology and biodiversity"
+topics = [
+  "mains.gs3.environment.conservation.biodiversity-and-its-importance",
+  "mains.gs3.environment.conservation.threats-to-biodiversity",
+  "pre.gs.environment.biodiversity",
+]
+
+[[note]]
+chunk = 72
+file = "environment/biodiversity-conservation.md"
+title = "Conservation I: protected areas, biosphere reserves and eco-sensitive zones"
+section = "Ecology and biodiversity"
+topics = [
+  "mains.gs3.environment.conservation.in-situ-and-ex-situ",
+  "pre.gs.environment.conservation.in-situ-conservation",
+  "pre.gs.environment.conservation.biosphere-reserves",
+  "pre.gs.environment.conservation.eco-sensitive-zones",
+  "pre.gs.environment.conservation.community-conservation-and-sacred-groves",
+  "pre.gs.indian-geography.vegetation.national-parks-sanctuaries-biosphere",
+]
+
+[[note]]
+chunk = 73
+file = "environment/species-conservation.md"
+title = "Conservation II: ex-situ conservation and the species projects"
+section = "Ecology and biodiversity"
+topics = [
+  "mains.gs3.environment.conservation.in-situ-and-ex-situ",
+  "pre.gs.environment.conservation.ex-situ-conservation",
+  "pre.gs.environment.conservation.species-projects",
+]
+
+[[note]]
+chunk = 73
+file = "environment/air-water-pollution.md"
+title = "Pollution I: air and water"
+section = "Pollution and degradation"
+topics = [
+  "mains.gs3.environment.pollution.types-of-pollution",
+  "pre.gs.environment.pollution.air-pollution-and-the-air",
+  "pre.gs.environment.pollution.water-pollution-and-eutrophication",
+]
+
+[[note]]
+chunk = 74
+file = "environment/soil-noise-waste.md"
+title = "Pollution II: soil, noise, thermal and radioactive pollution, waste and bioremediation"
+section = "Pollution and degradation"
+topics = [
+  "mains.gs3.environment.pollution.types-of-pollution",
+  "mains.gs3.environment.pollution.waste-management",
+  "pre.gs.environment.pollution.soil-pollution-and-land-degradation",
+  "pre.gs.environment.pollution.noise-thermal-and-radioactive-pollution",
+  "pre.gs.environment.pollution.solid-plastic-electronic-biomedical",
+  "pre.gs.environment.pollution.bioremediation",
+]
+
+[[note]]
+chunk = 74
+file = "environment/land-degradation.md"
+title = "Land degradation and desertification"
+section = "Pollution and degradation"
+topics = [
+  "mains.gs3.environment.pollution.land-degradation-and-desertification",
+  "pre.gs.environment.conventions.unccd",
+]
+
+[[note]]
+chunk = 75
+file = "environment/climate-change-science.md"
+title = "Climate change I: greenhouse gases, warming, ozone and the oceans"
+section = "Climate change"
+topics = [
+  "mains.gs3.environment.pollution.climate-change",
+  "pre.gs.environment.climate-change.greenhouse-effect-and-greenhouse-gases",
+  "pre.gs.environment.climate-change.global-warming-and-its-impacts",
+  "pre.gs.environment.climate-change.ozone-depletion",
+  "pre.gs.environment.climate-change.ocean-acidification-and-sea-level",
+]
+
+[[note]]
+chunk = 75
+file = "environment/climate-action.md"
+title = "Climate change II: mitigation, adaptation, climate finance and India's actions"
+section = "Climate change"
+topics = [
+  "mains.gs3.environment.pollution.climate-change",
+  "pre.gs.environment.climate-change.mitigation",
+  "pre.gs.environment.climate-change.adaptation-and-climate-finance",
+  "pre.gs.environment.climate-change.indias-climate-actions",
+]
+
+[[note]]
+chunk = 76
+file = "environment/climate-conventions.md"
+title = "Climate and ozone treaties: Stockholm and Rio, the UNFCCC, Kyoto, Paris and Montreal"
+section = "Treaties, institutions and laws"
+topics = [
+  "pre.gs.environment.conventions.stockholm-rio-and-the-earth",
+  "pre.gs.environment.conventions.unfccc-kyoto-protocol",
+  "pre.gs.environment.conventions.vienna-convention-montreal-protocol",
+]
+
+[[note]]
+chunk = 76
+file = "environment/nature-chemical-conventions.md"
+title = "Nature and chemicals treaties: CBD, Ramsar, CITES, CMS, Basel, Rotterdam, Stockholm and Minamata"
+section = "Treaties, institutions and laws"
+topics = [
+  "mains.gs3.environment.conservation.international-conventions",
+  "pre.gs.environment.conventions.cbd-and-the-cartagena",
+  "pre.gs.environment.conventions.ramsar-convention-cites-and-cms",
+  "pre.gs.environment.conventions.basel-rotterdam-stockholm-and-minamata",
+]
+
+[[note]]
+chunk = 77
+file = "environment/institutions.md"
+title = "Environmental institutions: CPCB, NBA, NTCA, WCCB, and IPCC, IUCN, UNEP and GEF"
+section = "Treaties, institutions and laws"
+topics = [
+  "pre.gs.environment.institutions",
+  "pre.gs.environment.conventions.ipcc-iucn-unep-and-gef",
+]
+
+[[note]]
+chunk = 77
+file = "environment/laws.md"
+title = "Environmental laws: the Wildlife, Forest, Environment Protection and Biological Diversity Acts"
+section = "Treaties, institutions and laws"
+topics = [
+  "mains.gs3.environment.conservation.laws-policies-and-programmes",
+  "mains.gs3.environment.pollution.pollution-control-laws-and-institutions",
+  "pre.gs.environment.laws.wildlife-act",
+  "pre.gs.environment.laws.forest-acts",
+  "pre.gs.environment.laws.environment-act",
+  "pre.gs.environment.laws.biological-diversity-act-2002",
+]
+
+[[note]]
+chunk = 78
+file = "environment/crz-eia-ngt.md"
+title = "Coastal and wetland rules, environmental impact assessment and the NGT"
+section = "Treaties, institutions and laws"
+topics = [
+  "mains.gs3.environment.eia",
+  "pre.gs.environment.laws.coastal-regulation-zone-and-wetland",
+  "pre.gs.environment.laws.environmental-impact-assessment",
+  "pre.gs.environment.laws.national-green-tribunal",
+]
+
+[[note]]
+chunk = 78
+file = "environment/sustainable-agriculture.md"
+title = "Environment and farming: organic farming, agroforestry and climate-smart agriculture"
+section = "Sustainable development"
+topics = [
+  "pre.gs.environment.agriculture",
+]
+
+[[note]]
+chunk = 79
+file = "environment/renewable-energy.md"
+title = "Renewable energy: solar, wind, hydro, biofuels, green hydrogen and efficiency"
+section = "Sustainable development"
+topics = [
+  "mains.gs3.economy.infrastructure.energy.renewable-energy",
+  "pre.gs.environment.energy",
+]
+
+[[note]]
+chunk = 79
+file = "disaster/concepts-framework.md"
+title = "Disaster management: concepts, the 2005 Act, the NDMA and the Sendai Framework"
+topics = [
+  "mains.gs3.disaster.concepts",
+  "mains.gs3.disaster.framework",
+]
+
+[[note]]
+chunk = 80
+file = "disaster/floods-droughts.md"
+title = "Floods and droughts"
+topics = [
+  "mains.gs3.disaster.disasters.floods",
+  "mains.gs3.disaster.disasters.droughts",
+  "pre.gs.indian-geography.climate.cyclones-floods-and-droughts",
+]
+
+[[note]]
+chunk = 80
+file = "disaster/cyclones-earthquakes-landslides.md"
+title = "Cyclones, earthquakes, tsunamis and landslides in India"
+topics = [
+  "mains.gs3.disaster.disasters.cyclones",
+  "mains.gs3.disaster.disasters.earthquakes-and-tsunamis",
+  "mains.gs3.disaster.disasters.landslides",
+  "mains.gs1.geography.geophysical.landslides-and-other-hazards",
+  "pre.gs.indian-geography.climate.cyclones-floods-and-droughts",
+]
+
+[[note]]
+chunk = 81
+file = "disaster/heat-industrial.md"
+title = "Heat waves, cold waves and industrial disasters"
+topics = [
+  "mains.gs3.disaster.disasters.heat-waves-and-cold-waves",
+  "mains.gs3.disaster.disasters.industrial-and-chemical-disasters",
+]
+
+[[note]]
+chunk = 81
+file = "disaster/management-cycle.md"
+title = "The disaster management cycle: mitigation to recovery, and community-based management"
+topics = [
+  "mains.gs3.disaster.cycle",
+]
+
+# ---- Ancient history -------------------------------------------------------
+
+[[note]]
+chunk = 82
+file = "ancient-india/sources-prehistory.md"
+title = "Sources of ancient history and prehistoric India"
+section = "Prehistory and the Indus Valley"
+topics = [
+  "pre.gs.ancient.sources",
+  "pre.gs.ancient.prehistory.palaeolithic-age",
+  "pre.gs.ancient.prehistory.mesolithic-age",
+  "pre.gs.ancient.prehistory.neolithic-age",
+  "pre.gs.ancient.prehistory.chalcolithic-cultures",
+  "pre.gs.ancient.prehistory.megalithic-cultures-and-the-iron",
+]
+
+[[note]]
+chunk = 82
+file = "ancient-india/indus-valley.md"
+title = "The Indus Valley Civilisation"
+section = "Prehistory and the Indus Valley"
+topics = [
+  "pre.gs.ancient.ivc",
+  "pre.gs.culture.architecture.harappan-architecture",
+  "pre.gs.culture.sculpture.harappan-sculpture",
+  "mains.gs1.culture.architecture.harappan-architecture",
+  "mains.gs1.culture.sculpture.harappan-sculpture",
+]
+
+[[note]]
+chunk = 83
+file = "ancient-india/vedic-age.md"
+title = "The Vedic age: society, polity, economy and literature"
+section = "Vedic age and the Mahajanapadas"
+topics = [
+  "pre.gs.ancient.vedic.the-aryan-debate",
+  "pre.gs.ancient.vedic.early-vedic",
+  "pre.gs.ancient.vedic.later-vedic-period",
+  "pre.gs.ancient.vedic.literature",
+  "pre.gs.ancient.vedic.polity-society-and-the-varna",
+  "pre.gs.ancient.vedic.economy-and-religion",
+]
+
+[[note]]
+chunk = 83
+file = "ancient-india/mahajanapadas.md"
+title = "The Mahajanapadas, the rise of Magadha and the foreign invasions"
+section = "Vedic age and the Mahajanapadas"
+topics = [
+  "pre.gs.ancient.mahajanapadas",
+]
+
+[[note]]
+chunk = 84
+file = "ancient-india/buddhism.md"
+title = "Buddhism: the Buddha, the councils, the schools, the texts and the spread"
+section = "Buddhism and Jainism"
+topics = [
+  "pre.gs.ancient.religions.causes-of-the-new-religious",
+  "pre.gs.ancient.religions.buddhism",
+  "mains.gs1.culture.religion.contribution-of-buddhism-and-jainism",
+  "pre.gs.culture.literature.buddhist-and-jain-literature",
+  "mains.gs1.culture.literature.buddhist-and-jain-literature",
+]
+
+[[note]]
+chunk = 84
+file = "ancient-india/jainism-heterodox.md"
+title = "Jainism, the Ajivikas and the other heterodox sects"
+section = "Buddhism and Jainism"
+topics = [
+  "pre.gs.ancient.religions.jainism",
+  "pre.gs.ancient.religions.ajivikas-and-other-heterodox-sects",
+  "pre.gs.culture.religion.heterodox-schools",
+  "mains.gs1.culture.religion.contribution-of-buddhism-and-jainism",
+  "pre.gs.culture.literature.buddhist-and-jain-literature",
+  "mains.gs1.culture.literature.buddhist-and-jain-literature",
+]
+
+[[note]]
+chunk = 85
+file = "ancient-india/mauryas.md"
+title = "The Mauryan empire"
+section = "Empires and kingdoms"
+topics = [
+  "pre.gs.ancient.mauryas.chandragupta-maurya-and-bindusara",
+  "pre.gs.ancient.mauryas.ashoka",
+  "pre.gs.ancient.mauryas.administration-economy-and-society",
+  "pre.gs.ancient.mauryas.arthashastra-and-megasthenes-indica",
+  "pre.gs.ancient.mauryas.decline-of-the-mauryas",
+]
+
+[[note]]
+chunk = 85
+file = "ancient-india/post-mauryan.md"
+title = "Post-Mauryan India: Shungas, Indo-Greeks, Shakas, Kushanas and Satavahanas"
+section = "Empires and kingdoms"
+topics = [
+  "pre.gs.ancient.post-mauryan.shungas-kanvas-and-kharavela",
+  "pre.gs.ancient.post-mauryan.indo-greeks-shakas-and-parthians",
+  "pre.gs.ancient.post-mauryan.kushanas-and-kanishka",
+  "pre.gs.ancient.post-mauryan.satavahanas",
+  "pre.gs.ancient.post-mauryan.trade-with-rome-and-central",
+  "pre.gs.ancient.post-mauryan.rise-of-mahayana-and-bhagavatism",
+]
+
+[[note]]
+chunk = 86
+file = "ancient-india/sangam-age.md"
+title = "The Sangam age"
+section = "Empires and kingdoms"
+topics = [
+  "pre.gs.ancient.sangam",
+  "pre.gs.culture.literature.sangam-and-tamil-literature",
+  "mains.gs1.culture.literature.sangam-and-early-dravidian-literature",
+]
+
+[[note]]
+chunk = 86
+file = "ancient-india/guptas.md"
+title = "The Gupta empire"
+section = "Empires and kingdoms"
+topics = [
+  "pre.gs.ancient.guptas.rulers-from-chandragupta-i",
+  "pre.gs.ancient.guptas.administration-and-society",
+  "pre.gs.ancient.guptas.economy-land-grants-and-early",
+  "pre.gs.ancient.guptas.literature-science-and-mathematics",
+  "pre.gs.ancient.guptas.decline-and-the-hunas",
+]
+
+[[note]]
+chunk = 87
+file = "ancient-india/post-gupta.md"
+title = "Post-Gupta India: Harsha, the Pallavas and the Chalukyas"
+section = "Empires and kingdoms"
+topics = [
+  "pre.gs.ancient.post-gupta",
+]
+
+[[note]]
+chunk = 87
+file = "ancient-india/ancient-science.md"
+title = "Science and technology in ancient India"
+topics = [
+  "pre.gs.ancient.science",
+]
+
+# ---- Medieval history ------------------------------------------------------
+
+[[note]]
+chunk = 88
+file = "medieval-india/early-medieval.md"
+title = "Early medieval India: the tripartite struggle, Rajputs, Cholas and the first invasions"
+topics = [
+  "pre.gs.medieval.early",
+]
+
+[[note]]
+chunk = 88
+file = "medieval-india/delhi-sultanate.md"
+title = "The Delhi Sultanate"
+topics = [
+  "pre.gs.medieval.sultanate",
+]
+
+[[note]]
+chunk = 89
+file = "medieval-india/provincial-kingdoms.md"
+title = "Provincial kingdoms: Vijayanagara, the Bahmanis and the regional states"
+topics = [
+  "pre.gs.medieval.regional",
+]
+
+[[note]]
+chunk = 89
+file = "art-culture/bhakti-sufi.md"
+title = "The Bhakti and Sufi movements"
+section = "Religion and philosophy"
+topics = [
+  "mains.gs1.culture.religion.bhakti-movement",
+  "mains.gs1.culture.religion.sufi-movement",
+  "pre.gs.medieval.bhakti-sufi",
+  "pre.gs.culture.religion.bhakti-and-sufi-traditions",
+]
+
+[[note]]
+chunk = 90
+file = "medieval-india/mughals-rulers.md"
+title = "The Mughal empire I: Babur to the later Mughals, and Sher Shah"
+topics = [
+  "pre.gs.medieval.mughals.babur-and-humayun",
+  "pre.gs.medieval.mughals.sher-shah-suri",
+  "pre.gs.medieval.mughals.akbar",
+  "pre.gs.medieval.mughals.jahangir-and-shah-jahan",
+  "pre.gs.medieval.mughals.aurangzeb",
+  "pre.gs.medieval.mughals.later-mughals-and-decline",
+]
+
+[[note]]
+chunk = 90
+file = "medieval-india/mughals-state-society.md"
+title = "The Mughal empire II: mansabdari, land revenue, economy and society"
+topics = [
+  "pre.gs.medieval.mughals.mansabdari-and-jagirdari-systems",
+  "pre.gs.medieval.mughals.land-revenue",
+  "pre.gs.medieval.mughals.economy-trade-and-european-contact",
+  "pre.gs.medieval.mughals.society-culture-and-the-position",
+]
+
+[[note]]
+chunk = 91
+file = "medieval-india/marathas.md"
+title = "The Marathas: Shivaji, the Peshwas and Panipat"
+topics = [
+  "pre.gs.medieval.marathas",
+]
+
+[[note]]
+chunk = 91
+file = "medieval-india/literature-travellers.md"
+title = "Medieval literature, technology and travellers' accounts"
+topics = [
+  "mains.gs1.culture.literature.medieval-literature",
+  "pre.gs.medieval.culture",
+  "pre.gs.culture.literature.medieval-and-regional-literature",
+]
+
+# ---- Art and culture -------------------------------------------------------
+
+[[note]]
+chunk = 92
+file = "art-culture/buddhist-architecture.md"
+title = "Architecture I: Mauryan and post-Mauryan architecture, stupas and rock-cut caves"
+section = "Architecture and sculpture"
+topics = [
+  "mains.gs1.culture.architecture.mauryan-and-post-mauryan-architecture",
+  "mains.gs1.culture.architecture.caves",
+  "mains.gs1.culture.architecture.contribution-of-buddhism-and-jainism",
+  "pre.gs.culture.architecture.mauryan-pillars-stupas-and-caves",
+  "pre.gs.culture.architecture.stupa-chaitya-and-vihara",
+  "pre.gs.culture.architecture.rock-cut-caves",
+  "pre.gs.ancient.mauryas.mauryan-art-and-architecture",
+]
+
+[[note]]
+chunk = 92
+file = "art-culture/temple-architecture.md"
+title = "Architecture II: temples — Nagara, Dravida, Vesara and the regional schools"
+section = "Architecture and sculpture"
+topics = [
+  "mains.gs1.culture.architecture.temples",
+  "pre.gs.culture.architecture.temples",
+  "pre.gs.ancient.guptas.art-architecture-and-early-temples",
+]
+
+[[note]]
+chunk = 93
+file = "art-culture/indo-islamic-architecture.md"
+title = "Architecture III: Indo-Islamic, Mughal, Rajput, Sikh and colonial"
+section = "Architecture and sculpture"
+topics = [
+  "mains.gs1.culture.architecture.indo-islamic",
+  "mains.gs1.culture.architecture.rajput-and-sikh-architecture",
+  "mains.gs1.culture.architecture.colonial-indo-saracenic-and-modern",
+  "pre.gs.culture.architecture.indo-islamic-architecture",
+  "pre.gs.culture.architecture.mughal-architecture",
+  "pre.gs.culture.architecture.colonial-and-indo-saracenic-architecture",
+  "pre.gs.medieval.mughals.mughal-art-architecture-and-painting",
+]
+
+[[note]]
+chunk = 93
+file = "art-culture/sculpture.md"
+title = "Sculpture: Mauryan to modern, with the Gandhara, Mathura and Amaravati schools"
+section = "Architecture and sculpture"
+topics = [
+  "mains.gs1.culture.sculpture.mauryan-sculpture",
+  "mains.gs1.culture.sculpture.gandhara-mathura-and-amaravati-schools",
+  "mains.gs1.culture.sculpture.gupta-sculpture",
+  "mains.gs1.culture.sculpture.medieval-sculpture-and-chola-bronzes",
+  "mains.gs1.culture.sculpture.modern-indian-sculpture",
+  "pre.gs.culture.sculpture.mauryan-and-post-mauryan-sculpture",
+  "pre.gs.culture.sculpture.gandhara-mathura-and-amaravati-schools",
+  "pre.gs.culture.sculpture.gupta-and-medieval-sculpture",
+  "pre.gs.ancient.post-mauryan.schools-of-art",
+]
+
+[[note]]
+chunk = 94
+file = "art-culture/painting.md"
+title = "Painting: rock art, murals, miniatures, folk and modern"
+section = "Painting and performing arts"
+topics = [
+  "mains.gs1.culture.painting",
+  "pre.gs.culture.painting",
+  "pre.gs.ancient.prehistory.prehistoric-rock-paintings",
+  "pre.gs.medieval.mughals.mughal-art-architecture-and-painting",
+]
+
+[[note]]
+chunk = 94
+file = "art-culture/music.md"
+title = "Music: Hindustani, Carnatic, folk music and instruments"
+section = "Painting and performing arts"
+topics = [
+  "mains.gs1.culture.performing-arts.hindustani-and-carnatic-music",
+  "mains.gs1.culture.performing-arts.folk-music-and-musical-instruments",
+  "pre.gs.culture.music",
+]
+
+[[note]]
+chunk = 95
+file = "art-culture/dance.md"
+title = "Dance: the classical and folk dances"
+section = "Painting and performing arts"
+topics = [
+  "mains.gs1.culture.performing-arts.classical-dances",
+  "mains.gs1.culture.performing-arts.folk-dances",
+  "pre.gs.culture.dance",
+]
+
+[[note]]
+chunk = 95
+file = "art-culture/theatre-puppetry-cinema.md"
+title = "Theatre, puppetry and Indian cinema"
+section = "Painting and performing arts"
+topics = [
+  "mains.gs1.culture.performing-arts.classical-regional-and-modern-theatre",
+  "mains.gs1.culture.performing-arts.puppetry",
+  "mains.gs1.culture.performing-arts.indian-cinema",
+  "pre.gs.culture.theatre",
+]
+
+[[note]]
+chunk = 96
+file = "art-culture/crafts-festivals.md"
+title = "Crafts, textiles, pottery, GI products, martial arts, fairs and festivals"
+section = "Crafts, literature and heritage"
+topics = [
+  "mains.gs1.culture.crafts",
+  "pre.gs.culture.crafts",
+  "pre.gs.culture.festivals",
+]
+
+[[note]]
+chunk = 96
+file = "art-culture/literature-languages.md"
+title = "Literature: Vedic, Sanskrit and modern Indian literature; classical languages and scripts"
+section = "Crafts, literature and heritage"
+topics = [
+  "mains.gs1.culture.literature.vedic-upanishadic-and-epic-literature",
+  "mains.gs1.culture.literature.classical-sanskrit-literature",
+  "mains.gs1.culture.literature.modern-indian-literature",
+  "pre.gs.culture.literature.vedic-and-classical-sanskrit-literature",
+  "pre.gs.culture.literature.classical-languages-and-the-eighth",
+  "pre.gs.culture.literature.ancient-scripts",
+]
+
+[[note]]
+chunk = 97
+file = "art-culture/philosophy.md"
+title = "Indian philosophy: the orthodox and heterodox schools"
+section = "Religion and philosophy"
+topics = [
+  "mains.gs1.culture.religion.indian-schools-of-philosophy",
+  "pre.gs.culture.religion.orthodox-schools",
+  "pre.gs.ancient.vedic.six-schools-of-indian-philosophy",
+]
+
+[[note]]
+chunk = 97
+file = "art-culture/heritage.md"
+title = "Heritage: UNESCO sites, intangible heritage, institutions and conservation"
+section = "Crafts, literature and heritage"
+topics = [
+  "mains.gs1.culture.heritage",
+  "pre.gs.culture.heritage.unesco-world-heritage-sites",
+  "pre.gs.culture.heritage.intangible-cultural-heritage-of-india",
+  "pre.gs.culture.heritage.cultural-institutions",
+]
+
+# ---- General science -------------------------------------------------------
+
+[[note]]
+chunk = 98
+file = "science-tech/physics-mechanics.md"
+title = "Physics I: measurement, motion, energy, gravitation, matter and heat"
+section = "Basic science"
+topics = [
+  "pre.gs.general-science.physics.units-and-measurement",
+  "pre.gs.general-science.physics.motion-force-and-the-laws",
+  "pre.gs.general-science.physics.work-energy-and-power",
+  "pre.gs.general-science.physics.gravitation-and-satellites",
+  "pre.gs.general-science.physics.properties-of-matter",
+  "pre.gs.general-science.physics.heat-and-thermodynamics",
+]
+
+[[note]]
+chunk = 98
+file = "science-tech/physics-waves-electricity.md"
+title = "Physics II: sound, light, electricity, the electromagnetic spectrum and modern physics"
+section = "Basic science"
+topics = [
+  "pre.gs.general-science.physics.sound-and-waves",
+  "pre.gs.general-science.physics.light",
+  "pre.gs.general-science.physics.electricity-and-magnetism",
+  "pre.gs.general-science.physics.electromagnetic-spectrum",
+  "pre.gs.general-science.physics.modern-physics",
+  "pre.gs.general-science.physics.electronics-and-semiconductors",
+]
+
+[[note]]
+chunk = 99
+file = "science-tech/chemistry.md"
+title = "Chemistry I: matter, atoms, bonding, acids and bases, metals and carbon"
+section = "Basic science"
+topics = [
+  "pre.gs.general-science.chemistry.matter",
+  "pre.gs.general-science.chemistry.atomic-structure-and-the-periodic",
+  "pre.gs.general-science.chemistry.chemical-bonding-and-reactions",
+  "pre.gs.general-science.chemistry.acids-bases-and-salts",
+  "pre.gs.general-science.chemistry.metals-non-metals-and-alloys",
+  "pre.gs.general-science.chemistry.carbon-and-its-compounds",
+]
+
+[[note]]
+chunk = 99
+file = "science-tech/everyday-science.md"
+title = "Chemistry II: science in everyday life, polymers, chemicals in food and water treatment"
+section = "Basic science"
+topics = [
+  "mains.gs3.science-tech.developments.science-in-everyday-life",
+  "mains.gs3.science-tech.developments.chemicals-in-food-medicines",
+  "mains.gs3.science-tech.developments.water-purification-and-treatment",
+  "pre.gs.general-science.chemistry.polymers-plastics-and-fibres",
+  "pre.gs.general-science.chemistry.chemistry-in-everyday-life",
+  "pre.gs.general-science.chemistry.nuclear-chemistry",
+]
+
+[[note]]
+chunk = 100
+file = "science-tech/biology-human-body.md"
+title = "Biology I: cells, biomolecules, nutrition and the human body"
+section = "Basic science"
+topics = [
+  "pre.gs.general-science.biology.cell",
+  "pre.gs.general-science.biology.biomolecules",
+  "pre.gs.general-science.biology.vitamins-minerals-and-nutrition",
+  "pre.gs.general-science.biology.digestive-and-respiratory-systems",
+  "pre.gs.general-science.biology.circulatory-system-and-blood-groups",
+  "pre.gs.general-science.biology.excretory-system",
+  "pre.gs.general-science.biology.nervous-and-endocrine-systems",
+  "pre.gs.general-science.biology.skeletal-and-muscular-systems",
+]
+
+[[note]]
+chunk = 100
+file = "science-tech/biology-life.md"
+title = "Biology II: reproduction, genetics, evolution, classification, plants and microbes"
+section = "Basic science"
+topics = [
+  "pre.gs.general-science.biology.human-reproduction",
+  "pre.gs.general-science.biology.genetics",
+  "pre.gs.general-science.biology.evolution",
+  "pre.gs.general-science.biology.classification-of-living-organisms",
+  "pre.gs.general-science.biology.plant-physiology",
+  "pre.gs.general-science.biology.microorganisms",
+]
+
+[[note]]
+chunk = 100
+file = "science-tech/health-diseases.md"
+title = "Health and disease: communicable and lifestyle diseases, immunity, vaccines and AMR"
+section = "Basic science"
+topics = [
+  "mains.gs3.science-tech.developments.health-and-medicine",
+  "pre.gs.general-science.health",
+]
+
+# ---- Science and technology ------------------------------------------------
+
+[[note]]
+chunk = 101
+file = "science-tech/space-programme.md"
+title = "Space I: orbits, launch vehicles and India's space missions"
+section = "Space, defence and nuclear"
+topics = [
+  "mains.gs3.science-tech.awareness.space.indian-space-programme-and-missions",
+  "mains.gs3.science-tech.awareness.space.launch-vehicles-and-satellites",
+  "pre.gs.science-tech.space.orbits-and-satellites",
+  "pre.gs.science-tech.space.launch-vehicles",
+  "pre.gs.science-tech.space.indian-space-missions",
+  "pre.gs.current.science.space-missions",
+]
+
+[[note]]
+chunk = 101
+file = "science-tech/space-applications.md"
+title = "Space II: applications, navigation, global missions, debris and space policy"
+section = "Space, defence and nuclear"
+topics = [
+  "mains.gs3.science-tech.awareness.space.space-applications",
+  "mains.gs3.science-tech.awareness.space.space-policy-and-the-private",
+  "pre.gs.science-tech.space.navigation-systems",
+  "pre.gs.science-tech.space.international-missions-and-space-telescopes",
+  "pre.gs.science-tech.space.space-debris-and-space-policy",
+]
+
+[[note]]
+chunk = 102
+file = "science-tech/defence-technology.md"
+title = "Defence technology: missiles, platforms, exercises and indigenisation"
+section = "Space, defence and nuclear"
+topics = [
+  "mains.gs3.science-tech.awareness.defence-nuclear.missile-and-defence-technology",
+  "pre.gs.science-tech.defence",
+  "pre.gs.current.defence",
+  "pre.gs.current.science.defence-tests-and-acquisitions",
+]
+
+[[note]]
+chunk = 102
+file = "science-tech/nuclear-technology.md"
+title = "Nuclear technology: reactors, the three-stage programme and the treaties"
+section = "Space, defence and nuclear"
+topics = [
+  "mains.gs3.science-tech.awareness.defence-nuclear.nuclear-energy-programme",
+  "pre.gs.science-tech.nuclear",
+]
+
+[[note]]
+chunk = 103
+file = "science-tech/biotechnology.md"
+title = "Biotechnology I: genetic engineering, gene editing and GM crops"
+section = "Biotechnology"
+topics = [
+  "mains.gs3.science-tech.awareness.biotechnology.genetic-engineering-and-gene-editing",
+  "mains.gs3.science-tech.awareness.biotechnology.gm-crops-and-their-regulation",
+  "pre.gs.science-tech.biotech.genetic-engineering-and-recombinant-dna",
+  "pre.gs.science-tech.biotech.gene-editing",
+  "pre.gs.science-tech.biotech.gm-crops",
+]
+
+[[note]]
+chunk = 103
+file = "science-tech/biotech-health.md"
+title = "Biotechnology II: stem cells, cloning, genomics, vaccines and bioethics"
+section = "Biotechnology"
+topics = [
+  "mains.gs3.science-tech.awareness.biotechnology.stem-cells-and-regenerative-medicine",
+  "mains.gs3.science-tech.awareness.biotechnology.vaccines-and-biopharmaceuticals",
+  "mains.gs3.science-tech.awareness.biotechnology.biosafety-and-bioethics",
+  "pre.gs.science-tech.biotech.stem-cells-and-cloning",
+  "pre.gs.science-tech.biotech.dna-fingerprinting-and-genome-sequencing",
+  "pre.gs.science-tech.biotech.vaccines-and-biopharmaceuticals",
+  "pre.gs.current.science.health-diseases-and-vaccines",
+]
+
+[[note]]
+chunk = 104
+file = "science-tech/digital-technology.md"
+title = "Digital technology: computers, networks, mobile, 5G and digital public infrastructure"
+section = "Digital and emerging technology"
+topics = [
+  "mains.gs3.science-tech.awareness.it.digital-public-infrastructure",
+  "mains.gs3.science-tech.awareness.it.5g-and-telecommunications",
+  "mains.gs3.economy.infrastructure.telecom-and-digital-infrastructure",
+  "pre.gs.science-tech.ict.computers-internet-and-networks",
+  "pre.gs.science-tech.ict.mobile-communication",
+]
+
+[[note]]
+chunk = 104
+file = "science-tech/semiconductors-data.md"
+title = "Semiconductors, supercomputing, data protection and cyber law"
+section = "Digital and emerging technology"
+topics = [
+  "mains.gs3.science-tech.awareness.it.semiconductors-and-supercomputing",
+  "mains.gs3.science-tech.awareness.it.data-protection-and-cyber-law",
+  "pre.gs.science-tech.ict.supercomputers-and-semiconductors",
+]
+
+[[note]]
+chunk = 105
+file = "science-tech/ai-robotics.md"
+title = "Artificial intelligence, robotics and drones"
+section = "Digital and emerging technology"
+topics = [
+  "mains.gs3.science-tech.awareness.robotics",
+  "pre.gs.science-tech.emerging.artificial-intelligence-and-machine-learning",
+  "pre.gs.science-tech.emerging.robotics-and-drones",
+]
+
+[[note]]
+chunk = 105
+file = "science-tech/emerging-technologies.md"
+title = "Emerging technologies: quantum, blockchain, IoT and cloud, AR and VR, 3D printing"
+section = "Digital and emerging technology"
+topics = [
+  "mains.gs3.science-tech.awareness.defence-nuclear.quantum-technology",
+  "pre.gs.science-tech.emerging.quantum-technology",
+  "pre.gs.science-tech.emerging.blockchain-and-cryptocurrency",
+  "pre.gs.science-tech.emerging.internet-of-things-and-cloud",
+  "pre.gs.science-tech.emerging.augmented-and-virtual-reality",
+  "pre.gs.science-tech.emerging.3d-printing",
+  "pre.gs.current.science.new-technologies",
+]
+
+[[note]]
+chunk = 106
+file = "science-tech/nanotech-materials-energy.md"
+title = "Nanotechnology, new materials, batteries and hydrogen"
+section = "Digital and emerging technology"
+topics = [
+  "mains.gs3.science-tech.awareness.nanotechnology",
+  "pre.gs.science-tech.materials",
+  "pre.gs.science-tech.energy-tech",
+]
+
+[[note]]
+chunk = 106
+file = "science-tech/ipr.md"
+title = "Intellectual property rights"
+section = "IPR and Indian science"
+topics = [
+  "mains.gs3.science-tech.ipr",
+  "pre.gs.science-tech.ipr",
+]
+
+[[note]]
+chunk = 106
+file = "science-tech/indian-science.md"
+title = "Indian science: scientists, indigenisation, R&D and recent developments"
+section = "IPR and Indian science"
+topics = [
+  "mains.gs3.science-tech.achievements",
+  "mains.gs3.science-tech.developments.recent-developments",
+]
+
+# ---- Governance and social justice -----------------------------------------
+
+[[note]]
+chunk = 107
+file = "governance/public-policy.md"
+title = "Government policies and interventions: design, implementation and evaluation"
+topics = [
+  "mains.gs2.governance.policies",
+  "pre.gs.polity.policy.public-policy",
+]
+
+[[note]]
+chunk = 107
+file = "governance/development-sector.md"
+title = "The development sector: NGOs, SHGs, cooperatives, philanthropy and CSR"
+topics = [
+  "mains.gs2.governance.development",
+]
+
+[[note]]
+chunk = 108
+file = "governance/good-governance.md"
+title = "Good governance and e-governance"
+topics = [
+  "mains.gs2.governance.transparency.good-governance",
+  "mains.gs2.governance.transparency.e-governance",
+]
+
+[[note]]
+chunk = 108
+file = "governance/transparency.md"
+title = "Transparency and accountability: RTI, citizens' charters and social audit"
+topics = [
+  "mains.gs2.governance.transparency.right-to-information",
+  "mains.gs2.governance.transparency.citizens-charters-and-the-sevottam",
+  "mains.gs2.governance.transparency.social-audit",
+  "pre.gs.polity.other-bodies.central-and-state-information-commissions",
+  "pre.gs.polity.policy.human-rights-rti-and-rte",
+]
+
+[[note]]
+chunk = 109
+file = "governance/civil-services.md"
+title = "The civil services: role, challenges and reforms"
+topics = [
+  "mains.gs2.governance.civil-services",
+]
+
+[[note]]
+chunk = 109
+file = "social-justice/scs-sts.md"
+title = "Scheduled Castes and Scheduled Tribes: safeguards, laws and schemes"
+section = "Vulnerable sections"
+topics = [
+  "mains.gs2.social-justice.welfare.scheduled-castes",
+  "mains.gs2.social-justice.welfare.scheduled-tribes",
+  "pre.gs.polity.policy.rights-of-women-children-scs",
+]
+
+[[note]]
+chunk = 110
+file = "social-justice/minorities.md"
+title = "Minorities: safeguards, institutions and schemes"
+section = "Vulnerable sections"
+topics = [
+  "mains.gs2.social-justice.welfare.minorities",
+]
+
+[[note]]
+chunk = 110
+file = "social-justice/women-children.md"
+title = "Women and children: laws, institutions and schemes"
+section = "Vulnerable sections"
+topics = [
+  "mains.gs2.social-justice.welfare.women",
+  "mains.gs2.social-justice.welfare.children",
+  "pre.gs.polity.policy.rights-of-women-children-scs",
+  "pre.gs.current.schemes.schemes-for-women-children",
+]
+
+[[note]]
+chunk = 111
+file = "social-justice/elderly-disability-transgender.md"
+title = "The elderly, persons with disabilities and transgender persons"
+section = "Vulnerable sections"
+topics = [
+  "mains.gs2.social-justice.welfare.elderly",
+  "mains.gs2.social-justice.welfare.persons-with-disabilities",
+  "mains.gs2.social-justice.welfare.transgender-persons",
+]
+
+[[note]]
+chunk = 111
+file = "social-justice/health-system.md"
+title = "Health I: indicators, infrastructure, workforce and universal health coverage"
+section = "Health"
+topics = [
+  "mains.gs2.social-justice.social-sector.health.health-indicators-and-the-disease",
+  "mains.gs2.social-justice.social-sector.health.health-infrastructure-and-workforce",
+  "mains.gs2.social-justice.social-sector.health.universal-health-coverage-and-insurance",
+  "mains.gs2.social-justice.social-sector.health.national-health-policy",
+  "pre.gs.economy.social-sector.health",
+]
+
+[[note]]
+chunk = 112
+file = "social-justice/nutrition-public-health.md"
+title = "Health II: hunger, malnutrition and public health issues"
+section = "Health"
+topics = [
+  "mains.gs2.social-justice.social-sector.health.public-health-issues",
+  "mains.gs2.social-justice.poverty-hunger.hunger-and-malnutrition",
+]
+
+[[note]]
+chunk = 112
+file = "social-justice/school-education.md"
+title = "Education I: status, NEP 2020 and school education"
+section = "Education"
+topics = [
+  "mains.gs2.social-justice.social-sector.education.status-and-challenges-of-education",
+  "mains.gs2.social-justice.social-sector.education.national-education-policy-2020",
+  "mains.gs2.social-justice.social-sector.education.school-education",
+  "pre.gs.economy.social-sector.education",
+  "pre.gs.polity.policy.human-rights-rti-and-rte",
+]
+
+[[note]]
+chunk = 112
+file = "social-justice/higher-education-skills.md"
+title = "Education II: higher education, financing and skill development"
+section = "Education"
+topics = [
+  "mains.gs2.social-justice.social-sector.education.higher-education",
+  "mains.gs2.social-justice.social-sector.education.financing-education",
+  "mains.gs2.social-justice.social-sector.human-resources.skill-development",
+]
+
+# ---- International relations -----------------------------------------------
+
+[[note]]
+chunk = 113
+file = "ir/foreign-policy.md"
+title = "India's foreign policy: doctrines and Neighbourhood First"
+section = "Foreign policy and neighbours"
+topics = [
+  "mains.gs2.ir.groupings.foreign-policy-doctrines",
+  "mains.gs2.ir.neighbourhood.neighbourhood-first-policy",
+]
+
+[[note]]
+chunk = 113
+file = "ir/pakistan-afghanistan.md"
+title = "India–Pakistan and India–Afghanistan"
+section = "Foreign policy and neighbours"
+topics = [
+  "mains.gs2.ir.neighbourhood.pakistan",
+  "mains.gs2.ir.neighbourhood.afghanistan",
+]
+
+[[note]]
+chunk = 114
+file = "ir/china.md"
+title = "India–China relations"
+section = "Foreign policy and neighbours"
+topics = [
+  "mains.gs2.ir.neighbourhood.china",
+]
+
+[[note]]
+chunk = 114
+file = "ir/nepal-bhutan-bangladesh.md"
+title = "India–Nepal, India–Bhutan and India–Bangladesh"
+section = "Foreign policy and neighbours"
+topics = [
+  "mains.gs2.ir.neighbourhood.nepal",
+  "mains.gs2.ir.neighbourhood.bhutan",
+  "mains.gs2.ir.neighbourhood.bangladesh",
+]
+
+[[note]]
+chunk = 115
+file = "ir/sri-lanka-maldives-myanmar.md"
+title = "India–Sri Lanka, India–Maldives and India–Myanmar"
+section = "Foreign policy and neighbours"
+topics = [
+  "mains.gs2.ir.neighbourhood.sri-lanka",
+  "mains.gs2.ir.neighbourhood.maldives",
+  "mains.gs2.ir.neighbourhood.myanmar",
+]
+
+[[note]]
+chunk = 115
+file = "ir/usa-russia.md"
+title = "India–US and India–Russia"
+section = "Major powers and regions"
+topics = [
+  "mains.gs2.ir.groupings.bilateral.united-states",
+  "mains.gs2.ir.groupings.bilateral.russia",
+]
+
+[[note]]
+chunk = 116
+file = "ir/europe-japan-australia.md"
+title = "India with Europe, Japan, South Korea and Australia"
+section = "Major powers and regions"
+topics = [
+  "mains.gs2.ir.groupings.bilateral.european-union-and-europe",
+  "mains.gs2.ir.groupings.bilateral.japan-south-korea-and-australia",
+]
+
+[[note]]
+chunk = 116
+file = "ir/west-central-asia.md"
+title = "India with West Asia, the Gulf and Central Asia"
+section = "Major powers and regions"
+topics = [
+  "mains.gs2.ir.groupings.bilateral.west-asia-and-the-gulf",
+  "mains.gs2.ir.groupings.bilateral.central-asia",
+]
+
+[[note]]
+chunk = 117
+file = "ir/africa-latin-america-indo-pacific.md"
+title = "India with Africa, Latin America and the Indo-Pacific"
+section = "Major powers and regions"
+topics = [
+  "mains.gs2.ir.groupings.bilateral.africa",
+  "mains.gs2.ir.groupings.bilateral.latin-america",
+  "mains.gs2.ir.groupings.bilateral.indo-pacific-and-the-pacific",
+]
+
+[[note]]
+chunk = 117
+file = "ir/regional-groupings.md"
+title = "Regional groupings: SAARC, BIMSTEC, ASEAN, SCO, the Quad, IORA, BBIN and MGC"
+section = "Groupings and institutions"
+topics = [
+  "mains.gs2.ir.groupings.regional",
+  "pre.gs.current.international.summits-and-groupings",
+]
+
+[[note]]
+chunk = 118
+file = "ir/global-groupings.md"
+title = "Global groupings: BRICS, IBSA, G20, G7, the Commonwealth and export-control regimes"
+section = "Groupings and institutions"
+topics = [
+  "mains.gs2.ir.groupings.global",
+  "pre.gs.current.international.summits-and-groupings",
+]
+
+[[note]]
+chunk = 118
+file = "ir/united-nations.md"
+title = "The United Nations, its agencies and other international bodies"
+section = "Groupings and institutions"
+topics = [
+  "mains.gs2.ir.institutions.united-nations-and-the-security",
+  "mains.gs2.ir.institutions.un-specialised-agencies",
+  "mains.gs2.ir.institutions.other-institutions-and-fora",
+]
+
+[[note]]
+chunk = 119
+file = "ir/global-issues.md"
+title = "Major powers, trade wars and global conflicts: the impact on India"
+section = "Global issues and the diaspora"
+topics = [
+  "mains.gs2.ir.other-countries.policies-of-major-powers",
+  "mains.gs2.ir.other-countries.trade-wars-protectionism-and-sanctions",
+  "mains.gs2.ir.other-countries.global-conflicts-and-their-impact",
+  "mains.gs2.ir.groupings.important-agreements-and-treaties",
+  "pre.gs.current.international.conflicts-and-geopolitical-crises",
+  "pre.gs.current.international.indias-bilateral-visits-and-agreements",
+]
+
+[[note]]
+chunk = 119
+file = "ir/diaspora.md"
+title = "The Indian diaspora"
+section = "Global issues and the diaspora"
+topics = [
+  "mains.gs2.ir.other-countries.diaspora",
+]
+
+# ---- Internal security -----------------------------------------------------
+
+[[note]]
+chunk = 120
+file = "security/left-wing-extremism.md"
+title = "Development and extremism: left-wing extremism"
+topics = [
+  "mains.gs3.security.extremism",
+]
+
+[[note]]
+chunk = 120
+file = "security/terrorism-kashmir.md"
+title = "Terrorism, state-sponsored terrorism, Jammu and Kashmir and the anti-terror laws"
+topics = [
+  "mains.gs3.security.external-actors.terrorism",
+  "mains.gs3.security.external-actors.state-sponsored-terrorism",
+  "mains.gs3.security.external-actors.jammu-and-kashmir",
+  "mains.gs3.security.external-actors.laws-against-terrorism",
+]
+
+[[note]]
+chunk = 121
+file = "security/north-east.md"
+title = "Insurgency in the North-East"
+topics = [
+  "mains.gs3.security.external-actors.insurgency-in-the-north-east",
+]
+
+[[note]]
+chunk = 121
+file = "security/cyber-security.md"
+title = "Cyber security, communication networks and social media"
+topics = [
+  "mains.gs3.security.cyber",
+  "pre.gs.science-tech.ict.cyber-security-basics",
+]
+
+[[note]]
+chunk = 122
+file = "security/money-laundering.md"
+title = "Money laundering: the PMLA, the ED and the FATF"
+topics = [
+  "mains.gs3.security.money-laundering",
+]
+
+[[note]]
+chunk = 122
+file = "security/border-management.md"
+title = "Border management, coastal security and border disputes"
+topics = [
+  "mains.gs3.security.borders.land-border-management",
+  "mains.gs3.security.borders.coastal-and-maritime-security",
+  "mains.gs3.security.borders.border-disputes",
+]
+
+[[note]]
+chunk = 123
+file = "security/organised-crime.md"
+title = "Organised crime, drug trafficking and the terror nexus"
+topics = [
+  "mains.gs3.security.borders.organised-crime-and-terrorism",
+  "mains.gs3.security.borders.drug-trafficking-and-smuggling",
+]
+
+[[note]]
+chunk = 123
+file = "security/forces-agencies.md"
+title = "Security forces and agencies, and defence reforms"
+topics = [
+  "mains.gs3.security.forces",
+]
+
+# ---- Indian society --------------------------------------------------------
+
+[[note]]
+chunk = 124
+file = "society/features-diversity.md"
+title = "Indian society: salient features, diversity and unity in diversity"
+topics = [
+  "mains.gs1.society.features.features-of-indian-society",
+  "mains.gs1.society.features.diversity",
+  "mains.gs1.society.features.unity-in-diversity-and-pluralism",
+]
+
+[[note]]
+chunk = 124
+file = "society/family-caste-tribe.md"
+title = "Family, marriage, caste and tribal society; inequality and exclusion"
+topics = [
+  "mains.gs1.society.features.family-marriage-and-kinship",
+  "mains.gs1.society.features.caste-system",
+  "mains.gs1.society.features.tribal-society",
+  "mains.gs1.society.features.inequality-and-exclusion",
+]
+
+[[note]]
+chunk = 125
+file = "society/women.md"
+title = "The role of women, women's organisations and women's issues"
+topics = [
+  "mains.gs1.society.women",
+]
+
+[[note]]
+chunk = 125
+file = "society/population.md"
+title = "Population issues: policy, the demographic dividend, ageing and migration"
+topics = [
+  "mains.gs1.society.population",
+  "pre.gs.economy.demographics.demographic-dividend",
+  "pre.gs.economy.demographics.population-policy",
+]
+
+[[note]]
+chunk = 126
+file = "society/urbanisation.md"
+title = "Urbanisation: trends, problems, planning, schemes and urban poverty"
+topics = [
+  "mains.gs1.society.urbanisation",
+  "mains.gs1.society.poverty.urban-poverty",
+]
+
+[[note]]
+chunk = 126
+file = "society/globalisation.md"
+title = "The effects of globalisation on Indian society"
+topics = [
+  "mains.gs1.society.globalisation",
+]
+
+[[note]]
+chunk = 127
+file = "society/empowerment.md"
+title = "Social empowerment"
+topics = [
+  "mains.gs1.society.empowerment",
+]
+
+[[note]]
+chunk = 127
+file = "society/communalism-regionalism-secularism.md"
+title = "Communalism, regionalism and secularism"
+topics = [
+  "mains.gs1.society.communalism",
+  "mains.gs1.society.regionalism",
+  "mains.gs1.society.secularism",
+]
+
+# ---- World history ---------------------------------------------------------
+
+[[note]]
+chunk = 128
+file = "world-history/modern-world.md"
+title = "The beginning of the modern world: Renaissance, Reformation, discoveries and the Enlightenment"
+section = "The modern world"
+topics = [
+  "mains.gs1.world-history.modern-world",
+]
+
+[[note]]
+chunk = 128
+file = "world-history/revolutions.md"
+title = "The age of revolutions: American, French and Industrial"
+section = "The modern world"
+topics = [
+  "mains.gs1.world-history.revolutions",
+]
+
+[[note]]
+chunk = 129
+file = "world-history/nationalism-imperialism.md"
+title = "Nationalism in Europe and the age of imperialism"
+section = "The modern world"
+topics = [
+  "mains.gs1.world-history.nationalism",
+  "mains.gs1.world-history.colonialism",
+]
+
+[[note]]
+chunk = 129
+file = "world-history/first-world-war-russia.md"
+title = "The First World War and the Russian Revolution"
+section = "The world wars"
+topics = [
+  "mains.gs1.world-history.ww1",
+  "mains.gs1.world-history.russia",
+]
+
+[[note]]
+chunk = 130
+file = "world-history/inter-war.md"
+title = "Between the wars: the Depression, fascism, Nazism and Japanese militarism"
+section = "The world wars"
+topics = [
+  "mains.gs1.world-history.inter-war",
+]
+
+[[note]]
+chunk = 130
+file = "world-history/second-world-war.md"
+title = "The Second World War and the United Nations"
+section = "The world wars"
+topics = [
+  "mains.gs1.world-history.ww2",
+]
+
+[[note]]
+chunk = 131
+file = "world-history/cold-war.md"
+title = "The post-war world I: the Cold War, its crises and the Soviet collapse"
+section = "The post-war world"
+topics = [
+  "mains.gs1.world-history.post-war.cold-war-and-its-phases",
+  "mains.gs1.world-history.post-war.korean-vietnam-and-cuban-crises",
+  "mains.gs1.world-history.post-war.disintegration-of-the-soviet-union",
+  "mains.gs1.world-history.post-war.european-integration",
+]
+
+[[note]]
+chunk = 131
+file = "world-history/decolonisation.md"
+title = "The post-war world II: the Chinese revolution, decolonisation, new borders and West Asia"
+section = "The post-war world"
+topics = [
+  "mains.gs1.world-history.post-war.chinese-revolution",
+  "mains.gs1.world-history.post-war.decolonisation-in-asia-and-africa",
+  "mains.gs1.world-history.post-war.redrawal-of-national-boundaries",
+  "mains.gs1.world-history.post-war.west-asia-and-the-arab",
+]
+
+[[note]]
+chunk = 131
+file = "world-history/ideologies.md"
+title = "Political philosophies: capitalism, socialism, communism, liberalism and fascism"
+section = "The post-war world"
+topics = [
+  "mains.gs1.world-history.ideologies",
+]
+
+# ---- Ethics ----------------------------------------------------------------
+
+[[note]]
+chunk = 132
+file = "ethics/essence-dimensions.md"
+title = "Ethics and human interface: essence, determinants, consequences and dimensions"
+section = "Ethics and human values"
+topics = [
+  "mains.gs4.ethics.essence",
+  "mains.gs4.ethics.dimensions",
+]
+
+[[note]]
+chunk = 132
+file = "ethics/relationships-values.md"
+title = "Ethics in private and public relationships, and human values"
+section = "Ethics and human values"
+topics = [
+  "mains.gs4.ethics.relationships",
+  "mains.gs4.ethics.values",
+]
+
+[[note]]
+chunk = 133
+file = "ethics/attitude.md"
+title = "Attitude: content, structure, function, influence and persuasion"
+section = "Attitude, aptitude and EI"
+topics = [
+  "mains.gs4.attitude",
+]
+
+[[note]]
+chunk = 133
+file = "ethics/aptitude-values.md"
+title = "Aptitude and the foundational values of the civil service"
+section = "Attitude, aptitude and EI"
+topics = [
+  "mains.gs4.aptitude",
+]
+
+[[note]]
+chunk = 134
+file = "ethics/emotional-intelligence.md"
+title = "Emotional intelligence in administration"
+section = "Attitude, aptitude and EI"
+topics = [
+  "mains.gs4.ei",
+]
+
+[[note]]
+chunk = 134
+file = "ethics/indian-thinkers.md"
+title = "Moral thinkers I: Indian thinkers"
+section = "Moral thinkers"
+topics = [
+  "mains.gs4.thinkers.indian",
+]
+
+[[note]]
+chunk = 135
+file = "ethics/western-thinkers.md"
+title = "Moral thinkers II: Western thinkers"
+section = "Moral thinkers"
+topics = [
+  "mains.gs4.thinkers.western",
+]
+
+[[note]]
+chunk = 135
+file = "ethics/public-administration.md"
+title = "Ethics in public administration: dilemmas, conscience and accountability"
+section = "Ethics in public life"
+topics = [
+  "mains.gs4.public-ethics.status-and-problems",
+  "mains.gs4.public-ethics.ethical-concerns-and-dilemmas",
+  "mains.gs4.public-ethics.laws-rules-regulations-and-conscience",
+  "mains.gs4.public-ethics.accountability-and-ethical-governance",
+  "mains.gs4.public-ethics.strengthening-ethical-and-moral-values",
+]
+
+[[note]]
+chunk = 136
+file = "ethics/international-corporate.md"
+title = "Ethics in international relations and funding, and corporate governance"
+section = "Ethics in public life"
+topics = [
+  "mains.gs4.public-ethics.ethical-issues-in-international-relations",
+  "mains.gs4.public-ethics.corporate-governance",
+]
+
+[[note]]
+chunk = 136
+file = "ethics/probity.md"
+title = "Probity in governance I: public service, transparency, RTI and codes of conduct"
+section = "Probity in governance"
+topics = [
+  "mains.gs4.probity.concept-of-public-service",
+  "mains.gs4.probity.philosophical-basis-of-governance",
+  "mains.gs4.probity.information-sharing-and-transparency",
+  "mains.gs4.probity.right-to-information",
+  "mains.gs4.probity.codes-of-ethics-and-codes",
+]
+
+[[note]]
+chunk = 137
+file = "ethics/probity-delivery.md"
+title = "Probity in governance II: charters, work culture, service delivery, public funds and corruption"
+section = "Probity in governance"
+topics = [
+  "mains.gs4.probity.citizens-charters",
+  "mains.gs4.probity.work-culture",
+  "mains.gs4.probity.quality-of-service-delivery",
+  "mains.gs4.probity.utilisation-of-public-funds",
+  "mains.gs4.probity.challenges-of-corruption",
+]
+
+[[note]]
+chunk = 137
+file = "ethics/case-studies.md"
+title = "Case studies: the approach, with worked cases"
+kind = "guide"
+topics = [
+  "mains.gs4.cases",
+]
+
+# ---- Current affairs backbone ----------------------------------------------
+
+[[note]]
+chunk = 138
+file = "current-affairs/polity-economy.md"
+title = "Current affairs backbone I: governance, laws, judgments and the economy"
+topics = [
+  "pre.gs.current.national",
+  "pre.gs.current.economy",
+]
+
+[[note]]
+chunk = 138
+file = "current-affairs/schemes.md"
+title = "Government schemes: the flagship missions and how to study a scheme"
+topics = [
+  "pre.gs.current.schemes.central-sector-and-centrally-sponsored",
+  "pre.gs.current.schemes.missions-and-flagship-programmes",
+  "pre.gs.current.schemes.schemes-for-farmers-msmes",
+]
+
+[[note]]
+chunk = 139
+file = "current-affairs/reports-indices.md"
+title = "Reports, indices and committees: who publishes what"
+topics = [
+  "pre.gs.current.reports",
+  "pre.gs.current.international.international-organisations-and-their-reports",
+]
+
+[[note]]
+chunk = 139
+file = "current-affairs/environment.md"
+title = "Environment in the news: species, protected areas, climate summits and green laws"
+topics = [
+  "pre.gs.current.environment",
+]
+
+[[note]]
+chunk = 139
+file = "current-affairs/persons-awards.md"
+title = "Awards, sports, appointments and important days"
+topics = [
+  "pre.gs.current.persons",
+  "pre.gs.culture.heritage.awards-and-honours",
+]
+
+# ---- Essay and the language papers -----------------------------------------
+
+[[note]]
+chunk = 140
+file = "essay/skills-planning.md"
+title = "Essay I: choosing and decoding the topic, brainstorming, outlining and time"
+section = "Writing the essay"
+kind = "guide"
+topics = [
+  "mains.essay.skills.choosing-and-decoding-the-topic",
+  "mains.essay.skills.brainstorming-and-outlining",
+  "mains.essay.skills.time-management",
+]
+
+[[note]]
+chunk = 140
+file = "essay/skills-writing.md"
+title = "Essay II: introduction, body, counter-arguments, conclusion and language"
+section = "Writing the essay"
+kind = "guide"
+topics = [
+  "mains.essay.skills.introduction",
+  "mains.essay.skills.body",
+  "mains.essay.skills.counter-arguments-and-balance",
+  "mains.essay.skills.conclusion-and-way-forward",
+  "mains.essay.skills.language-coherence-and-exact-expression",
+]
+
+[[note]]
+chunk = 141
+file = "essay/themes-philosophical.md"
+title = "Essay themes I: philosophical and quote-based essays, ethics and values"
+section = "Essay themes"
+kind = "guide"
+topics = [
+  "mains.essay.themes.philosophical-value-based-and-quote",
+  "mains.essay.themes.ethics-and-human-values",
+]
+
+[[note]]
+chunk = 141
+file = "essay/themes-society-polity.md"
+title = "Essay themes II: society and gender, polity and governance, history and culture"
+section = "Essay themes"
+kind = "guide"
+topics = [
+  "mains.essay.themes.society-gender-and-equality",
+  "mains.essay.themes.polity-democracy-and-governance",
+  "mains.essay.themes.history-culture-and-civilisation",
+]
+
+[[note]]
+chunk = 142
+file = "essay/themes-economy.md"
+title = "Essay themes III: economy, agriculture, education and health"
+section = "Essay themes"
+kind = "guide"
+topics = [
+  "mains.essay.themes.economy-growth-and-development",
+  "mains.essay.themes.agriculture-and-rural-india",
+  "mains.essay.themes.education-and-health",
+]
+
+[[note]]
+chunk = 142
+file = "essay/themes-science-world.md"
+title = "Essay themes IV: science and technology, environment, the world and security"
+section = "Essay themes"
+kind = "guide"
+topics = [
+  "mains.essay.themes.science-technology-and-innovation",
+  "mains.essay.themes.environment-climate-and-sustainability",
+  "mains.essay.themes.international-relations-and-security",
+]
+
+[[note]]
+chunk = 143
+file = "language/indian-language.md"
+title = "Paper A (Indian language): the pattern and how to clear it"
+kind = "guide"
+topics = [
+  "mains.paper-a.comprehension-of-given-passages",
+  "mains.paper-a.precis-writing",
+  "mains.paper-a.usage-and-vocabulary",
+  "mains.paper-a.short-essays",
+  "mains.paper-a.translation-from-english",
+]
+
+[[note]]
+chunk = 143
+file = "language/english.md"
+title = "Paper B (English): comprehension, précis, usage and short essays"
+kind = "guide"
+topics = [
+  "mains.paper-b.comprehension-of-given-passages",
+  "mains.paper-b.precis-writing",
+  "mains.paper-b.usage",
+  "mains.paper-b.short-essays",
+]
+
+# ---- CSAT ------------------------------------------------------------------
+
+[[note]]
+chunk = 144
+file = "csat/reading.md"
+title = "Reading comprehension: main idea, inference, assumptions, tone and conclusions"
+section = "Comprehension and decisions"
+kind = "guide"
+topics = [
+  "pre.csat.comprehension",
+]
+
+[[note]]
+chunk = 144
+file = "csat/communication-decisions.md"
+title = "Communication skills and decision making"
+section = "Comprehension and decisions"
+kind = "guide"
+topics = [
+  "pre.csat.interpersonal",
+  "pre.csat.decision-making",
+]
+
+[[note]]
+chunk = 145
+file = "csat/verbal.md"
+title = "Verbal reasoning: syllogisms, statements, assumptions, arguments and connectives"
+section = "Reasoning"
+kind = "guide"
+topics = [
+  "pre.csat.reasoning.verbal",
+]
+
+[[note]]
+chunk = 145
+file = "csat/arrangements-puzzles.md"
+title = "Analytical reasoning I: arrangements, puzzles, relations, directions and coding"
+section = "Reasoning"
+kind = "guide"
+topics = [
+  "pre.csat.reasoning.analytical.seating-arrangements",
+  "pre.csat.reasoning.analytical.puzzles",
+  "pre.csat.reasoning.analytical.blood-relations",
+  "pre.csat.reasoning.analytical.direction-sense",
+  "pre.csat.reasoning.analytical.coding-and-decoding",
+]
+
+[[note]]
+chunk = 146
+file = "csat/series-sets-calendars.md"
+title = "Analytical reasoning II: series, Venn diagrams, calendars, clocks, cubes and patterns"
+section = "Reasoning"
+kind = "guide"
+topics = [
+  "pre.csat.reasoning.analytical.series",
+  "pre.csat.reasoning.analytical.venn-diagrams-and-set-theory",
+  "pre.csat.reasoning.analytical.calendars",
+  "pre.csat.reasoning.analytical.clocks",
+  "pre.csat.reasoning.analytical.cubes-and-dice",
+  "pre.csat.reasoning.analytical.missing-figures-and-patterns",
+]
+
+[[note]]
+chunk = 146
+file = "csat/number-system.md"
+title = "Number system: types, divisibility, HCF and LCM, remainders and primes"
+section = "Numeracy and data"
+kind = "guide"
+topics = [
+  "pre.csat.numeracy.numbers",
+]
+
+[[note]]
+chunk = 147
+file = "csat/arithmetic-basics.md"
+title = "Arithmetic basics: fractions, simplification, powers, percentages, ratios and averages"
+section = "Numeracy and data"
+kind = "guide"
+topics = [
+  "pre.csat.numeracy.fractions-and-decimals",
+  "pre.csat.numeracy.simplification-and-approximation",
+  "pre.csat.numeracy.powers-roots-surds-and-indices",
+  "pre.csat.numeracy.percentages",
+  "pre.csat.numeracy.ratio-and-proportion",
+  "pre.csat.numeracy.averages",
+]
+
+[[note]]
+chunk = 147
+file = "csat/algebra-estimation.md"
+title = "Algebra, progressions and estimation"
+section = "Numeracy and data"
+kind = "guide"
+topics = [
+  "pre.csat.numeracy.algebra",
+  "pre.csat.numeracy.progressions",
+  "pre.csat.numeracy.orders-of-magnitude-and-estimation",
+]
+
+[[note]]
+chunk = 148
+file = "csat/arithmetic-applications.md"
+title = "Arithmetic applications: profit, interest, work, speed, mixtures, partnership and ages"
+section = "Numeracy and data"
+kind = "guide"
+topics = [
+  "pre.csat.mental-ability.arithmetic",
+]
+
+[[note]]
+chunk = 148
+file = "csat/counting-geometry.md"
+title = "Permutations, probability, geometry and mensuration"
+section = "Numeracy and data"
+kind = "guide"
+topics = [
+  "pre.csat.mental-ability.counting",
+  "pre.csat.mental-ability.geometry",
+]
+
+[[note]]
+chunk = 148
+file = "csat/interpretation.md"
+title = "Data interpretation and data sufficiency"
+section = "Numeracy and data"
+kind = "guide"
+topics = [
+  "pre.csat.data",
+]

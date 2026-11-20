@@ -20,7 +20,7 @@ options = ["1 and 3 only", "2 and 4 only", "2, 3 and 4 only", "1, 2, 3 and 4"]
 answer = "B"
 explanation = "Articles 15, 16, 19, 29 and 30 are available only to citizens. Articles 14 and 21 use the word \"person\" and so protect foreigners as well."
 trap = "Article 21 feels like a citizen's right, but it protects every person on Indian soil."
-note = "gs2-polity-fundamental-rights"
+note = "polity-fundamental-rights"
 
 [[question]]
 id = "polity-0002"
@@ -31,7 +31,7 @@ options = ["Articles 14 and 19", "Articles 20 and 21", "Articles 21 and 22", "Ar
 answer = "B"
 explanation = "The 44th Amendment Act, 1978 changed Article 359 so that the enforcement of Articles 20 and 21 can never be suspended, even during a national emergency."
 trap = "Article 19 is suspended automatically under Article 358 when the emergency is on the ground of war or external aggression."
-note = "gs2-polity-fundamental-rights"
+note = "polity-fundamental-rights"
 
 [[question]]
 id = "polity-0003"
@@ -49,7 +49,6 @@ options = ["1 only", "1 and 3 only", "2 and 3 only", "1, 2 and 3"]
 answer = "B"
 explanation = "A Money Bill is introduced only in the Lok Sabha, on the President's recommendation. The Rajya Sabha can only make recommendations and must return the Bill within 14 days. Under Article 110(3) the Speaker's certificate is final."
 trap = "The Rajya Sabha can discuss a Money Bill and suggest changes. It cannot amend or reject it."
-note = "gs2-polity-parliament"
 
 [[question]]
 id = "polity-0004"
@@ -60,7 +59,7 @@ options = ["Mandamus", "Prohibition", "Certiorari", "Quo warranto"]
 answer = "B"
 explanation = "Prohibition is preventive: it stops proceedings that are still under way. Certiorari quashes an order that has already been passed. Mandamus commands a public authority to perform a duty, and quo warranto questions a person's title to a public office."
 trap = "Prohibition and certiorari both go to lower courts. The difference is timing: before the order, or after it."
-note = "gs2-polity-fundamental-rights"
+note = "polity-rights-remedies-writs"
 
 [[question]]
 id = "polity-0005"
@@ -78,7 +77,6 @@ options = ["1 and 3 only", "2 only", "2 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "The Rajya Sabha is a permanent House, and each member serves six years, so one-third retire every second year. Members are elected by the single transferable vote. The Chairman votes only to break a tie."
 trap = "A presiding officer who has a casting vote is not a member who votes on every question."
-note = "gs2-polity-parliament"
 
 [[question]]
 id = "polity-0006"
@@ -89,7 +87,6 @@ options = ["Public Accounts Committee", "Committee on Public Undertakings", "Est
 answer = "C"
 explanation = "The Estimates Committee has 30 members, all from the Lok Sabha. The Public Accounts Committee and the Committee on Public Undertakings each include Rajya Sabha members (7 of 22), and the departmentally related standing committees draw on both Houses."
 trap = "The Public Accounts Committee looks like a Lok Sabha body because the Lok Sabha dominates it, but the Rajya Sabha has seats on it."
-note = "gs2-polity-parliament"
 
 [[question]]
 id = "polity-0007"
@@ -107,7 +104,6 @@ options = ["1 only", "3 only", "1 and 2 only", "1 and 3 only"]
 answer = "D"
 explanation = "Article 108 provides for a joint sitting on an ordinary bill, and the Speaker presides. It has been used in 1961, 1978 and 2002. Constitution amendment bills under Article 368 need a special majority in each House and cannot go to a joint sitting."
 trap = "A deadlock on an amendment bill ends the bill. There is no joint sitting to rescue it."
-note = "gs2-polity-parliament"
 
 [[question]]
 id = "polity-0008"
@@ -162,7 +158,6 @@ options = ["Reservation of not less than one-third of the seats for women", "Res
 answer = "B"
 explanation = "Part IX makes reservation for Scheduled Castes, Scheduled Tribes and women compulsory. Reservation for backward classes is left to the state legislature to provide."
 trap = "Reservation is compulsory for three groups: Scheduled Castes, Scheduled Tribes and women. Backward classes are not among them."
-note = "gs2-polity-panchayati-raj"
 
 [[question]]
 id = "polity-0012"
@@ -180,7 +175,6 @@ options = ["1 and 2 only", "2 and 3 only", "1, 2 and 3", "1 and 3 only"]
 answer = "C"
 explanation = "The Eleventh Schedule added by the 73rd Amendment has 29 subjects. The Balwantrai Mehta Committee reported in 1957, and Rajasthan began the system at Nagaur in 1959. Article 243B allows a small state to skip the intermediate tier."
 trap = "The 73rd Amendment made three tiers compulsory, but only for states with at least 20 lakh people."
-note = "gs2-polity-panchayati-raj"
 
 [[question]]
 id = "polity-0013"
@@ -191,7 +185,6 @@ options = ["The Fifth Schedule", "The Sixth Schedule", "All tribal districts of 
 answer = "A"
 explanation = "PESA applies to the Fifth Schedule areas, and it gives the Gram Sabha powers over minor forest produce, land alienation and local resources. The Sixth Schedule areas of the north-east are governed through autonomous councils."
 trap = "Both the Fifth and Sixth Schedules deal with tribal areas, but only the Fifth Schedule areas come under PESA."
-note = "gs2-polity-panchayati-raj"
 
 [[question]]
 id = "polity-0014"
@@ -209,7 +202,7 @@ options = ["1 only", "3 only", "2 and 3 only", "1 and 2 only"]
 answer = "D"
 explanation = "Article 32 is in Part III, so the remedy is itself guaranteed. Article 226 is wider than Article 32 because a High Court can also act for 'any other purpose'. The Supreme Court's writ power under Article 32 is limited to Fundamental Rights."
 trap = "Article 226 gives the High Courts a wider writ jurisdiction than the Supreme Court has under Article 32."
-note = "gs2-polity-fundamental-rights"
+note = "polity-rights-remedies-writs"
 
 [[question]]
 id = "polity-0015"
@@ -227,7 +220,7 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "Article 17 makes untouchability an offence, and Article 18(1) bars the State from conferring titles other than military and academic distinctions. In Balaji Raghavan (1995) the Supreme Court held that national awards are not titles within Article 18."
 trap = "The awards carry names but not titles. A recipient may not use them as a prefix or suffix to a name."
-note = "gs2-polity-fundamental-rights"
+note = "polity-fundamental-rights"
 
 [[question]]
 id = "polity-0016"
@@ -238,7 +231,6 @@ options = ["Golaknath v. State of Punjab (1967)", "Maneka Gandhi v. Union of Ind
 answer = "C"
 explanation = "A 13-judge bench in Kesavananda Bharati held that Parliament can amend any part of the Constitution but cannot alter its basic structure. Golaknath had held that Fundamental Rights could not be amended at all, and Kesavananda overruled it."
 trap = "Golaknath came first and also limited Parliament, but it barred amendment of Fundamental Rights altogether. The basic structure doctrine began with Kesavananda."
-note = "gs2-polity-fundamental-rights"
 
 [[question]]
 id = "polity-0017"

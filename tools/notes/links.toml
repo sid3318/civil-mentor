@@ -1,0 +1,379 @@
+# Connections between notes, written by Claude as each chunk is verified.
+# Kinds: builds-on (read the other first), leads-to (a cause, or what followed),
+# same-era (contemporaries), compare (asked together, or confused), same-issue
+# (the same issue in another subject or paper), example-of (a case of the other).
+# A link may point to a note not written yet; it shows once that note exists.
+
+# ---- polity-constitutional-history-company ----
+
+[[link]]
+from = "polity-constitutional-history-company"
+to = "polity-constitutional-history-crown"
+kind = "leads-to"
+why = "The 1853 Act left the Company's charter without a fixed term; after the Revolt of 1857, the Government of India Act 1858 ended Company rule and the Crown governed directly."
+
+[[link]]
+from = "polity-constitutional-history-company"
+to = "modern-india-british-conquest"
+kind = "same-era"
+why = "The Acts of 1773 to 1853 regulated territory won at Plassey and Buxar and in the Mysore, Maratha and Sikh wars; Parliament's control tightened with each conquest."
+
+[[link]]
+from = "polity-constitutional-history-company"
+to = "modern-india-economic-impact"
+kind = "leads-to"
+why = "The Charter Act of 1813 ended the Company's monopoly except for tea and the China trade, opening India to British manufactures: the starting point of the deindustrialisation debate."
+
+[[link]]
+from = "polity-constitutional-history-company"
+to = "modern-india-women-education-press"
+kind = "leads-to"
+why = "The ₹1 lakh a year for education in the 1813 Act began the Orientalist–Anglicist controversy, which Macaulay's Minute of 1835 settled in favour of English education."
+
+[[link]]
+from = "polity-constitutional-history-company"
+to = "governance-civil-services"
+kind = "leads-to"
+why = "Open competition for the civil services began with the Charter Act of 1853 and the Macaulay Committee (1854), the root of today's merit-based services and the debates on reforming them."
+
+[[link]]
+from = "polity-constitutional-history-company"
+to = "polity-federalism"
+kind = "leads-to"
+why = "The 1833 Act made one Governor-General the sole law-maker for British India. That tradition of a strong Centre runs through to the unitary features of Indian federalism."
+
+# ---- polity-constitutional-history-crown ----
+
+[[link]]
+from = "polity-constitutional-history-crown"
+to = "modern-india-revolt-1857"
+kind = "builds-on"
+why = "The Government of India Act 1858 was Parliament's answer to the Revolt of 1857; its causes and consequences explain why the Company could not survive it."
+
+[[link]]
+from = "polity-constitutional-history-crown"
+to = "modern-india-swadeshi-extremists"
+kind = "same-era"
+why = "The Morley–Minto reforms (1909) followed the Partition of Bengal and the Surat split (1907). Separate electorates came while the Moderates were being courted and the Muslim League was new (1906)."
+
+[[link]]
+from = "polity-constitutional-history-crown"
+to = "modern-india-civil-disobedience"
+kind = "same-era"
+why = "The 1935 Act grew out of the Simon Commission, the Round Table Conferences and the Poona Pact (1932): the constitutional track that ran alongside Civil Disobedience."
+
+[[link]]
+from = "polity-constitutional-history-crown"
+to = "modern-india-independence-partition"
+kind = "leads-to"
+why = "The Mountbatten Plan of 3 June 1947 was given legal form by the Indian Independence Act, which created the two dominions and made their Constituent Assemblies sovereign."
+
+[[link]]
+from = "polity-constitutional-history-crown"
+to = "polity-federalism"
+kind = "leads-to"
+why = "The 1935 Act's federal scheme (three lists, provincial autonomy, governors with special powers) became the structural frame of the Constitution's federalism."
+
+[[link]]
+from = "polity-constitutional-history-crown"
+to = "society-communalism-regionalism-secularism"
+kind = "leads-to"
+why = "Separate electorates, begun in 1909 and widened in 1919 and 1935, built religious division into representation, a key thread in any answer on the roots of communalism and partition."
+
+# ---- polity-making-of-the-constitution ----
+
+[[link]]
+from = "polity-making-of-the-constitution"
+to = "polity-salient-features-preamble"
+kind = "leads-to"
+why = "Nehru's Objectives Resolution, moved on 13 December 1946 and adopted on 22 January 1947, became the Preamble: an independent sovereign republic promising justice, liberty and equality."
+
+[[link]]
+from = "polity-making-of-the-constitution"
+to = "modern-india-integration"
+kind = "same-era"
+why = "The Assembly framed the Constitution while Patel and V.P. Menon integrated the princely states; the states' representatives joined the Assembly as their rulers acceded."
+
+[[link]]
+from = "polity-making-of-the-constitution"
+to = "polity-constitutional-history-crown"
+kind = "builds-on"
+why = "The Cabinet Mission (1946) decided how the Assembly was composed, and the Indian Independence Act (1947) made it sovereign and the Dominion legislature."
+
+[[link]]
+from = "polity-making-of-the-constitution"
+to = "polity-fundamental-rights"
+kind = "leads-to"
+why = "Patel's Advisory Committee and J.B. Kripalani's sub-committee on Fundamental Rights drafted what became Part III of the Constitution."
+
+[[link]]
+from = "polity-making-of-the-constitution"
+to = "polity-official-language"
+kind = "leads-to"
+why = "The Assembly's sharpest debate was over language. The Munshi–Ayyangar formula, Hindi in Devanagari with English continuing for fifteen years, became Part XVII."
+
+[[link]]
+from = "polity-making-of-the-constitution"
+to = "polity-reservation"
+kind = "leads-to"
+why = "Ambedkar's warning of a 'life of contradictions' explains why the framers wrote Articles 16(4), 17 and 46 into the Constitution: political equality had to be backed by social measures."
+
+# ---- polity-salient-features-preamble ----
+
+[[link]]
+from = "polity-salient-features-preamble"
+to = "polity-basic-structure"
+kind = "leads-to"
+why = "Kesavananda Bharati (1973), which held the Preamble to be part of the Constitution, also created the basic structure doctrine that limits every amendment, the Preamble's included."
+
+[[link]]
+from = "polity-salient-features-preamble"
+to = "polity-federalism"
+kind = "compare"
+why = "Single citizenship and a single constitution sit beside a federal division of powers. Compare them with the US model of dual citizenship and state constitutions to explain India's 'federation with a unitary bias'."
+
+[[link]]
+from = "polity-salient-features-preamble"
+to = "society-communalism-regionalism-secularism"
+kind = "same-issue"
+why = "Constitutional secularism (Articles 25–28, S.R. Bommai, 1994) and secularism as a social reality (communalism, the Uniform Civil Code debate) are one issue seen from GS-2 and GS-1."
+
+[[link]]
+from = "polity-salient-features-preamble"
+to = "polity-elections-rpa"
+kind = "leads-to"
+why = "Universal adult franchise under Article 326, with the voting age at 18 since the 61st Amendment, is put into practice through the Representation of the People Acts and the Election Commission."
+
+[[link]]
+from = "polity-salient-features-preamble"
+to = "polity-comparative-constitutions"
+kind = "compare"
+why = "The table of borrowed features is the starting point for comparing India's Constitution with those of Britain, the US, Ireland, Canada and Australia, a GS-2 syllabus line of its own."
+
+[[link]]
+from = "polity-salient-features-preamble"
+to = "polity-dpsp-duties"
+kind = "example-of"
+why = "The Preamble's justice (social, economic and political) is made concrete in the Directive Principles, above all Article 38's call for a social order based on justice."
+
+# ---- polity-union-territory-citizenship ----
+
+[[link]]
+from = "polity-union-territory-citizenship"
+to = "modern-india-reorganisation"
+kind = "same-issue"
+why = "The power to redraw states (Articles 2–4) and the history of linguistic reorganisation (Potti Sriramulu, the Fazl Ali Commission, the 1956 Act) are one story told in GS-2 and GS-1."
+
+[[link]]
+from = "polity-union-territory-citizenship"
+to = "modern-india-integration"
+kind = "builds-on"
+why = "Before states could be reorganised, the princely states had to be integrated through the Instrument of Accession, with Junagadh, Hyderabad and Kashmir handled separately."
+
+[[link]]
+from = "polity-union-territory-citizenship"
+to = "polity-union-territories"
+kind = "leads-to"
+why = "The Jammu and Kashmir Reorganisation Act, 2019, passed under Article 3, created the Union territories of Jammu and Kashmir and Ladakh; the UT note covers how they and Delhi are governed."
+
+[[link]]
+from = "polity-union-territory-citizenship"
+to = "ir-diaspora"
+kind = "same-issue"
+why = "Overseas Citizenship of India, Article 8 and Pravasi Bharatiya Divas link citizenship law to diaspora policy, an international relations topic in GS-2."
+
+[[link]]
+from = "polity-union-territory-citizenship"
+to = "security-border-management"
+kind = "same-issue"
+why = "The CAA, Section 6A and the Assam NRC all deal with illegal migration from Bangladesh, which the internal security syllabus treats as a border-management problem."
+
+# ---- polity-schedules-articles ----
+
+[[link]]
+from = "polity-schedules-articles"
+to = "polity-amendment"
+kind = "example-of"
+why = "Most Schedules came by amendment (the Ninth by the 1st, the Tenth by the 52nd, the Eleventh and Twelfth by the 73rd and 74th): good examples of how the Constitution has grown."
+
+[[link]]
+from = "polity-schedules-articles"
+to = "polity-basic-structure"
+kind = "leads-to"
+why = "The Ninth Schedule's blanket immunity ended with I.R. Coelho (2007), which applied the basic structure test to laws added after 24 April 1973."
+
+[[link]]
+from = "polity-schedules-articles"
+to = "polity-parliament-privileges-issues"
+kind = "leads-to"
+why = "The Tenth Schedule is the anti-defection law (52nd Amendment, 1985; tightened by the 91st, 2003). Kihoto Hollohan (1992) and the Speaker's role in disqualification are covered with Parliament."
+
+[[link]]
+from = "polity-schedules-articles"
+to = "polity-official-language"
+kind = "compare"
+why = "The Eighth Schedule's 22 languages are often confused with the Union's official language (Hindi, with English, under Article 343) and with classical-language status, a separate government scheme."
+
+[[link]]
+from = "polity-schedules-articles"
+to = "economy-land-reforms"
+kind = "same-issue"
+why = "The Ninth Schedule was created to shield zamindari abolition and land reform laws, which GS-3 studies as land reforms."
+
+[[link]]
+from = "polity-schedules-articles"
+to = "polity-panchayati-raj"
+kind = "leads-to"
+why = "The Eleventh Schedule's 29 subjects are what states may devolve to panchayats under Article 243G; how much they actually devolve is the heart of the 'three Fs' debate."
+
+# ---- polity-fundamental-rights ----
+
+[[link]]
+from = "polity-fundamental-rights"
+to = "polity-rights-freedom"
+kind = "leads-to"
+why = "The doctrine that equality is opposed to arbitrariness (Royappa, 1974) led to Maneka Gandhi (1978), which read Articles 14, 19 and 21 together as a golden triangle."
+
+[[link]]
+from = "polity-fundamental-rights"
+to = "polity-reservation"
+kind = "leads-to"
+why = "Articles 15(4), 16(4) and 16(4A) are the constitutional base of reservation; Indra Sawhney, the creamy layer and the 50% ceiling are developed in the reservation note."
+
+[[link]]
+from = "polity-fundamental-rights"
+to = "social-justice-scs-sts"
+kind = "same-issue"
+why = "Article 17 and the SC/ST (Prevention of Atrocities) Act, 1989 are the polity side of the welfare of Scheduled Castes, which social justice covers through schemes and institutions."
+
+[[link]]
+from = "polity-fundamental-rights"
+to = "society-family-caste-tribe"
+kind = "same-issue"
+why = "Untouchability and caste discrimination, outlawed by Articles 15 and 17, are studied as social realities under the caste system in GS-1."
+
+[[link]]
+from = "polity-fundamental-rights"
+to = "polity-dpsp-duties"
+kind = "compare"
+why = "Fundamental Rights are justiciable and mostly negative; Directive Principles are non-justiciable and positive. Minerva Mills (1980) made the balance between them part of the basic structure."
+
+[[link]]
+from = "polity-fundamental-rights"
+to = "polity-basic-structure"
+kind = "leads-to"
+why = "Article 13 and the 24th Amendment led to Kesavananda Bharati (1973): an amendment is not 'law' under Article 13, but it cannot destroy the basic structure."
+
+# ---- polity-rights-freedom ----
+
+[[link]]
+from = "polity-rights-freedom"
+to = "polity-emergency"
+kind = "compare"
+why = "Article 358 suspends Article 19 by itself, only in a war or external-aggression emergency; Article 359 lets the President suspend enforcement of other rights, but never Articles 20 and 21."
+
+[[link]]
+from = "polity-rights-freedom"
+to = "modern-india-politics"
+kind = "same-era"
+why = "ADM Jabalpur (1976), which let the government suspend habeas corpus, was decided during the Emergency of 1975–77; the 44th Amendment's protection of Article 21 was the response."
+
+[[link]]
+from = "polity-rights-freedom"
+to = "science-tech-semiconductors-data"
+kind = "same-issue"
+why = "Privacy under Article 21 (Puttaswamy, 2017) led to the Digital Personal Data Protection Act, 2023, which GS-3 studies as data protection and cyber law."
+
+[[link]]
+from = "polity-rights-freedom"
+to = "environment-climate-action"
+kind = "same-issue"
+why = "The right to be free from the adverse effects of climate change (M.K. Ranjitsinh, 2024) ties Article 21 to India's climate commitments and to protecting the Great Indian Bustard."
+
+[[link]]
+from = "polity-rights-freedom"
+to = "social-justice-school-education"
+kind = "same-issue"
+why = "Article 21A and the RTE Act, 2009, with its 25% quota in private unaided schools, are the rights side of school education in GS-2 social justice."
+
+[[link]]
+from = "polity-rights-freedom"
+to = "security-terrorism-kashmir"
+kind = "same-issue"
+why = "Preventive detention under Article 22 and laws such as the NSA and the UAPA raise the same liberty-versus-security question that GS-3 internal security asks."
+
+[[link]]
+from = "polity-rights-freedom"
+to = "polity-electoral-reforms-parties"
+kind = "example-of"
+why = "Voters' right to know (ADR, 2002; PUCL, 2003), NOTA (2013) and the striking down of electoral bonds (2024) show Article 19(1)(a) driving electoral reform."
+
+# ---- polity-rights-religion-culture ----
+
+[[link]]
+from = "polity-rights-religion-culture"
+to = "society-communalism-regionalism-secularism"
+kind = "same-issue"
+why = "Articles 25–28 are the legal frame of Indian secularism; GS-1 society discusses secularism, communalism and the Uniform Civil Code as social questions."
+
+[[link]]
+from = "polity-rights-religion-culture"
+to = "social-justice-minorities"
+kind = "same-issue"
+why = "Articles 29 and 30, the National Commission for Minorities and the six notified minorities are the polity side of minority welfare in GS-2 social justice."
+
+[[link]]
+from = "polity-rights-religion-culture"
+to = "social-justice-women-children"
+kind = "same-issue"
+why = "Articles 23 and 24, the Child Labour Amendment Act of 2016 and the NCPCR connect to the GS-2 topic on laws and schemes for women and children."
+
+[[link]]
+from = "polity-rights-religion-culture"
+to = "economy-employment"
+kind = "same-issue"
+why = "The Labour Codes in force from 21 November 2025, including the Code on Wages and its national floor wage, give effect to Article 23's ban on forced labour as read in PUDR (1982)."
+
+[[link]]
+from = "polity-rights-religion-culture"
+to = "polity-fundamental-rights"
+kind = "compare"
+why = "Article 30's minority rights sit beside Article 15(5)'s reservation in private institutions, which expressly exempts minority institutions: a frequent Prelims trap."
+
+# ---- polity-rights-remedies-writs ----
+
+[[link]]
+from = "polity-rights-remedies-writs"
+to = "polity-supreme-court"
+kind = "compare"
+why = "Article 32 is one part of the Supreme Court's original jurisdiction; compare it with the Court's appellate jurisdiction and its advisory jurisdiction under Article 143."
+
+[[link]]
+from = "polity-rights-remedies-writs"
+to = "polity-high-courts"
+kind = "compare"
+why = "Article 226 gives High Courts a wider writ jurisdiction than Article 32 ('any other purpose'), but a discretionary one: compare the two when answering on access to justice."
+
+[[link]]
+from = "polity-rights-remedies-writs"
+to = "polity-separation-of-powers"
+kind = "leads-to"
+why = "Public interest litigation, born of the relaxed locus standi under Article 32 (S.P. Gupta, 1981), is the main ground of the debate on judicial activism versus overreach."
+
+[[link]]
+from = "polity-rights-remedies-writs"
+to = "polity-basic-structure"
+kind = "leads-to"
+why = "L. Chandra Kumar (1997) made judicial review under Articles 32 and 226 part of the basic structure, and Minerva Mills (1980) struck down the 42nd Amendment's extension of Article 31C."
+
+[[link]]
+from = "polity-rights-remedies-writs"
+to = "polity-emergency"
+kind = "compare"
+why = "Martial law under Article 34 is often confused with a national emergency under Article 352; the differences are a favourite Prelims question."
+
+[[link]]
+from = "polity-rights-remedies-writs"
+to = "security-forces-agencies"
+kind = "same-issue"
+why = "Article 33 lets Parliament restrict the rights of the armed forces and police (the Army Act, 1950; the Police Forces Act, 1966), linking Part III to the security forces in GS-3."

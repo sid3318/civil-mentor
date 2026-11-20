@@ -87,7 +87,6 @@ frame = [
   "Name the threats: roads, rail lines, mining, human settlement.",
   "Suggest measures: corridor notification, underpasses, community participation.",
 ]
-notes = ["gs3-environment-biodiversity-conservation"]
 
 [story.question]
 id = "ca-2026-11-12-3"

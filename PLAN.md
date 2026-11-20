@@ -304,7 +304,6 @@ id: gs2-polity-fundamental-rights
 title: Fundamental Rights (Articles 12 to 35)
 topics: [gs2.polity.fundamental-rights]
 kind: note            # note | cheatsheet | guide | book | concept
-minutes: 26
 updated: 2026-11-01
 ---
 ## 1. Quick anchor
@@ -313,6 +312,8 @@ Full text of the note...
 <!-- distilled -->
 - The short version, shown in Distilled mode.
 ```
+
+The reading time is not written in the file: the loader counts it from the words. The real notes are written with Gemini and verified by Claude in chunks, as `tools/notes/WORKFLOW.md` describes.
 
 Questions are TOML, one file per subject:
 
@@ -440,7 +441,7 @@ Every phase below has a to-do list, so any agent can pick up the next open task.
 
 **As built.** The condition is met and checked by `cargo test`: the UI test opens a note, switches it to Distilled, marks it read and watches coverage go up for both Mains GS-2 and Prelims GS. What differs from the plan:
 
-- **The notes list** groups notes by paper and subject, in syllabus order, with bookmarked notes on top. Subjects do not fold yet; add that when there are hundreds of notes.
+- **The notes list** is a tree of folders, like a file browser: subjects, their sections, then the notes, in the order of `tools/notes/manifest.toml` (each note's `subject`, `section` and `order`). A folder opens or closes with a click, and opening a note opens its folders. It has no filters; bookmarks are listed in the Notebook.
 - **"At a glance" is the line under the title**: reading time, linked questions and the date the note was last updated. "Asked in" years wait for real PYQs, which come with Phase 2's papers.
 - **Linked questions sit at the end of the note**, each with its answer behind a button, because the side panel is too narrow for a question. The side panel holds the outline, made from the note's `## ` headings, and its last entry jumps to the questions. A question is linked when it names the note or shares a topic with it.
 - **Text size** (13 to 24 px) and **column width** (720 or 960 px) are saved as settings, so the reader remembers them.

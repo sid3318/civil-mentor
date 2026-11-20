@@ -17,7 +17,6 @@ options = ["1 and 3 only", "1, 2 and 3 only", "2, 3 and 4 only", "1, 2, 3 and 4"
 answer = "D"
 explanation = "India has parts of four hotspots. The Nicobar Islands fall in the Sundaland hotspot, and most of north-east India falls in Indo-Burma."
 trap = "Sundaland looks like a South-East Asian hotspot only, but it includes the Nicobar Islands."
-note = "gs3-environment-biodiversity-conservation"
 
 [[question]]
 id = "environment-0002"
@@ -27,7 +26,6 @@ stem = "The Ramsar Convention is an international treaty for the conservation of
 options = ["Migratory birds", "Wetlands", "Coral reefs", "Tropical forests"]
 answer = "B"
 explanation = "The Convention on Wetlands was signed in 1971 in Ramsar, Iran. It provides for the conservation and wise use of wetlands. The Montreux Record lists Ramsar sites whose ecological character is under threat."
-note = "gs3-environment-biodiversity-conservation"
 
 [[question]]
 id = "environment-0003"
@@ -69,7 +67,6 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "Norman Myers proposed the idea in 1988. A region qualifies if it holds at least 1,500 endemic vascular plant species and has lost at least 70 per cent of its original habitat."
 trap = "A region that has lost 30 per cent of its habitat is only moderately disturbed. The test is 70 per cent."
-note = "gs3-environment-biodiversity-conservation"
 
 [[question]]
 id = "environment-0006"
@@ -80,7 +77,6 @@ options = ["National park", "Wildlife sanctuary", "Community reserve", "Conserva
 answer = "C"
 explanation = "A community reserve is created on land owned by a community or by private owners who choose to protect it. A conservation reserve is declared on government land, often as a corridor between larger protected areas."
 trap = "Conservation reserves and community reserves were added by the same 2002 amendment, but only one of them is on private land."
-note = "gs3-environment-biodiversity-conservation"
 
 [[question]]
 id = "environment-0007"
@@ -98,7 +94,6 @@ options = ["1 and 2 only", "1 and 3 only", "1, 2 and 3", "2 and 3 only"]
 answer = "D"
 explanation = "Biosphere reserves come from UNESCO's Man and the Biosphere Programme, and the Wild Life (Protection) Act has no such category. The Nilgiri reserve was set up in 1986."
 trap = "The Act names national parks, sanctuaries, conservation reserves and community reserves. A biosphere reserve may include such areas but is not one of them."
-note = "gs3-environment-biodiversity-conservation"
 
 [[question]]
 id = "environment-0008"
@@ -116,7 +111,6 @@ options = ["Only one", "Only two", "All three", "None"]
 answer = "B"
 explanation = "CITES and the Convention on Migratory Species are matched correctly. The safe movement of living modified organisms is the subject of the Cartagena Protocol, while the Nagoya Protocol covers access to genetic resources and the sharing of their benefits."
 trap = "Cartagena and Nagoya are both protocols to the Convention on Biological Diversity, and the two names are easy to swap."
-note = "gs3-environment-biodiversity-conservation"
 
 [[question]]
 id = "environment-0009"

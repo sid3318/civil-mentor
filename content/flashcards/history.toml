@@ -16,7 +16,6 @@ topics = ["pre.gs.modern.gandhian.purna-swaraj-and-the-civil"]
 source = "Civil Mentor sample"
 front = "At which Congress session was Purna Swaraj adopted as the goal?"
 back = "The Lahore session of December 1929, presided over by Jawaharlal Nehru. 26 January 1930 was then observed as Independence Day."
-note = "gs1-history-gandhian-phase"
 
 [[card]]
 id = "history-buland-darwaza"

@@ -80,7 +80,6 @@ frame = [
   "List the threats: aquaculture, reclamation, pollution, upstream dams.",
   "Suggest community-led restoration and strict coastal regulation.",
 ]
-notes = ["gs3-environment-biodiversity-conservation"]
 
 [story.question]
 id = "ca-2026-11-15-3"
@@ -136,7 +135,6 @@ facts = [
 ]
 trap = "Vimana and gopura are not the same. The vimana sits over the main shrine, and the gopura stands over the entrance gateway."
 pyq = "Prelims has often asked about temple styles, the features of Dravida and Nagara towers and the temples on the World Heritage list."
-notes = ["gs1-art-culture-temple-architecture"]
 
 [story.question]
 id = "ca-2026-11-15-5"

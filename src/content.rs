@@ -34,6 +34,14 @@ pub struct Note {
     pub id: String,
     pub title: String,
     pub topics: Vec<String>,
+    /// The subject the notes list files it under, such as "Polity". A note
+    /// with none is filed under its paper.
+    pub subject: Option<String>,
+    /// The section of the subject it is filed under, such as "Rights and
+    /// duties". A note with none sits under the subject itself.
+    pub section: Option<String>,
+    /// Where it comes in the notes list. Notes with none come last.
+    pub order: Option<u32>,
     pub kind: String,
     pub updated: Option<NaiveDate>,
     /// Full text, Markdown.
@@ -253,6 +261,9 @@ struct RawTopic {
 struct NoteMeta {
     id: String,
     title: String,
+    subject: Option<String>,
+    section: Option<String>,
+    order: Option<u32>,
     topics: Vec<String>,
     kind: Option<String>,
     updated: Option<String>,
@@ -511,6 +522,9 @@ impl Library {
             id: meta.id,
             title: meta.title,
             topics: meta.topics,
+            subject: meta.subject,
+            section: meta.section,
+            order: meta.order,
             kind: meta.kind.unwrap_or_else(|| "note".into()),
             updated,
             body: body.to_string(),
@@ -1216,7 +1230,7 @@ note = "rights"
             ],
             "both stages and every compulsory paper"
         );
-        assert!(library.notes.len() >= 12, "notes loaded");
+        assert!(library.notes.len() >= 10, "notes loaded");
         let samples = library
             .questions
             .iter()
@@ -1276,9 +1290,12 @@ note = "rights"
                 note.id
             );
         }
-        for paper in ["mains.gs1", "mains.gs2", "mains.gs3", "mains.gs4"] {
-            let notes = library.notes.iter().filter(|n| is_under(&n.topics, paper));
-            assert!(notes.count() >= 3, "{paper} has at least three notes");
+        for note in &library.notes {
+            assert!(
+                note.subject.is_some() && note.order.is_some(),
+                "{} has a subject and a place in the notes list",
+                note.id
+            );
         }
         assert_eq!(library.mains.len(), 10, "every sample Mains question loads");
         for paper in MAINS_PAPERS {
@@ -1782,5 +1799,20 @@ Our own view.
             1,
             "no empty section before a leading heading"
         );
+    }
+
+    #[test]
+    fn a_note_carries_its_place_in_the_list() {
+        let note = "---\nid: polity-writs\ntitle: Writs\nsubject: Polity\nsection: Rights\norder: 9\n\
+                    topics: [mains.gs2.polity]\n---\n## 1. Writs\nText.\n";
+        let library = Library::from_files(files(&[
+            ("syllabus.toml", SYLLABUS),
+            ("notes/polity/writs.md", note),
+        ]));
+        assert_eq!(library.problems, Vec::<String>::new());
+        let note = &library.notes[0];
+        assert_eq!(note.subject.as_deref(), Some("Polity"));
+        assert_eq!(note.section.as_deref(), Some("Rights"));
+        assert_eq!(note.order, Some(9));
     }
 }

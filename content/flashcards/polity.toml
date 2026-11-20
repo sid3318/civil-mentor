@@ -9,7 +9,7 @@ topics = ["pre.gs.polity.rights.fundamental-rights.right-to-equality"]
 source = "Civil Mentor sample"
 front = "Which Article abolishes untouchability?"
 back = "Article 17. It abolishes untouchability and forbids its practice in any form. Enforcing any disability that arises from it is an offence punishable by law; the Protection of Civil Rights Act, 1955 does this."
-note = "gs2-polity-fundamental-rights"
+note = "polity-fundamental-rights"
 
 [[card]]
 id = "polity-quo-warranto"
@@ -17,7 +17,7 @@ topics = ["pre.gs.polity.rights.writs.quo-warranto"]
 source = "Civil Mentor sample"
 front = "Which writ asks a person by what authority they hold a public office?"
 back = "Quo warranto (\"by what authority\"). It stops someone from holding a substantive public office they are not entitled to. Unlike most writs, any person can seek it, not only the one aggrieved."
-note = "gs2-polity-fundamental-rights"
+note = "polity-rights-remedies-writs"
 
 [[card]]
 id = "polity-money-bill"
@@ -25,7 +25,6 @@ topics = ["pre.gs.polity.parliament.bills.money-bills"]
 source = "Civil Mentor sample"
 front = "Where can a Money Bill be introduced, and who decides that a bill is a Money Bill?"
 back = "Only in the Lok Sabha, and only on the President's recommendation. The Speaker's decision on whether a bill is a Money Bill is final (Article 110). The Rajya Sabha can hold it for at most 14 days and can only recommend changes."
-note = "gs2-polity-parliament"
 
 [[card]]
 id = "polity-42nd"
@@ -40,7 +39,7 @@ topics = ["pre.gs.polity.rights.fundamental-rights.right-to-freedom"]
 source = "Civil Mentor sample"
 front = "What does Article 21A guarantee, and which amendment added it?"
 back = "Free and compulsory education for every child aged 6 to 14, in the manner the State decides by law. The 86th Amendment Act, 2002 added it; the Right to Education Act, 2009 puts it into effect."
-note = "gs2-polity-fundamental-rights"
+note = "polity-rights-freedom"
 
 [[card]]
 id = "polity-isc"

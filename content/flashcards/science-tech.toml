@@ -16,7 +16,6 @@ topics = ["pre.gs.science-tech.space.orbits-and-satellites"]
 source = "Civil Mentor sample"
 front = "What is a geostationary orbit?"
 back = "A circular orbit about 35,786 km above the equator, in which a satellite goes round once a day in the direction Earth turns. It stays over one spot, so it suits communication and weather satellites."
-note = "gs3-science-tech-space-programme"
 
 [[card]]
 id = "science-vitamins"

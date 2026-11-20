@@ -9,7 +9,6 @@ topics = ["pre.gs.environment.conventions.ramsar-convention-cites-and-cms"]
 source = "Civil Mentor sample"
 front = "What is the Ramsar Convention about?"
 back = "The conservation and wise use of wetlands. It was signed in 1971 at Ramsar in Iran, and India joined in 1982."
-note = "gs3-environment-biodiversity-conservation"
 
 [[card]]
 id = "environment-wpa-schedules"
@@ -31,4 +30,3 @@ topics = ["pre.gs.environment.biodiversity.biodiversity-hotspots"]
 source = "Civil Mentor sample"
 front = "What makes a region a biodiversity hotspot?"
 back = "Under Norman Myers' criteria, it must have at least 1,500 endemic species of vascular plants and must have lost at least 70% of its original habitat. India has parts of four: the Himalaya, Indo-Burma, the Western Ghats and Sri Lanka, and Sundaland (the Nicobar Islands)."
-note = "gs3-environment-biodiversity-conservation"

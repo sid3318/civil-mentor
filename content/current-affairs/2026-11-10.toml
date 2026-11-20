@@ -21,7 +21,6 @@ frame = [
   "Note the judicial check in Kihoto Hollohan and calls for time-bound decisions.",
   "Suggest reform: an independent tribunal or the Election Commission, with a fixed deadline.",
 ]
-notes = ["gs2-polity-parliament"]
 
 [story.question]
 id = "ca-2026-11-10-1"
@@ -98,7 +97,6 @@ facts = [
   "The Archaeological Survey of India was founded in 1861 with Alexander Cunningham as its first Director General.",
 ]
 trap = "Ashoka's name appears in only a few edicts. Most use his titles, which is why the identification with Ashoka took time."
-notes = ["gs1-art-culture-temple-architecture"]
 
 [story.question]
 id = "ca-2026-11-10-4"
