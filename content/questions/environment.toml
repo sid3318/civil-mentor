@@ -168,6 +168,7 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "The Tribunal has jurisdiction over the seven laws listed in Schedule I of the 2010 Act. These include the Water Act, the Air Act, the Environment Protection Act, the Forest Conservation Act and the Biological Diversity Act. The Wild Life (Protection) Act and the Indian Forest Act, 1927 are not on the list."
 trap = "The Tribunal handles pollution and forest-clearance cases, but wildlife offences go to the ordinary courts."
+note = "polity-tribunals-adr"
 
 [[question]]
 id = "environment-0014"

@@ -172,6 +172,7 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "Article 266 sets up the Consolidated Fund, and Article 114 bars withdrawal without an Appropriation Act. The Public Account holds money the government keeps as a banker, such as provident funds, and it is operated by executive action without parliamentary appropriation."
 trap = "The Public Account is the one fund of the three that Parliament does not appropriate."
+note = "polity-parliament-budget-committees"
 
 [[question]]
 id = "economy-0014"

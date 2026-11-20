@@ -49,6 +49,7 @@ options = ["1 only", "1 and 3 only", "2 and 3 only", "1, 2 and 3"]
 answer = "B"
 explanation = "A Money Bill is introduced only in the Lok Sabha, on the President's recommendation. The Rajya Sabha can only make recommendations and must return the Bill within 14 days. Under Article 110(3) the Speaker's certificate is final."
 trap = "The Rajya Sabha can discuss a Money Bill and suggest changes. It cannot amend or reject it."
+note = "polity-legislative-procedure"
 
 [[question]]
 id = "polity-0004"
@@ -77,6 +78,7 @@ options = ["1 and 3 only", "2 only", "2 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "The Rajya Sabha is a permanent House, and each member serves six years, so one-third retire every second year. Members are elected by the single transferable vote. The Chairman votes only to break a tie."
 trap = "A presiding officer who has a casting vote is not a member who votes on every question."
+note = "polity-parliament"
 
 [[question]]
 id = "polity-0006"
@@ -87,6 +89,7 @@ options = ["Public Accounts Committee", "Committee on Public Undertakings", "Est
 answer = "C"
 explanation = "The Estimates Committee has 30 members, all from the Lok Sabha. The Public Accounts Committee and the Committee on Public Undertakings each include Rajya Sabha members (7 of 22), and the departmentally related standing committees draw on both Houses."
 trap = "The Public Accounts Committee looks like a Lok Sabha body because the Lok Sabha dominates it, but the Rajya Sabha has seats on it."
+note = "polity-parliament-budget-committees"
 
 [[question]]
 id = "polity-0007"
@@ -104,6 +107,7 @@ options = ["1 only", "3 only", "1 and 2 only", "1 and 3 only"]
 answer = "D"
 explanation = "Article 108 provides for a joint sitting on an ordinary bill, and the Speaker presides. It has been used in 1961, 1978 and 2002. Constitution amendment bills under Article 368 need a special majority in each House and cannot go to a joint sitting."
 trap = "A deadlock on an amendment bill ends the bill. There is no joint sitting to rescue it."
+note = "polity-legislative-procedure"
 
 [[question]]
 id = "polity-0008"
@@ -161,6 +165,7 @@ options = ["Reservation of not less than one-third of the seats for women", "Res
 answer = "B"
 explanation = "Part IX makes reservation for Scheduled Castes, Scheduled Tribes and women compulsory. Reservation for backward classes is left to the state legislature to provide."
 trap = "Reservation is compulsory for three groups: Scheduled Castes, Scheduled Tribes and women. Backward classes are not among them."
+note = "polity-panchayati-raj"
 
 [[question]]
 id = "polity-0012"
@@ -178,6 +183,7 @@ options = ["1 and 2 only", "2 and 3 only", "1, 2 and 3", "1 and 3 only"]
 answer = "C"
 explanation = "The Eleventh Schedule added by the 73rd Amendment has 29 subjects. The Balwantrai Mehta Committee reported in 1957, and Rajasthan began the system at Nagaur in 1959. Article 243B allows a small state to skip the intermediate tier."
 trap = "The 73rd Amendment made three tiers compulsory, but only for states with at least 20 lakh people."
+note = "polity-panchayati-raj"
 
 [[question]]
 id = "polity-0013"
@@ -188,6 +194,7 @@ options = ["The Fifth Schedule", "The Sixth Schedule", "All tribal districts of 
 answer = "A"
 explanation = "PESA applies to the Fifth Schedule areas, and it gives the Gram Sabha powers over minor forest produce, land alienation and local resources. The Sixth Schedule areas of the north-east are governed through autonomous councils."
 trap = "Both the Fifth and Sixth Schedules deal with tribal areas, but only the Fifth Schedule areas come under PESA."
+note = "polity-panchayati-raj"
 
 [[question]]
 id = "polity-0014"

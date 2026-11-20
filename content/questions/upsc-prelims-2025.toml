@@ -1508,6 +1508,7 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "C"
 explanation = "Article 94 keeps the Speaker in office until just before the new House meets, and sets the removal rule of a majority of all members with 14 days' notice. The Constitution does not require a Speaker to resign from the party; that is only a convention."
 trap = "The convention of Speaker neutrality is so strong that it is easy to assume it is a constitutional requirement."
+note = "polity-parliament"
 
 [[question]]
 id = "upsc-2025-088"
@@ -1524,6 +1525,7 @@ options = ["I only", "II only", "Both I and II", "Neither I nor II"]
 answer = "D"
 explanation = "Under the Tenth Schedule it is the presiding officer of the House, the Speaker for the Lok Sabha, who decides disqualification, and that decision is subject to judicial review. The Tenth Schedule itself uses the term political party, so statement II is wrong."
 trap = "Disqualification on other grounds is decided by the President on the Election Commission's advice, which can be wrongly extended to defection cases."
+note = "polity-parliament-privileges-issues"
 
 [[question]]
 id = "upsc-2025-089"
@@ -1573,6 +1575,7 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "D"
 explanation = "States with a population below 20 lakh need not have an intermediate tier, the minimum age to contest Panchayat elections is 21, and the State Finance Commission is constituted by the Governor, not the Chief Minister. All three statements are therefore incorrect."
 trap = "The question asks for statements that are not correct, and all three contain a small factual error."
+note = "polity-panchayati-raj"
 
 [[question]]
 id = "upsc-2025-092"

@@ -10,8 +10,14 @@ polity-federalism
 polity-fiscal-federalism
 polity-fundamental-rights
 polity-governor
+polity-high-courts
 polity-interstate-relations
+polity-legislative-procedure
 polity-making-of-the-constitution
+polity-panchayati-raj
+polity-parliament
+polity-parliament-budget-committees
+polity-parliament-privileges-issues
 polity-parliamentary-system
 polity-president
 polity-prime-minister-cabinet
@@ -20,5 +26,9 @@ polity-rights-religion-culture
 polity-rights-remedies-writs
 polity-salient-features-preamble
 polity-schedules-articles
+polity-separation-of-powers
 polity-state-government
+polity-supreme-court
+polity-tribunals-adr
 polity-union-territory-citizenship
+polity-urban-local-bodies

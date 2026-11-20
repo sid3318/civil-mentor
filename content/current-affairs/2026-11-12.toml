@@ -21,6 +21,7 @@ frame = [
   "Criticise it: opacity, no published criteria, no secretariat.",
   "Suggest reform: published criteria, a permanent secretariat and timelines for both branches.",
 ]
+notes = ["polity-supreme-court", "polity-high-courts"]
 
 [story.question]
 id = "ca-2026-11-12-1"

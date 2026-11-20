@@ -25,6 +25,7 @@ topics = ["pre.gs.polity.parliament.bills.money-bills"]
 source = "Civil Mentor sample"
 front = "Where can a Money Bill be introduced, and who decides that a bill is a Money Bill?"
 back = "Only in the Lok Sabha, and only on the President's recommendation. The Speaker's decision on whether a bill is a Money Bill is final (Article 110). The Rajya Sabha can hold it for at most 14 days and can only recommend changes."
+note = "polity-legislative-procedure"
 
 [[card]]
 id = "polity-42nd"
