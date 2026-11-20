@@ -52,6 +52,35 @@ pub struct Note {
     search: String,
 }
 
+/// The relationship kinds used in `tools/notes/links.toml`.
+pub const NOTE_LINK_KINDS: [&str; 6] = [
+    "builds-on",
+    "leads-to",
+    "same-era",
+    "compare",
+    "same-issue",
+    "example-of",
+];
+
+/// A mentor-written connection between two notes. Either end may point to a
+/// note not written yet; the UI shows it once both notes exist.
+#[derive(Debug, Clone)]
+pub struct NoteLink {
+    pub from: String,
+    pub to: String,
+    pub kind: String,
+    pub why: String,
+}
+
+/// A resolved connection from an open note to another existing note.
+#[derive(Debug, Clone)]
+pub struct RelatedNote<'a> {
+    pub target: usize,
+    pub label: &'static str,
+    pub kind: &'a str,
+    pub why: &'a str,
+}
+
 #[derive(Debug, Clone)]
 pub struct Question {
     pub id: String,
@@ -220,6 +249,7 @@ pub struct Library {
     /// The syllabus, in file order. A parent always comes before its children.
     pub topics: Vec<Topic>,
     pub notes: Vec<Note>,
+    pub note_links: Vec<NoteLink>,
     pub questions: Vec<Question>,
     /// In file order: files by name, cards as written.
     pub cards: Vec<Flashcard>,
@@ -371,16 +401,51 @@ struct RawStory {
     question: Option<RawQuestion>,
 }
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LinksFile {
+    #[serde(default)]
+    link: Vec<RawLink>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawLink {
+    from: String,
+    to: String,
+    kind: String,
+    why: String,
+}
+
 const DISTILLED_MARKER: &str = "<!-- distilled -->";
+const NOTE_LINKS_PATH: &str = "notes/links.toml";
+
+fn embedded_note_links() -> String {
+    #[cfg(debug_assertions)]
+    {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tools/notes/links.toml");
+        if let Ok(text) = std::fs::read_to_string(path) {
+            return text;
+        }
+    }
+    include_str!("../tools/notes/links.toml").to_string()
+}
 
 impl Library {
     /// The content that ships with the app.
     pub fn embedded() -> Library {
-        Library::from_files(ContentFiles::iter().filter_map(|path| {
-            let file = ContentFiles::get(&path)?;
-            let text = String::from_utf8_lossy(&file.data).into_owned();
-            Some((path.into_owned(), text))
-        }))
+        Library::from_files(
+            ContentFiles::iter()
+                .filter_map(|path| {
+                    let file = ContentFiles::get(&path)?;
+                    let text = String::from_utf8_lossy(&file.data).into_owned();
+                    Some((path.into_owned(), text))
+                })
+                .chain(std::iter::once((
+                    NOTE_LINKS_PATH.to_string(),
+                    embedded_note_links(),
+                ))),
+        )
     }
 
     /// Builds a library from `(path, text)` pairs. Paths are relative to the
@@ -399,6 +464,11 @@ impl Library {
         for (path, text) in &files {
             if path.starts_with("notes/") && path.ends_with(".md") {
                 library.load_note(path, text);
+            }
+        }
+        for (path, text) in &files {
+            if path == NOTE_LINKS_PATH {
+                library.load_note_links(path, text);
             }
         }
         for (path, text) in &files {
@@ -423,6 +493,7 @@ impl Library {
         }
         for (path, _) in &files {
             let known = path == "syllabus.toml"
+                || path == NOTE_LINKS_PATH
                 || (path.starts_with("notes/") && path.ends_with(".md"))
                 || ((path.starts_with("questions/")
                     || path.starts_with("current-affairs/")
@@ -531,6 +602,46 @@ impl Library {
             distilled: distilled.to_string(),
             minutes,
         });
+    }
+
+    fn load_note_links(&mut self, path: &str, text: &str) {
+        let file: LinksFile = match toml::from_str(text) {
+            Ok(file) => file,
+            Err(err) => return self.problem(path, toml_error(text, &err)),
+        };
+        for raw in file.link {
+            if raw.from.trim().is_empty() || raw.to.trim().is_empty() {
+                self.problem(path, "a note link needs both `from` and `to`");
+                continue;
+            }
+            if raw.from == raw.to {
+                self.problem(path, format!("note `{}` cannot link to itself", raw.from));
+                continue;
+            }
+            if !NOTE_LINK_KINDS.contains(&raw.kind.as_str()) {
+                self.problem(
+                    path,
+                    format!(
+                        "link `{}` -> `{}` has unknown kind `{}`",
+                        raw.from, raw.to, raw.kind
+                    ),
+                );
+                continue;
+            }
+            if raw.why.trim().is_empty() {
+                self.problem(
+                    path,
+                    format!("link `{}` -> `{}` needs a `why` reason", raw.from, raw.to),
+                );
+                continue;
+            }
+            self.note_links.push(NoteLink {
+                from: raw.from,
+                to: raw.to,
+                kind: raw.kind,
+                why: raw.why.trim().to_string(),
+            });
+        }
     }
 
     fn load_questions(&mut self, path: &str, text: &str) {
@@ -894,6 +1005,57 @@ impl Library {
         self.question_index.get(id).copied()
     }
 
+    /// Connected notes from `tools/notes/links.toml` whose other note already
+    /// exists in the library. Outgoing links come first, then incoming links to
+    /// notes not already linked directly.
+    pub fn related_notes(&self, note: &Note) -> Vec<RelatedNote<'_>> {
+        let mut found = Vec::new();
+        let mut seen = std::collections::HashSet::new();
+        for link in &self.note_links {
+            if link.from == note.id
+                && let Some(&target) = self.note_index.get(&link.to)
+                && seen.insert(target)
+            {
+                found.push(RelatedNote {
+                    target,
+                    label: match link.kind.as_str() {
+                        "builds-on" => "Read first",
+                        "leads-to" => "Leads to",
+                        "same-era" => "Same era",
+                        "compare" => "Compare",
+                        "same-issue" => "Same issue",
+                        "example-of" => "Example of",
+                        _ => "Related",
+                    },
+                    kind: &link.kind,
+                    why: &link.why,
+                });
+            }
+        }
+        for link in &self.note_links {
+            if link.to == note.id
+                && let Some(&target) = self.note_index.get(&link.from)
+                && seen.insert(target)
+            {
+                found.push(RelatedNote {
+                    target,
+                    label: match link.kind.as_str() {
+                        "builds-on" => "Builds on this",
+                        "leads-to" => "Led here",
+                        "same-era" => "Same era",
+                        "compare" => "Compare",
+                        "same-issue" => "Same issue",
+                        "example-of" => "Example",
+                        _ => "Related",
+                    },
+                    kind: &link.kind,
+                    why: &link.why,
+                });
+            }
+        }
+        found
+    }
+
     /// The questions that go with a note: those that name it, then those on
     /// a topic the note covers.
     pub fn questions_for(&self, note: &Note) -> Vec<usize> {
@@ -1231,6 +1393,7 @@ note = "rights"
             "both stages and every compulsory paper"
         );
         assert!(library.notes.len() >= 10, "notes loaded");
+        assert!(!library.note_links.is_empty(), "note links loaded");
         let samples = library
             .questions
             .iter()
@@ -1814,5 +1977,57 @@ Our own view.
         assert_eq!(note.subject.as_deref(), Some("Polity"));
         assert_eq!(note.section.as_deref(), Some("Rights"));
         assert_eq!(note.order, Some(9));
+    }
+
+    #[test]
+    fn note_links_resolve_both_ways_and_report_bad_entries() {
+        let writs = "---\nid: writs\ntitle: Writs\ntopics: [mains.gs2.polity]\n---\nWrits.\n";
+        let links = r#"
+[[link]]
+from = "rights"
+to = "writs"
+kind = "leads-to"
+why = "Rights are enforced through writs."
+
+[[link]]
+from = "rights"
+to = "future-note"
+kind = "same-issue"
+why = "Points at a note not written yet."
+
+[[link]]
+from = "rights"
+to = "rights"
+kind = "compare"
+why = "Self link."
+
+[[link]]
+from = "rights"
+to = "writs"
+kind = "invented"
+why = "Bad kind."
+"#;
+        let library = Library::from_files(files(&[
+            ("syllabus.toml", SYLLABUS),
+            ("notes/rights.md", NOTE),
+            ("notes/writs.md", writs),
+            ("notes/links.toml", links),
+        ]));
+        let problems = library.problems.join("\n");
+        assert!(problems.contains("cannot link to itself"), "{problems}");
+        assert!(problems.contains("unknown kind `invented`"), "{problems}");
+        assert_eq!(library.problems.len(), 2, "{problems}");
+
+        let rights = library.note("rights").unwrap();
+        let out = library.related_notes(rights);
+        assert_eq!(out.len(), 1, "unwritten targets are hidden until written");
+        assert_eq!(library.notes[out[0].target].id, "writs");
+        assert_eq!(out[0].label, "Leads to");
+
+        let writs_note = library.note("writs").unwrap();
+        let incoming = library.related_notes(writs_note);
+        assert_eq!(incoming.len(), 1, "backlinks resolve automatically");
+        assert_eq!(library.notes[incoming[0].target].id, "rights");
+        assert_eq!(incoming[0].label, "Led here");
     }
 }

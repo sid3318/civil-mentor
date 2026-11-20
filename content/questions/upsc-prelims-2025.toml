@@ -916,6 +916,7 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "C"
 explanation = "An ordinance has the same force as an Act of Parliament, so it can amend a Central Act and can be made to operate retrospectively. Like any law, it cannot take away or abridge a Fundamental Right."
 trap = "Ordinances are 'temporary', yet they enjoy the full law-making power of Parliament except where the Constitution bars it."
+note = "polity-president"
 
 [[question]]
 id = "upsc-2025-052"
@@ -935,6 +936,7 @@ options = ["Only one", "Only two", "All the three", "None"]
 answer = "C"
 explanation = "Itanagar is named after Ita Fort and Arunachal has Namdapha and Mouling National Parks. Nagaland was created through the 13th Constitutional Amendment, and Tripura was a Part C State, then a Union Territory in 1956, and became a State in 1972."
 trap = "Nagaland's statehood by amendment, rather than by an ordinary Parliament Act, is the detail that tempts a wrong 'no'."
+note = "polity-union-territory-citizenship"
 
 [[question]]
 id = "upsc-2025-053"
@@ -952,6 +954,7 @@ options = ["Only one", "Only two", "All the three", "None"]
 answer = "A"
 explanation = "Article 263 of the Constitution provides for the Inter-State Council. Zonal Councils were set up under the States Reorganisation Act, 1956, and the National Security Council was created by an executive decision."
 trap = "All three bodies deal with coordination, but only the Inter-State Council has a constitutional basis."
+note = "polity-interstate-relations"
 
 [[question]]
 id = "upsc-2025-054"
@@ -968,6 +971,7 @@ options = ["I only", "II only", "Both I and II", "Neither I nor II"]
 answer = "A"
 explanation = "Provisions such as those for the Sixth Schedule areas in Assam and some other States explicitly say the Governor acts in his or her discretion. A State bill goes to the President only when the Governor reserves it, so the President cannot reserve it on his own."
 trap = "The President's overall supremacy over the Governor makes statement II sound right, but the reservation power rests with the Governor."
+note = "polity-governor"
 
 [[question]]
 id = "upsc-2025-055"
@@ -987,6 +991,7 @@ options = ["Only one", "Only two", "All the three", "None"]
 answer = "C"
 explanation = "Article 50 directs the State to separate the judiciary from the executive, Article 51A(f) makes preserving the composite culture a duty, and Article 24 bars child labour in factories as part of the right against exploitation."
 trap = "Child labour sounds like a welfare directive, but its prohibition in factories is a justiciable Fundamental Right."
+note = "polity-dpsp-duties"
 
 [[question]]
 id = "upsc-2025-056"
@@ -1041,6 +1046,7 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "A"
 explanation = "Amendments touching the legislative lists of the Seventh Schedule and the extent of the executive power of the States need ratification by at least half of the State legislatures. The conditions of the Governor's office can be amended by a special majority of Parliament alone."
 trap = "The Governor's office is part of the federal structure, but it is not among the matters listed in the ratification proviso."
+note = "polity-amendment"
 
 [[question]]
 id = "upsc-2025-059"
@@ -1058,6 +1064,7 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "D"
 explanation = "Article 361 gives the Governor immunity from court answerability for official acts and bars criminal proceedings during the term. Article 194 protects legislators from court proceedings for what they say in the House."
 trap = "The immunity for the Governor is partial, as civil suits can be filed after two months' notice, but the criminal-proceedings bar holds."
+note = "polity-governor"
 
 [[question]]
 id = "upsc-2025-060"
@@ -1170,6 +1177,7 @@ options = ["I, II and III", "I, II and IV", "I, III and IV", "II, III and IV"]
 answer = "C"
 explanation = "The 15th Finance Commission recommended the education outcome grant, performance incentives for agricultural reforms and a tax effort criterion in the devolution formula. It kept the States' share of divisible taxes at 41 per cent, not 45 per cent."
 trap = "The 14th Commission raised the share to 42 per cent, and 45 per cent sounds like a natural next step, but it did not happen."
+note = "polity-fiscal-federalism"
 
 [[question]]
 id = "upsc-2025-067"
@@ -1482,6 +1490,7 @@ options = ["I only", "II only", "Both I and II", "Neither I nor II"]
 answer = "A"
 explanation = "The Supreme Court has held that the pardoning power can be reviewed on limited grounds such as arbitrariness or mala fides. The President must act on the advice of the Council of Ministers, so statement II is wrong."
 trap = "Because the power is written as the President's own, it is easy to forget that it is exercised on ministerial advice."
+note = "polity-president"
 
 [[question]]
 id = "upsc-2025-087"

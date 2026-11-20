@@ -638,6 +638,21 @@ fn main() {
     app.press("secondary-]");
     assert_eq!(app.note(), Some(rights));
 
+    // Connected notes from links.toml show in the inspector and open on click.
+    let freedom = app.note_ix("polity-rights-freedom");
+    assert!(
+        app.shows(("inspector-link", 0usize)),
+        "connected notes appear in the inspector"
+    );
+    app.click(("inspector-link", 0usize));
+    assert_eq!(
+        app.note(),
+        Some(freedom),
+        "clicking a connected note opens it"
+    );
+    app.press("secondary-[");
+    assert_eq!(app.note(), Some(rights));
+
     // Syllabus: one paper at a time, in five designs picked in the header.
     // Flow comes first: the paper's subjects, the open subject's chapters and
     // the open chapter's topics, each column hanging from its card.
@@ -968,31 +983,41 @@ fn practice() {
     }
 
     // A search result for a question lands on the question itself.
-    let (word, question) = app.cx.update(|cx| {
+    let (query, question) = app.cx.update(|cx| {
         let library = &AppState::get(cx).library;
+        let is_unique = |query: &str, ix: usize| {
+            let hits = library.search(query, 30);
+            hits.first().map(|hit| hit.target) == Some(Target::Question(ix))
+                && hits
+                    .iter()
+                    .all(|hit| matches!(hit.target, Target::Question(_)))
+        };
         library
             .questions
             .iter()
             .enumerate()
             .filter(|(_, q)| q.note.is_some())
-            .flat_map(|(ix, q)| {
-                q.stem
+            .find_map(|(ix, q)| {
+                let words: Vec<String> = q
+                    .stem
                     .split_whitespace()
-                    .map(move |w| (w.to_lowercase(), ix))
+                    .map(|w| w.trim_matches(|c: char| !c.is_alphabetic()).to_lowercase())
+                    .filter(|w| w.len() > 3 && w.chars().all(char::is_alphabetic))
+                    .collect();
+                for n in 1..=3 {
+                    for window in words.windows(n) {
+                        let candidate = window.join(" ");
+                        if candidate.len() > 7 && is_unique(&candidate, ix) {
+                            return Some((candidate, ix));
+                        }
+                    }
+                }
+                None
             })
-            .find(|(word, ix)| {
-                let hits = library.search(word, 30);
-                word.len() > 7
-                    && word.chars().all(char::is_alphabetic)
-                    && hits.first().map(|hit| hit.target) == Some(Target::Question(*ix))
-                    && hits
-                        .iter()
-                        .all(|hit| matches!(hit.target, Target::Question(_)))
-            })
-            .expect("a word only one question uses")
+            .expect("a phrase only one question uses")
     });
     app.press("secondary-k");
-    app.act(|window, cx| window.input(&word, cx));
+    app.act(|window, cx| window.input(&query, cx));
     app.press("enter");
     assert_eq!(app.screen(), Screen::Practice);
     assert!(

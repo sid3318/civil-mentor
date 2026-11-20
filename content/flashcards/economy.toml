@@ -37,3 +37,4 @@ topics = ["pre.gs.economy.fiscal.taxation.goods-and-services-tax", "pre.gs.polit
 source = "Civil Mentor sample"
 front = "How does the GST Council vote?"
 back = "Under Article 279A, decisions need three-fourths of the weighted votes of members present and voting. The Centre's vote counts for one-third and all the States together for two-thirds. The Union Finance Minister chairs it."
+note = "polity-fiscal-federalism"

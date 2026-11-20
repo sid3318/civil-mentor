@@ -377,3 +377,769 @@ from = "polity-rights-remedies-writs"
 to = "security-forces-agencies"
 kind = "same-issue"
 why = "Article 33 lets Parliament restrict the rights of the armed forces and police (the Army Act, 1950; the Police Forces Act, 1966), linking Part III to the security forces in GS-3."
+
+# ---- polity-dpsp-duties ----
+
+[[link]]
+from = "polity-dpsp-duties"
+to = "polity-basic-structure"
+kind = "leads-to"
+why = "Article 31C, added by the 25th Amendment and widened by the 42nd, was the ground on which Parliament and the Court fought over the amending power; Minerva Mills (1980) made the balance between Parts III and IV a basic feature."
+
+[[link]]
+from = "polity-dpsp-duties"
+to = "polity-panchayati-raj"
+kind = "leads-to"
+why = "Article 40's directive to organise village panchayats waited 42 years: the 73rd Amendment (1992) turned it into Part IX and the Eleventh Schedule."
+
+[[link]]
+from = "polity-dpsp-duties"
+to = "economy-land-reforms"
+kind = "same-issue"
+why = "Article 39(b) and (c) are the directives behind zamindari abolition and land ceilings; Articles 31A, 31B and 31C were written to protect those laws, and Property Owners Association (2024) now limits what counts as a material resource of the community."
+
+[[link]]
+from = "polity-dpsp-duties"
+to = "society-communalism-regionalism-secularism"
+kind = "same-issue"
+why = "Article 44's Uniform Civil Code is a GS-1 question on secularism as much as a GS-2 one: Shah Bano (1985), the Uttarakhand code in force since 27 January 2025 and Gujarat's Act of 2026."
+
+[[link]]
+from = "polity-dpsp-duties"
+to = "economy-employment"
+kind = "same-issue"
+why = "Articles 41 and 43 (the right to work and a living wage) are carried out through the rural job guarantee, MGNREGA until the VB-G RAM G Act replaced it on 1 July 2026, and the four Labour Codes in force since 21 November 2025."
+
+[[link]]
+from = "polity-dpsp-duties"
+to = "environment-laws"
+kind = "same-issue"
+why = "Article 48A and the duty in Article 51A(g), both added by the 42nd Amendment, are the constitutional base the courts read with Article 21 to uphold the Environment (Protection) Act, 1986 and the forest and wildlife laws."
+
+[[link]]
+from = "polity-dpsp-duties"
+to = "polity-reservation"
+kind = "leads-to"
+why = "Champakam Dorairajan (1951) struck down communal quotas despite Article 46, and the 1st Amendment answered with Article 15(4); Article 335, a directive outside Part IV, balances SC and ST claims with efficiency."
+
+[[link]]
+from = "polity-dpsp-duties"
+to = "polity-tribunals-adr"
+kind = "leads-to"
+why = "Article 39A (free legal aid, 42nd Amendment) led to the Legal Services Authorities Act, 1987, which set up NALSA and gave Lok Adalats their statutory footing."
+
+[[link]]
+from = "polity-dpsp-duties"
+to = "social-justice-school-education"
+kind = "same-issue"
+why = "The 86th Amendment (2002) changed three places at once: Article 21A for ages six to fourteen, Article 45 for early childhood care up to six, and the parent's duty in Article 51A(k). The RTE Act and NEP 2020 build on all three."
+
+# ---- polity-amendment ----
+
+[[link]]
+from = "polity-amendment"
+to = "polity-basic-structure"
+kind = "leads-to"
+why = "Article 368 has one limit its text does not state: Kesavananda Bharati (1973). The 24th, 25th, 39th, 42nd and 99th Amendments are the ones the doctrine was built on and tested against."
+
+[[link]]
+from = "polity-amendment"
+to = "polity-federalism"
+kind = "example-of"
+why = "The proviso to Article 368(2), ratification by half the states, is the amending procedure's federal safeguard; Rajendra N. Shah (2021) enforced it by striking down Part IXB for state co-operatives."
+
+[[link]]
+from = "polity-amendment"
+to = "polity-fiscal-federalism"
+kind = "leads-to"
+why = "The 101st Amendment (2016) created the GST and the GST Council under Article 279A, and added Article 279A to the provisions that cannot be amended without the states."
+
+[[link]]
+from = "polity-amendment"
+to = "polity-reservation"
+kind = "leads-to"
+why = "The 77th, 81st, 82nd and 85th Amendments on promotions, the 102nd and 105th on backward-class lists and the 103rd on the EWS quota each answered a Supreme Court ruling on reservation."
+
+[[link]]
+from = "polity-amendment"
+to = "modern-india-politics"
+kind = "same-era"
+why = "The 38th, 39th and 42nd Amendments were passed during the Emergency of 1975 to 1977; the 43rd and 44th were the Janata government's reversal of them."
+
+[[link]]
+from = "polity-amendment"
+to = "polity-legislative-procedure"
+kind = "compare"
+why = "An amendment bill differs from an ordinary bill at each step: a special majority in each House, no joint sitting under Article 108, and assent the President cannot refuse."
+
+[[link]]
+from = "polity-amendment"
+to = "polity-elections-rpa"
+kind = "leads-to"
+why = "The 84th and 87th Amendments froze the allocation of seats on the 1971 census until the first census after 2026; the women's quota of the 106th Amendment and the defeated 131st Bill (April 2026) both turn on that delimitation."
+
+[[link]]
+from = "polity-amendment"
+to = "polity-panchayati-raj"
+kind = "leads-to"
+why = "The 73rd and 74th Amendments (1992) added Parts IX and IXA and the Eleventh and Twelfth Schedules, giving local government its constitutional status."
+
+[[link]]
+from = "polity-amendment"
+to = "modern-india-reorganisation"
+kind = "same-issue"
+why = "The 7th Amendment (1956) carried out the States Reorganisation Act: the old Part A, B, C and D states gave way to 14 states and 6 Union territories."
+
+[[link]]
+from = "polity-amendment"
+to = "polity-comparative-constitutions"
+kind = "compare"
+why = "Article 368 sits between Britain's flexibility and the rigidity of Article V of the US Constitution, which has allowed only 27 amendments since 1789."
+
+# ---- polity-basic-structure ----
+
+[[link]]
+from = "polity-basic-structure"
+to = "polity-separation-of-powers"
+kind = "leads-to"
+why = "Judicial review is itself a basic feature (Minerva Mills, L. Chandra Kumar), and the NJAC ruling of 2015 is the sharpest case in the debate on judicial activism and overreach."
+
+[[link]]
+from = "polity-basic-structure"
+to = "polity-supreme-court"
+kind = "leads-to"
+why = "The 99th Amendment and the NJAC were struck down in 2015 because judicial independence is a basic feature; the collegium system that ruling restored is explained there."
+
+[[link]]
+from = "polity-basic-structure"
+to = "polity-emergency"
+kind = "leads-to"
+why = "S.R. Bommai (1994) used the basic features of federalism and secularism to test President's rule under Article 356, taking the doctrine beyond amendments to executive action."
+
+[[link]]
+from = "polity-basic-structure"
+to = "modern-india-politics"
+kind = "same-era"
+why = "Kesavananda (1973), the supersession of three judges the next day, the 39th and 42nd Amendments and Raj Narain (1975) all belong to the Indira Gandhi years and the Emergency."
+
+[[link]]
+from = "polity-basic-structure"
+to = "polity-tribunals-adr"
+kind = "leads-to"
+why = "Sampath Kumar, L. Chandra Kumar and the Madras Bar Association cases applied judicial review and judicial independence to tribunals; the Tribunals Reforms Act, 2026 is Parliament's answer to the last of them."
+
+[[link]]
+from = "polity-basic-structure"
+to = "polity-reservation"
+kind = "leads-to"
+why = "M. Nagaraj (2006) framed the width and identity tests to judge the promotion amendments, and Janhit Abhiyan (2022) upheld the EWS quota against a basic structure challenge."
+
+[[link]]
+from = "polity-basic-structure"
+to = "polity-comparative-constitutions"
+kind = "compare"
+why = "Germany's Article 79(3) writes into the text what India's judges inferred; Bangladesh adopted the doctrine in 1989, and Kenya's Supreme Court declined to in 2022."
+
+[[link]]
+from = "polity-basic-structure"
+to = "polity-election-commission"
+kind = "leads-to"
+why = "Free and fair elections are a basic feature (Raj Narain, 1975); Anoop Baranwal (2023) drew from it the need for an independent way of appointing Election Commissioners, which the 2023 Act now tests."
+
+[[link]]
+from = "polity-basic-structure"
+to = "polity-parliament-privileges-issues"
+kind = "leads-to"
+why = "Kihoto Hollohan (1992) upheld the anti-defection law but removed its bar on the courts, so a Speaker's decision on disqualification can be challenged."
+
+# ---- polity-parliamentary-system ----
+
+[[link]]
+from = "polity-parliamentary-system"
+to = "polity-prime-minister-cabinet"
+kind = "leads-to"
+why = "Collective responsibility under Article 75(3), the 15 per cent cap of the 91st Amendment and the working of the Cabinet and its committees are set out in detail there."
+
+[[link]]
+from = "polity-parliamentary-system"
+to = "polity-president"
+kind = "leads-to"
+why = "The President is the nominal executive, bound by ministerial advice under Article 74; how much discretion the office still has is the question that note answers."
+
+[[link]]
+from = "polity-parliamentary-system"
+to = "polity-comparative-constitutions"
+kind = "compare"
+why = "The comparison with Britain's Westminster model and the American presidential system is taken further there: the Speaker's neutrality, parliamentary sovereignty and the separation of powers."
+
+[[link]]
+from = "polity-parliamentary-system"
+to = "polity-constitutional-history-crown"
+kind = "builds-on"
+why = "Dyarchy under the 1919 Act and the provincial ministries of 1937 under the 1935 Act gave Indians their experience of responsible government, the familiarity the Assembly relied on."
+
+[[link]]
+from = "polity-parliamentary-system"
+to = "polity-making-of-the-constitution"
+kind = "builds-on"
+why = "Ambedkar's speech of 4 November 1948 introducing the Draft Constitution is where the choice of responsibility over stability is explained."
+
+[[link]]
+from = "polity-parliamentary-system"
+to = "polity-parliament-privileges-issues"
+kind = "leads-to"
+why = "The strains named here, the anti-defection whip, fewer sittings and thin committee scrutiny, are treated in full with the working of Parliament."
+
+[[link]]
+from = "polity-parliamentary-system"
+to = "polity-basic-structure"
+kind = "leads-to"
+why = "Parliamentary democracy is a basic feature (Kuldip Nayar, 2006), which is why a switch to a presidential system could not be made even by amendment."
+
+[[link]]
+from = "polity-parliamentary-system"
+to = "polity-state-government"
+kind = "compare"
+why = "Articles 163 and 164 repeat the parliamentary model in the states, with the Governor in the President's place and responsibility owed to the Legislative Assembly."
+
+# ---- polity-comparative-constitutions ----
+
+[[link]]
+from = "polity-comparative-constitutions"
+to = "polity-salient-features-preamble"
+kind = "builds-on"
+why = "The table of borrowed features there is the starting list; this note explains how each borrowing was changed to suit India."
+
+[[link]]
+from = "polity-comparative-constitutions"
+to = "polity-federalism"
+kind = "compare"
+why = "America's coming-together federation of indestructible states is the contrast to India's holding-together Union under Article 3, with Canada the nearer model for a strong Centre."
+
+[[link]]
+from = "polity-comparative-constitutions"
+to = "polity-supreme-court"
+kind = "compare"
+why = "US judges are nominated by the President, confirmed by the Senate and sit for life; Indian judges come through the Collegium and retire at 65. Mains 2025 asked for exactly this comparison."
+
+[[link]]
+from = "polity-comparative-constitutions"
+to = "polity-president"
+kind = "compare"
+why = "Article 72 against the American President's pardon, including pre-emptive pardons, and Article 61 against impeachment by the House and trial by the Senate."
+
+[[link]]
+from = "polity-comparative-constitutions"
+to = "polity-parliament-privileges-issues"
+kind = "compare"
+why = "The British Speaker resigns from the party on election; India's decides defection cases while remaining a party member, the root of the demand for an independent tribunal."
+
+[[link]]
+from = "polity-comparative-constitutions"
+to = "society-communalism-regionalism-secularism"
+kind = "same-issue"
+why = "French laicite keeps religion out of public institutions; Indian secularism keeps a principled distance and lets the State reform religious practice. GS-1 asks the same comparison."
+
+[[link]]
+from = "polity-comparative-constitutions"
+to = "polity-rights-freedom"
+kind = "compare"
+why = "Article 21 took 'procedure established by law' from Japan in preference to American due process; Maneka Gandhi (1978) brought the two close again."
+
+[[link]]
+from = "polity-comparative-constitutions"
+to = "world-history-revolutions"
+kind = "same-issue"
+why = "The American Constitution of 1787 and the French Revolution's liberty, equality and fraternity are GS-1 world history; here they are sources of India's rights, judicial review and Preamble."
+
+[[link]]
+from = "polity-comparative-constitutions"
+to = "polity-governor"
+kind = "compare"
+why = "Canada's federally appointed Lieutenant Governors and the power to disallow provincial laws fell into disuse; India's Governors and Articles 200 and 201 are still live disputes."
+
+# ---- polity-federalism ----
+
+[[link]]
+from = "polity-federalism"
+to = "polity-centre-state-relations"
+kind = "leads-to"
+why = "The legislative, administrative and financial Articles (245 to 293) that give the unitary bias its working detail are set out there."
+
+[[link]]
+from = "polity-federalism"
+to = "polity-fiscal-federalism"
+kind = "leads-to"
+why = "The 16th Finance Commission's 41 per cent and its new weight for contribution to GDP, and the voting rule of the GST Council, are where cooperative federalism meets money."
+
+[[link]]
+from = "polity-federalism"
+to = "polity-governor"
+kind = "leads-to"
+why = "What Sarkaria and Punchhi said about the Governor, and the rulings of 2025 on assent to Bills, are developed there."
+
+[[link]]
+from = "polity-federalism"
+to = "polity-emergency"
+kind = "leads-to"
+why = "Article 356 is the provision every commission wanted restrained; S.R. Bommai (1994), which made federalism a basic feature, did it."
+
+[[link]]
+from = "polity-federalism"
+to = "polity-interstate-relations"
+kind = "leads-to"
+why = "The Inter-State Council, the Zonal Councils and the river water tribunals are the machinery of cooperative federalism, and of the dispute resolution Mains 2026 asked about."
+
+[[link]]
+from = "polity-federalism"
+to = "polity-scheduled-tribal-areas"
+kind = "example-of"
+why = "The Fifth and Sixth Schedules and Articles 371 to 371J are asymmetric federalism in practice."
+
+[[link]]
+from = "polity-federalism"
+to = "polity-union-territories"
+kind = "example-of"
+why = "Delhi under Article 239AA and Jammu and Kashmir since 2019 show the asymmetry at its sharpest: elected legislatures without full statehood."
+
+[[link]]
+from = "polity-federalism"
+to = "modern-india-reorganisation"
+kind = "same-issue"
+why = "Linguistic reorganisation in 1956 and the new states of the North-East are how the Union has used Article 3 to hold together, the GS-1 side of the same story."
+
+[[link]]
+from = "polity-federalism"
+to = "economy-planning"
+kind = "same-issue"
+why = "NITI Aayog replaced the Planning Commission in 2015; its Governing Council and its indices are the instruments of cooperative and competitive federalism."
+
+[[link]]
+from = "polity-federalism"
+to = "polity-elections-rpa"
+kind = "leads-to"
+why = "The freeze on seats until the first census after 2026, and the defeat of the 131st Amendment Bill in April 2026, make delimitation the next federal test."
+
+# ---- polity-centre-state-relations ----
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "polity-federalism"
+kind = "builds-on"
+why = "Read the nature of the Union first: these Articles are the working detail of the 'federal system with a unitary bias' described there."
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "polity-fiscal-federalism"
+kind = "leads-to"
+why = "Articles 270, 275 and 280 say that taxes and grants are shared; how much, and by what formula, is the Finance Commission's work, and the GST Council's under Article 279A."
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "polity-governor"
+kind = "leads-to"
+why = "Reservation of state Bills under Articles 200 and 201 is the Centre's check on state legislation; the rulings of April and November 2025 on it are explained with the Governor."
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "polity-emergency"
+kind = "leads-to"
+why = "Articles 250, 353, 354 and 356 change the legislative, executive and financial balance during an emergency, and Article 365 turns a disobeyed direction into a ground for President's rule."
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "polity-interstate-relations"
+kind = "leads-to"
+why = "Articles 261 to 263, on full faith and credit, river water disputes and the Inter-State Council, close Part XI and are treated in full there."
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "economy-taxation"
+kind = "same-issue"
+why = "Who may levy which tax (Articles 246A, 268 to 271, 276 and 286) is the constitutional frame of the tax system GS-3 studies."
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "geography-mineral-energy-resources"
+kind = "same-issue"
+why = "MADA v. SAIL (2024) let mineral-rich states such as Jharkhand and Odisha tax mineral rights and land; the MMDR Amendment Act, 2026 now limits that power."
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "governance-civil-services"
+kind = "same-issue"
+why = "The All-India Services under Article 312, recruited by the Centre and serving the states, are the main administrative link between the two, and a regular source of friction over deputation."
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "economy-deficits-debt"
+kind = "same-issue"
+why = "Article 293(3) lets the Centre cap what a state borrows; Kerala's suit of 2024 and the 16th Finance Commission's stand on off-budget borrowing turn on it."
+
+[[link]]
+from = "polity-centre-state-relations"
+to = "polity-statutory-bodies"
+kind = "leads-to"
+why = "The CBI needs a state's consent under Section 6 of the DSPE Act because police is a State subject; withdrawals of general consent are a centre-state dispute in themselves."
+
+# ---- polity-fiscal-federalism ----
+
+[[link]]
+from = "polity-fiscal-federalism"
+to = "polity-centre-state-relations"
+kind = "builds-on"
+why = "Articles 268 to 293 set out which taxes are shared, the two kinds of grant and the limits on state borrowing; read them before the Commission's formula."
+
+[[link]]
+from = "polity-fiscal-federalism"
+to = "economy-taxation"
+kind = "same-issue"
+why = "The GST's design, its rates after the reform of 22 September 2025 and the end of the compensation cess are the economy side of the Council described here."
+
+[[link]]
+from = "polity-fiscal-federalism"
+to = "economy-deficits-debt"
+kind = "same-issue"
+why = "The 16th Finance Commission's roadmap, a Union deficit of 3.5 per cent of GDP by 2030-31 and 3 per cent of GSDP for states with no off-budget borrowing, is the FRBM debate carried forward."
+
+[[link]]
+from = "polity-fiscal-federalism"
+to = "polity-panchayati-raj"
+kind = "leads-to"
+why = "Article 280(3)(bb) and the State Finance Commissions of Article 243-I are how money reaches panchayats; the 16th Commission's rural grants depend on states constituting them on time."
+
+[[link]]
+from = "polity-fiscal-federalism"
+to = "polity-urban-local-bodies"
+kind = "leads-to"
+why = "Article 280(3)(c) and Article 243-Y do the same for municipalities, and the 16th Commission adds an urbanisation premium and a grant for wastewater in large cities."
+
+[[link]]
+from = "polity-fiscal-federalism"
+to = "disaster-concepts-framework"
+kind = "same-issue"
+why = "The State Disaster Response and Mitigation Funds are sized by the Finance Commission: about ₹2.04 lakh crore for 2026 to 2031, shared 75:25, or 90:10 for hill and north-eastern states."
+
+[[link]]
+from = "polity-fiscal-federalism"
+to = "polity-amendment"
+kind = "builds-on"
+why = "The 80th Amendment (2000) created the single divisible pool and the 101st (2016) created the GST and its Council; both needed ratification by the states."
+
+[[link]]
+from = "polity-fiscal-federalism"
+to = "polity-federalism"
+kind = "example-of"
+why = "The GST Council's weighted voting is cooperative federalism in a constitutional body, and Mohit Minerals (2022) is the reminder that its advice does not bind the legislatures."
+
+[[link]]
+from = "polity-fiscal-federalism"
+to = "society-population"
+kind = "same-issue"
+why = "The move from the 1971 to the 2011 census, softened by a demographic performance criterion, is the money side of the north-south argument over population that also drives the delimitation debate."
+
+# ---- polity-emergency ----
+
+[[link]]
+from = "polity-emergency"
+to = "modern-india-politics"
+kind = "same-era"
+why = "The proclamation of 25 June 1975, the 42nd Amendment and the Shah Commission are the GS-1 story of the Emergency; the 44th Amendment's safeguards in Article 352 are its constitutional result."
+
+[[link]]
+from = "polity-emergency"
+to = "polity-rights-freedom"
+kind = "compare"
+why = "Article 358 suspends Article 19 only in a war or external-aggression emergency, and Article 359 can never reach Articles 20 and 21: the lesson of ADM Jabalpur (1976)."
+
+[[link]]
+from = "polity-emergency"
+to = "polity-governor"
+kind = "builds-on"
+why = "President's rule usually starts with a Governor's report under Article 356; the Governor's role in a hung assembly and the floor test decide whether that report is honest."
+
+[[link]]
+from = "polity-emergency"
+to = "polity-federalism"
+kind = "builds-on"
+why = "Article 356 is the sharpest of the unitary features; Sarkaria's 'last resort' and Punchhi's 'localised emergency' are proposals to keep it federal."
+
+[[link]]
+from = "polity-emergency"
+to = "polity-basic-structure"
+kind = "example-of"
+why = "S.R. Bommai (1994) is the basic structure doctrine applied to executive action: a state government that works against secularism can be dismissed, and a proclamation that is mala fide can be struck down."
+
+[[link]]
+from = "polity-emergency"
+to = "polity-union-territories"
+kind = "leads-to"
+why = "Jammu and Kashmir was reorganised in 2019 while under President's rule; In Re: Article 370 (2023) decided how far Parliament could act for the state legislature."
+
+[[link]]
+from = "polity-emergency"
+to = "security-north-east"
+kind = "same-issue"
+why = "Manipur's President's rule from 13 February 2025 to 4 February 2026 followed the ethnic violence that began in May 2023, an internal security question in GS-3."
+
+[[link]]
+from = "polity-emergency"
+to = "polity-centre-state-relations"
+kind = "builds-on"
+why = "Articles 250, 353 and 354 are the emergency's effect on the three sets of centre-state relations; Article 365 links a disobeyed direction to Article 356."
+
+# ---- polity-interstate-relations ----
+
+[[link]]
+from = "polity-interstate-relations"
+to = "geography-peninsular-rivers"
+kind = "same-issue"
+why = "The Cauvery, Krishna, Godavari, Mahanadi and Mahadayi are GS-1 drainage; the tribunals named here are how their waters are divided between states."
+
+[[link]]
+from = "polity-interstate-relations"
+to = "geography-himalayan-rivers"
+kind = "same-issue"
+why = "The Ravi and Beas waters and the unbuilt Sutlej-Yamuna Link canal tie Punjab's and Haryana's dispute to the Indus system."
+
+[[link]]
+from = "polity-interstate-relations"
+to = "polity-federalism"
+kind = "builds-on"
+why = "These bodies are the machinery of cooperative federalism; Sarkaria's recommendation produced the Inter-State Council in 1990."
+
+[[link]]
+from = "polity-interstate-relations"
+to = "polity-supreme-court"
+kind = "compare"
+why = "Article 131 gives the Supreme Court original jurisdiction over disputes between states, but Article 262 lets Parliament keep river water disputes out of it."
+
+[[link]]
+from = "polity-interstate-relations"
+to = "modern-india-reorganisation"
+kind = "builds-on"
+why = "The States Reorganisation Act, 1956 created the Zonal Councils, and its boundaries, with the later states carved out of Assam, left the Belagavi and North-East border disputes."
+
+[[link]]
+from = "polity-interstate-relations"
+to = "security-border-management"
+kind = "compare"
+why = "Inter-state boundary disputes such as Assam-Mizoram and Assam-Meghalaya are often confused with international border management; these are settled by agreements between states and by Article 131 suits."
+
+[[link]]
+from = "polity-interstate-relations"
+to = "economy-taxation"
+kind = "leads-to"
+why = "Part XIII promises free trade across India, but entry taxes and check-posts divided the market until the GST replaced them in 2017."
+
+[[link]]
+from = "polity-interstate-relations"
+to = "polity-tribunals-adr"
+kind = "example-of"
+why = "Water disputes tribunals under the 1956 Act are ad hoc tribunals whose awards have the force of a Supreme Court decree; their delays are the case for a single permanent tribunal."
+
+[[link]]
+from = "polity-interstate-relations"
+to = "security-north-east"
+kind = "same-issue"
+why = "The North-Eastern Council plans for eight states and reviews their security, and the boundary agreements of 2022 and 2023 with Assam are part of the region's peace process."
+
+# ---- polity-president ----
+
+[[link]]
+from = "polity-president"
+to = "polity-parliamentary-system"
+kind = "builds-on"
+why = "The President is the nominal executive of a parliamentary system; read why the Assembly chose that system before asking how much discretion the office has."
+
+[[link]]
+from = "polity-president"
+to = "polity-governor"
+kind = "compare"
+why = "Article 72 against Article 161, Article 123 against Article 213, and a President with no constitutional discretion against a Governor who has some under Article 163."
+
+[[link]]
+from = "polity-president"
+to = "polity-legislative-procedure"
+kind = "leads-to"
+why = "Assent under Article 111, the veto on each kind of Bill and the summoning of a joint sitting are where the President enters the legislative process."
+
+[[link]]
+from = "polity-president"
+to = "polity-emergency"
+kind = "leads-to"
+why = "Proclamations under Articles 352, 356 and 360 are issued by the President, on the Cabinet's written advice in the first case; K.R. Narayanan twice sent back advice to impose President's rule."
+
+[[link]]
+from = "polity-president"
+to = "polity-comparative-constitutions"
+kind = "compare"
+why = "The American President's pardon, including pre-emptive pardons, and impeachment by the House and Senate are the comparisons Mains 2025 asked for."
+
+[[link]]
+from = "polity-president"
+to = "polity-supreme-court"
+kind = "leads-to"
+why = "Article 143 lets the President ask the Supreme Court's opinion; the reference on assent to Bills, answered on 20 November 2025, is the latest and most important use."
+
+[[link]]
+from = "polity-president"
+to = "polity-elections-rpa"
+kind = "compare"
+why = "The President is elected by proportional representation with a single transferable vote, the same method as the Rajya Sabha and unlike the first-past-the-post Lok Sabha."
+
+[[link]]
+from = "polity-president"
+to = "polity-parliament"
+kind = "leads-to"
+why = "The Vice-President is ex-officio Chairman of the Rajya Sabha, and is removed by a resolution that must begin in that House."
+
+# ---- polity-prime-minister-cabinet ----
+
+[[link]]
+from = "polity-prime-minister-cabinet"
+to = "polity-parliamentary-system"
+kind = "builds-on"
+why = "Collective responsibility, the real executive and the idea of Prime Ministerial government are introduced there; this note gives the Articles and the machinery."
+
+[[link]]
+from = "polity-prime-minister-cabinet"
+to = "polity-president"
+kind = "compare"
+why = "Article 74 binds the President to the Council's advice and Article 78 makes the Prime Minister the link between the two: the real and the nominal executive."
+
+[[link]]
+from = "polity-prime-minister-cabinet"
+to = "polity-state-government"
+kind = "compare"
+why = "Articles 163, 164 and 167 repeat Articles 74, 75 and 78 for the states, with two differences Prelims likes: a minimum of twelve ministers, and a tribal welfare minister in four states."
+
+[[link]]
+from = "polity-prime-minister-cabinet"
+to = "governance-civil-services"
+kind = "same-issue"
+why = "The Cabinet Secretary, the Central Secretariat and lateral entry are where this note meets the GS-2 debate on civil service reform."
+
+[[link]]
+from = "polity-prime-minister-cabinet"
+to = "polity-parliament-privileges-issues"
+kind = "leads-to"
+why = "The 91st Amendment's cap on ministers and its bar on defectors becoming ministers were written to close gaps in the anti-defection law."
+
+[[link]]
+from = "polity-prime-minister-cabinet"
+to = "polity-comparative-constitutions"
+kind = "compare"
+why = "Mains 2026 asked how the real authority of the Indian Prime Minister compares with that of the American President; the answer starts from Ambedkar's remark quoted here."
+
+[[link]]
+from = "polity-prime-minister-cabinet"
+to = "economy-planning"
+kind = "leads-to"
+why = "The Prime Minister chairs NITI Aayog and its Governing Council, which replaced the Planning Commission and the National Development Council as the forum with Chief Ministers."
+
+[[link]]
+from = "polity-prime-minister-cabinet"
+to = "governance-good-governance"
+kind = "same-issue"
+why = "The Second ARC's proposals for fewer ministries, executive agencies and fewer levels in a file's journey are standard material for answers on governance reform."
+
+# ---- polity-governor ----
+
+[[link]]
+from = "polity-governor"
+to = "polity-president"
+kind = "compare"
+why = "Article 161 against Article 72, Article 213 against Article 123, and discretion under Article 163 that Article 74 does not give the President: the comparison Prelims keeps asking."
+
+[[link]]
+from = "polity-governor"
+to = "polity-federalism"
+kind = "builds-on"
+why = "The Governor is appointed by the Centre and reserves state Bills for the President, two of the unitary features; Sarkaria and Punchhi's reforms of the office are set out there."
+
+[[link]]
+from = "polity-governor"
+to = "polity-emergency"
+kind = "leads-to"
+why = "A Governor's report is the usual start of President's rule under Article 356, and S.R. Bommai (1994) insists that a majority be tested on the floor of the Assembly, not in Raj Bhavan."
+
+[[link]]
+from = "polity-governor"
+to = "polity-state-government"
+kind = "leads-to"
+why = "The Governor appoints the Chief Minister, summons and dissolves the Assembly and nominates a sixth of the Legislative Council; the bodies themselves are described there."
+
+[[link]]
+from = "polity-governor"
+to = "polity-scheduled-tribal-areas"
+kind = "leads-to"
+why = "The Governor's special responsibilities under Articles 371 to 371J and the powers over Fifth and Sixth Schedule areas are the clearest cases of discretion the Constitution names."
+
+[[link]]
+from = "polity-governor"
+to = "polity-separation-of-powers"
+kind = "example-of"
+why = "The April 2025 ruling fixed timelines and deemed Bills assented; the November 2025 opinion withdrew both as beyond a court's role. Together they show where judicial review of a constitutional office stops."
+
+[[link]]
+from = "polity-governor"
+to = "social-justice-higher-education-skills"
+kind = "same-issue"
+why = "The Governor is Chancellor of state universities by state law, and the disputes over appointing Vice-Chancellors in Tamil Nadu, Kerala, West Bengal and Punjab are also a higher education question."
+
+[[link]]
+from = "polity-governor"
+to = "polity-parliament-privileges-issues"
+kind = "leads-to"
+why = "Subhash Desai (2023), on the Maharashtra floor test of 2022, ties the Governor's role in a hung or split House to the anti-defection law."
+
+# ---- polity-state-government ----
+
+[[link]]
+from = "polity-state-government"
+to = "polity-prime-minister-cabinet"
+kind = "compare"
+why = "Articles 163, 164 and 167 mirror Articles 74, 75 and 78; the differences are the minimum of twelve ministers and the tribal welfare minister in four states."
+
+[[link]]
+from = "polity-state-government"
+to = "polity-parliament"
+kind = "compare"
+why = "A Legislative Council is weaker than the Rajya Sabha at every point: it can be abolished under Article 169, it has no joint sitting, and it can delay an ordinary Bill by four months at most."
+
+[[link]]
+from = "polity-state-government"
+to = "polity-governor"
+kind = "builds-on"
+why = "The Governor appoints the Chief Minister, summons the House and assents to its Bills; read the office first to follow how a state government is formed and falls."
+
+[[link]]
+from = "polity-state-government"
+to = "polity-legislative-procedure"
+kind = "compare"
+why = "Articles 196 to 199 follow Parliament's procedure for ordinary and Money Bills, except that a deadlock ends with the Assembly's second passage and not a joint sitting."
+
+[[link]]
+from = "polity-state-government"
+to = "polity-parliament-privileges-issues"
+kind = "same-issue"
+why = "Article 194 repeats Article 105, and Sita Soren (2024) held that neither protects a legislator who takes a bribe for a vote or a speech."
+
+[[link]]
+from = "polity-state-government"
+to = "polity-amendment"
+kind = "leads-to"
+why = "Creating or abolishing a Council under Article 169 changes Article 168 by a simple majority and is not an amendment under Article 368; only Assemblies ratify amendments."
+
+[[link]]
+from = "polity-state-government"
+to = "polity-panchayati-raj"
+kind = "leads-to"
+why = "A third of a Legislative Council is elected by local bodies, which is one argument for the second chamber; the Standing Committee wanted that link to panchayats strengthened."
+
+[[link]]
+from = "polity-state-government"
+to = "polity-elections-rpa"
+kind = "leads-to"
+why = "Assembly seats are frozen on the 1971 census until the first census after 2026, and disqualification under Article 191 follows the Representation of the People Act."

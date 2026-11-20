@@ -114,6 +114,7 @@ options = ["7th Amendment Act, 1956", "24th Amendment Act, 1971", "42nd Amendmen
 answer = "C"
 explanation = "The 42nd Amendment Act, 1976 inserted these three words, the only change ever made to the Preamble. The 44th Amendment of 1978 reversed several other changes of the 42nd but left the Preamble alone."
 trap = "The 44th Amendment undid much of the 42nd, so it is tempting to think it also reversed this change. It did not."
+note = "polity-amendment"
 
 [[question]]
 id = "polity-0009"
@@ -131,6 +132,7 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "An ordinance has the force of an Act of Parliament but is temporary, and it must be laid before both Houses. It is an ordinary law-making power, so it cannot amend the Constitution, which needs the procedure of Article 368."
 trap = "The six weeks run from the reassembly of Parliament, not from the date of promulgation."
+note = "polity-president"
 
 [[question]]
 id = "polity-0010"
@@ -148,6 +150,7 @@ options = ["2 only", "3 only", "1 and 3 only", "1 and 2 only"]
 answer = "D"
 explanation = "The Governor is appointed by the President, and since the 7th Amendment (1956) one person can serve as Governor of more than one state. The five-year term is only a normal term. The Governor holds office during the pleasure of the President."
 trap = "A five-year term sounds like security of tenure, but the Governor can be removed at any time at the President's pleasure."
+note = "polity-governor"
 
 [[question]]
 id = "polity-0011"
@@ -231,6 +234,7 @@ options = ["Golaknath v. State of Punjab (1967)", "Maneka Gandhi v. Union of Ind
 answer = "C"
 explanation = "A 13-judge bench in Kesavananda Bharati held that Parliament can amend any part of the Constitution but cannot alter its basic structure. Golaknath had held that Fundamental Rights could not be amended at all, and Kesavananda overruled it."
 trap = "Golaknath came first and also limited Parliament, but it barred amendment of Fundamental Rights altogether. The basic structure doctrine began with Kesavananda."
+note = "polity-basic-structure"
 
 [[question]]
 id = "polity-0017"

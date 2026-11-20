@@ -508,6 +508,11 @@ impl NotesScreen {
         };
         let sections = sections(text);
         let questions = library.questions_for(note);
+        let related: Vec<(usize, &'static str, String)> = library
+            .related_notes(note)
+            .into_iter()
+            .map(|rel| (rel.target, rel.label, rel.why.to_string()))
+            .collect();
 
         // Every child of the reader is one of these, so the outline can find
         // a section by its position.
@@ -659,6 +664,9 @@ impl NotesScreen {
             .child(column(footer.into_any_element()))
             .when(!questions.is_empty(), |reader| {
                 reader.child(column(self.questions(&questions, cx).into_any_element()))
+            })
+            .when(!related.is_empty(), |reader| {
+                reader.child(column(self.connections(&related, cx).into_any_element()))
             });
 
         let bar = self.marking.bar(
@@ -675,7 +683,7 @@ impl NotesScreen {
             cx,
         );
 
-        // The outline: each heading, then the questions, as reader positions.
+        // The outline: each heading, then the questions and connections, as reader positions.
         let mut outline: Vec<(SharedString, usize)> = sections
             .iter()
             .enumerate()
@@ -685,6 +693,12 @@ impl NotesScreen {
             outline.push((
                 format!("Questions ({})", questions.len()).into(),
                 sections.len() + 2,
+            ));
+        }
+        if !related.is_empty() {
+            outline.push((
+                format!("Connected notes ({})", related.len()).into(),
+                sections.len() + 2 + usize::from(!questions.is_empty()),
             ));
         }
 
@@ -740,6 +754,22 @@ impl NotesScreen {
             .max_by_key(|plan| plan.count)
             .unwrap_or_else(|| mentor::topic_drill(library, &topic, DRILL));
         let questions = library.questions_for(note).len();
+        let related: Vec<(usize, &'static str, SharedString, SharedString, Hsla)> = library
+            .related_notes(note)
+            .into_iter()
+            .map(|rel| {
+                let other = &library.notes[rel.target];
+                let other_topic = other.topics.first().map_or("", String::as_str);
+                (
+                    rel.target,
+                    rel.label,
+                    SharedString::from(other.title.clone()),
+                    SharedString::from(rel.why.to_string()),
+                    ui::subject_color(other_topic, cx),
+                )
+            })
+            .collect();
+        let shell = self.shell.clone();
         let entries = outline
             .into_iter()
             .enumerate()
@@ -880,6 +910,125 @@ impl NotesScreen {
                         ),
                 )
             })
+            .when(!related.is_empty(), |this| {
+                this.child(
+                    v_flex()
+                        .px(px(12.))
+                        .pt(px(8.))
+                        .pb(px(16.))
+                        .gap(px(2.))
+                        .child(
+                            ui::caption(format!("Connected notes ({})", related.len()), cx)
+                                .px(px(10.))
+                                .pb(px(4.)),
+                        )
+                        .children(related.into_iter().enumerate().map(
+                            |(k, (target, label, title, why, color))| {
+                                let shell = shell.clone();
+                                v_flex()
+                                    .id(("inspector-link", k))
+                                    .test_support()
+                                    .px(px(10.))
+                                    .py(px(6.))
+                                    .gap(px(2.))
+                                    .rounded(px(6.))
+                                    .cursor_pointer()
+                                    .hover(|this| this.bg(t.hover))
+                                    .child(
+                                        h_flex()
+                                            .gap(px(6.))
+                                            .child(ui::dot(color))
+                                            .child(ui::caption(label, cx)),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_size(px(12.5))
+                                            .text_color(t.text)
+                                            .truncate()
+                                            .child(title),
+                                    )
+                                    .tooltip(move |window, cx| {
+                                        Tooltip::new(why.clone()).build(window, cx)
+                                    })
+                                    .on_click(move |_, _, cx| {
+                                        let _ = shell.update(cx, |shell, cx| {
+                                            shell.open(Target::Note(target), cx)
+                                        });
+                                    })
+                            },
+                        )),
+                )
+            })
+    }
+
+    /// The other notes linked from `tools/notes/links.toml`, with the mentor's
+    /// reason for each connection.
+    fn connections(
+        &self,
+        related: &[(usize, &'static str, String)],
+        cx: &Context<Self>,
+    ) -> impl IntoElement {
+        let t = ui::tokens(cx);
+        let library = &AppState::get(cx).library;
+        let shell = self.shell.clone();
+        let cards = related.iter().map(|(target, label, why)| {
+            let target = *target;
+            let other = &library.notes[target];
+            let other_topic = other.topics.first().map_or("", String::as_str);
+            let subject = other
+                .subject
+                .clone()
+                .unwrap_or_else(|| library.subject_label(other_topic));
+            let color = ui::subject_color(other_topic, cx);
+            let shell = shell.clone();
+            ui::card(cx)
+                .id(("related-note", target))
+                .test_support()
+                .p_4()
+                .gap(px(8.))
+                .cursor_pointer()
+                .hover(|this| this.bg(t.hover))
+                .on_click(move |_, _, cx| {
+                    let _ = shell.update(cx, |shell, cx| shell.open(Target::Note(target), cx));
+                })
+                .child(
+                    h_flex()
+                        .gap(px(8.))
+                        .child(ui::chip(cx).child(*label))
+                        .child(ui::subject_chip(subject, color, cx))
+                        .child(div().flex_1())
+                        .child(
+                            Icon::new(IconName::ArrowUpRight)
+                                .size(px(14.))
+                                .text_color(t.text_3),
+                        ),
+                )
+                .child(
+                    div()
+                        .text_size(px(14.5))
+                        .font_semibold()
+                        .text_color(t.text)
+                        .child(other.title.clone()),
+                )
+                .child(
+                    div()
+                        .text_size(px(13.5))
+                        .line_height(relative(1.5))
+                        .text_color(t.text_2)
+                        .child(why.clone()),
+                )
+        });
+        v_flex()
+            .pb_16()
+            .gap(px(12.))
+            .child(
+                div()
+                    .font_family(ui::DISPLAY)
+                    .text_size(px(20.))
+                    .font_semibold()
+                    .child("Connected notes"),
+            )
+            .children(cards)
     }
 
     /// The questions that go with the note, each with its answer behind a button.

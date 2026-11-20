@@ -49,6 +49,7 @@ frame = [
   "Show the strains: loss of state fiscal autonomy, compensation worries.",
   "Suggest a way forward: predictable compensation and a standing dispute mechanism.",
 ]
+notes = ["polity-fiscal-federalism"]
 
 [story.question]
 id = "ca-2026-11-10-2"

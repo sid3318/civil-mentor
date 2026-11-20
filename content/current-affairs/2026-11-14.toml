@@ -151,6 +151,7 @@ frame = [
   "Warn about proxy candidates and the lack of party tickets.",
   "Suggest complements: party reforms, training, safe campaigning.",
 ]
+notes = ["polity-amendment"]
 
 [story.question]
 id = "ca-2026-11-14-5"
@@ -168,6 +169,7 @@ explanation = "The 106th Amendment provides one-third reservation for women in t
 id = "2026-11-14-editorial-simultaneous-polls"
 title = "One nation, one election: the federal question"
 topics = ["mains.gs2.polity.constitutional-bodies.election-commission-of-india", "mains.gs2.polity.federalism.challenges.nature-of-indian-federalism"]
+notes = ["polity-federalism", "polity-amendment"]
 body = """
 The idea of holding Lok Sabha and state assembly elections together returns to public debate every few years. It sounds simple. In practice it touches the structure of the Constitution, the working of federalism and the way voters hold governments to account.
 

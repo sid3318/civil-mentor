@@ -93,6 +93,7 @@ facts = [
 ]
 trap = "Fundamental Duties apply to citizens only. Fundamental Rights such as Article 14 and 21 apply to non-citizens as well."
 pyq = "Prelims often asks which amendment added Fundamental Duties and which of a list is a duty."
+notes = ["polity-dpsp-duties"]
 
 [story.question]
 id = "ca-2026-11-13-4"
