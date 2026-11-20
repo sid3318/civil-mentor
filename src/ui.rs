@@ -19,13 +19,13 @@ use crate::mentor;
 pub const DISPLAY: &str = "Inter Display";
 /// The reading face for stories and Mains answers.
 pub const SERIF: &str = "Source Serif 4";
-/// The handwriting face for the body of notes. It has one weight, so bold
-/// and italic text in a note show as regular.
-pub const HAND: &str = "Handlee";
+/// The face for the body of notes. It has no italic, so italic text in a
+/// note shows upright.
+pub const NOTES: &str = "Agrave Pro";
 
 /// Inter for the interface, Inter Display for headings, Source Serif 4 for
-/// reading and Handlee for notes, all under the SIL Open Font License (see
-/// `assets/fonts`).
+/// reading and Agrave Pro for notes, all under the SIL Open Font License
+/// (see `assets/fonts`).
 pub(crate) fn load_fonts(cx: &mut App) {
     let fonts: Vec<Cow<'static, [u8]>> = vec![
         Cow::Borrowed(include_bytes!("../assets/fonts/Inter-Regular.ttf")),
@@ -35,7 +35,8 @@ pub(crate) fn load_fonts(cx: &mut App) {
         Cow::Borrowed(include_bytes!("../assets/fonts/SourceSerif4-Regular.ttf")),
         Cow::Borrowed(include_bytes!("../assets/fonts/SourceSerif4-It.ttf")),
         Cow::Borrowed(include_bytes!("../assets/fonts/SourceSerif4-Semibold.ttf")),
-        Cow::Borrowed(include_bytes!("../assets/fonts/Handlee-Regular.ttf")),
+        Cow::Borrowed(include_bytes!("../assets/fonts/AgravePro-Regular.ttf")),
+        Cow::Borrowed(include_bytes!("../assets/fonts/AgravePro-SemiBold.ttf")),
     ];
     cx.text_system()
         .add_fonts(fonts)
