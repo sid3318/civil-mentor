@@ -28,7 +28,7 @@ Screenshots of every screen are in `target/shots/` after `cargo test`.
    - green for right, red for wrong, amber for marked.
 3. **Dense, not cramped.** UI text is 13 px with 30 px rows on a 4 px grid. Whitespace comes from alignment, not from padding everything.
 4. **Data has a shape.** Every number a student watches has a visual form: rings for today's progress, bars for accuracy, heat cells for study time, chips for status.
-5. **Reading is its own mode.** Notes and stories use a serif text face at 17 px in a 680 px column. The rest of the window gets out of the way.
+5. **Reading is its own mode.** Notes use a handwriting face and stories a serif one, at 17 px in a 680 px column. The rest of the window gets out of the way.
 6. **The keyboard is visible.** Buttons that have a shortcut show it, for example "Submit ⌘↵", "Mark M" or "Next →".
 7. **Dark mode is designed.** It uses layered graphite (window, canvas, card, popover) with brighter accents. It is not an inversion of light mode.
 
@@ -38,7 +38,7 @@ Screenshots of every screen are in `target/shots/` after `cargo test`.
 |---|---|
 | Inset canvas: the sidebar on the window background, the work in a rounded panel | Warm graphite neutrals instead of Capy's cool violet-grey |
 | Hairline borders as alpha of the text colour, not grey hex values | **Peacock** accent (`#006D99`), not Capy's violet or teal |
-| 13 to 14 px UI type in Inter, medium weights, tight headings | A serif reading face (Source Serif 4) for notes and stories |
+| 13 to 14 px UI type in Inter, medium weights, tight headings | A handwriting face (Handlee) for notes, a serif one (Source Serif 4) for stories |
 | Header strip inside the canvas: breadcrumb, segmented tabs, actions | A colour per subject, so a subject reads the same on every screen |
 | Right-hand inspector pane for context | Study visuals: day ring, Leitner boxes, question palette, heat strip |
 | Segmented controls, count badges in the sidebar, keys inside buttons | Dot-field texture on the Today greeting and empty states, tinted with the accent |
@@ -105,7 +105,8 @@ The last two rows add colours, not subjects: `mentor::SUBJECTS` and the stored a
 |---|---|---|
 | **Inter** (400, 500, 600) | All UI text | Embedded, SIL Open Font License. Static files, not the variable font, so weight matching is predictable in GPUI |
 | **Inter Display** (600) | Headings of 20 px and up | Tighter at large sizes. GPUI has no letter-spacing control, so this is how headings get tight |
-| **Source Serif 4** (400, italic, 600) | Note and story body text, the Mains editor | Embedded, SIL OFL. A Serif or Sans switch in the reader's Aa menu, saved as a setting |
+| **Source Serif 4** (400, italic, 600) | Story body text, the Mains editor | Embedded, SIL OFL. A Serif or Sans switch in the reader's Aa menu, saved as a setting |
+| **Handlee** (400) | Note body text | Embedded, SIL OFL. One weight, so bold and italic in a note show as regular |
 | System mono | Key hints, the rare code block | Not embedded |
 
 | Style | Size / line height | Weight | Used for |
@@ -118,7 +119,7 @@ The last two rows add colours, not subjects: `mentor::SUBJECTS` and the stored a
 | `ui` | 13 / 18 | 400 or 500 | Default: sidebar, rows, buttons, tabs |
 | `meta` | 12 / 16 | 400 | The second line of a row, chips, table heads |
 | `caption` | 11 / 14 | 500 | Group labels, counts, chart axes, key hints |
-| `reader` | 17 / 28 (13 to 24 adjustable) | Source Serif 4 400 | Note and story body |
+| `reader` | 17 / 28 (13 to 24 adjustable) | Handlee 400 for notes, Source Serif 4 400 for stories | Note and story body |
 | `numeric` | any | 500 or 600, tabular figures | Timers, scores, counts, table columns |
 
 Tabular figures stop timers and score columns from jumping. Use Inter's `tnum` feature where GPUI's font features allow it. Otherwise give the number a fixed-width box.
@@ -491,7 +492,7 @@ The order follows a student's day. Each task restyles one screen file to its spe
 - **Sidebar.** It is still gpui-kit's `Sidebar`, so the UI test's ids stay. Its rows are the component's own 26 px, not 30. When folded, the component is 48 px wide inside a 72 px column that holds the traffic lights. The rail stacks Back and Forward, then the fold button and the theme switch. The theme switch moved into the top row because the title bar is gone.
 - **Header.** Each screen draws its own header with `ui::header`, a restyled gpui-kit `TitleBar`, so the header drags and double-clicks like a title bar.
 - **Type.** The theme's `font.size` is 15, so gpui-kit's controls get 13 px text and 30 px rows. Kit parts set their sizes in pixels.
-- **Reader.** The body is set in Source Serif 4 and so are its headings. A gpui-kit `TextView` cannot give headings a font of their own, and each section is one view whose text the highlights index into. There is no Aa menu and no Serif or Sans switch yet: the reader is always serif, and the text size and the 920 px wide column are buttons in the header.
+- **Reader.** The body is set in Handlee and so are its headings. A gpui-kit `TextView` cannot give headings a font of their own, and each section is one view whose text the highlights index into. There is no Aa menu and no Serif or Sans switch yet: the reader is always Handlee, and the text size and the 920 px wide column are buttons in the header.
 - **Inspector.** Only Notes has one: the outline, a reading ring with Mark as read, and a drill on the note. It does not hide itself below 1100 px yet (D3.2).
 - **Exam room.** It gained keys 1, 2 and 3 for the confidence tag and ⌘↵ to submit, so the room can show those hints truthfully. There is no S key for strike-out, so no S hint is shown.
 - **Left out for now.** These are left out until there is a reason to add them:
@@ -516,7 +517,7 @@ The order follows a student's day. Each task restyles one screen file to its spe
 ## 8. Decisions, with the defaults I will use
 
 1. **Accent:** Peacock, `#006D99` in light and `#42ACD2` in dark. It is one token to swap.
-2. **Reader font:** Source Serif 4 by default, with Inter one click away in the Aa menu.
+2. **Reader font:** Handlee for notes and Source Serif 4 for stories, with Inter one click away in the Aa menu.
 3. **Translucent sidebar** (macOS vibrancy): off. It is solid `chrome`, as Capy's is. It can be revisited after D3.
 4. **Dot field** on Today and empty states: on and subtle. It is the one decorative touch.
 5. **Exam room theme:** follows the app's theme. It is not forced to dark.

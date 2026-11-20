@@ -630,7 +630,7 @@ impl NotesScreen {
                         div()
                             .id(("note-section", k))
                             .test_support()
-                            .font_family(ui::SERIF)
+                            .font_family(ui::HAND)
                             .line_height(relative(1.65))
                             .when(trap, |this| {
                                 this.px_4()
