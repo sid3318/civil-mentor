@@ -66,7 +66,7 @@ frame = [
   "Give the counterpoint: the elected House must control the purse.",
   "Suggest a way forward: clear tests and review of certification.",
 ]
-notes = ["polity-legislative-procedure"]
+notes = ["polity-parliament"]
 
 [story.question]
 id = "ca-2026-11-13-3"

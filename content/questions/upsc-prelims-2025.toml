@@ -916,7 +916,7 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "C"
 explanation = "An ordinance has the same force as an Act of Parliament, so it can amend a Central Act and can be made to operate retrospectively. Like any law, it cannot take away or abridge a Fundamental Right."
 trap = "Ordinances are 'temporary', yet they enjoy the full law-making power of Parliament except where the Constitution bars it."
-note = "polity-president"
+note = "polity-president-vice-president"
 
 [[question]]
 id = "upsc-2025-052"
@@ -971,7 +971,7 @@ options = ["I only", "II only", "Both I and II", "Neither I nor II"]
 answer = "A"
 explanation = "Provisions such as those for the Sixth Schedule areas in Assam and some other States explicitly say the Governor acts in his or her discretion. A State bill goes to the President only when the Governor reserves it, so the President cannot reserve it on his own."
 trap = "The President's overall supremacy over the Governor makes statement II sound right, but the reservation power rests with the Governor."
-note = "polity-governor"
+note = "polity-state-executive"
 
 [[question]]
 id = "upsc-2025-055"
@@ -1064,7 +1064,7 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "D"
 explanation = "Article 361 gives the Governor immunity from court answerability for official acts and bars criminal proceedings during the term. Article 194 protects legislators from court proceedings for what they say in the House."
 trap = "The immunity for the Governor is partial, as civil suits can be filed after two months' notice, but the criminal-proceedings bar holds."
-note = "polity-governor"
+note = "polity-state-executive"
 
 [[question]]
 id = "upsc-2025-060"
@@ -1490,7 +1490,7 @@ options = ["I only", "II only", "Both I and II", "Neither I nor II"]
 answer = "A"
 explanation = "The Supreme Court has held that the pardoning power can be reviewed on limited grounds such as arbitrariness or mala fides. The President must act on the advice of the Council of Ministers, so statement II is wrong."
 trap = "Because the power is written as the President's own, it is easy to forget that it is exercised on ministerial advice."
-note = "polity-president"
+note = "polity-president-vice-president"
 
 [[question]]
 id = "upsc-2025-087"
@@ -1525,7 +1525,7 @@ options = ["I only", "II only", "Both I and II", "Neither I nor II"]
 answer = "D"
 explanation = "Under the Tenth Schedule it is the presiding officer of the House, the Speaker for the Lok Sabha, who decides disqualification, and that decision is subject to judicial review. The Tenth Schedule itself uses the term political party, so statement II is wrong."
 trap = "Disqualification on other grounds is decided by the President on the Election Commission's advice, which can be wrongly extended to defection cases."
-note = "polity-parliament-privileges-issues"
+note = "polity-parliament"
 
 [[question]]
 id = "upsc-2025-089"

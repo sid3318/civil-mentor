@@ -49,7 +49,7 @@ options = ["1 only", "1 and 3 only", "2 and 3 only", "1, 2 and 3"]
 answer = "B"
 explanation = "A Money Bill is introduced only in the Lok Sabha, on the President's recommendation. The Rajya Sabha can only make recommendations and must return the Bill within 14 days. Under Article 110(3) the Speaker's certificate is final."
 trap = "The Rajya Sabha can discuss a Money Bill and suggest changes. It cannot amend or reject it."
-note = "polity-legislative-procedure"
+note = "polity-parliament"
 
 [[question]]
 id = "polity-0004"
@@ -89,7 +89,7 @@ options = ["Public Accounts Committee", "Committee on Public Undertakings", "Est
 answer = "C"
 explanation = "The Estimates Committee has 30 members, all from the Lok Sabha. The Public Accounts Committee and the Committee on Public Undertakings each include Rajya Sabha members (7 of 22), and the departmentally related standing committees draw on both Houses."
 trap = "The Public Accounts Committee looks like a Lok Sabha body because the Lok Sabha dominates it, but the Rajya Sabha has seats on it."
-note = "polity-parliament-budget-committees"
+note = "polity-parliament"
 
 [[question]]
 id = "polity-0007"
@@ -107,7 +107,7 @@ options = ["1 only", "3 only", "1 and 2 only", "1 and 3 only"]
 answer = "D"
 explanation = "Article 108 provides for a joint sitting on an ordinary bill, and the Speaker presides. It has been used in 1961, 1978 and 2002. Constitution amendment bills under Article 368 need a special majority in each House and cannot go to a joint sitting."
 trap = "A deadlock on an amendment bill ends the bill. There is no joint sitting to rescue it."
-note = "polity-legislative-procedure"
+note = "polity-parliament"
 
 [[question]]
 id = "polity-0008"
@@ -136,7 +136,7 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "An ordinance has the force of an Act of Parliament but is temporary, and it must be laid before both Houses. It is an ordinary law-making power, so it cannot amend the Constitution, which needs the procedure of Article 368."
 trap = "The six weeks run from the reassembly of Parliament, not from the date of promulgation."
-note = "polity-president"
+note = "polity-president-vice-president"
 
 [[question]]
 id = "polity-0010"
@@ -154,7 +154,7 @@ options = ["2 only", "3 only", "1 and 3 only", "1 and 2 only"]
 answer = "D"
 explanation = "The Governor is appointed by the President, and since the 7th Amendment (1956) one person can serve as Governor of more than one state. The five-year term is only a normal term. The Governor holds office during the pleasure of the President."
 trap = "A five-year term sounds like security of tenure, but the Governor can be removed at any time at the President's pleasure."
-note = "polity-governor"
+note = "polity-state-executive"
 
 [[question]]
 id = "polity-0011"

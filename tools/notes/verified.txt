@@ -1,10 +1,15 @@
 polity-amendment-basic-structure
 polity-centre-state-fiscal
 polity-dpsp-duties
+polity-emergency
 polity-federalism-interstate
 polity-fundamental-rights
 polity-historical-background
 polity-making-of-the-constitution
+polity-parliament
 polity-parliamentary-comparative
+polity-president-vice-president
+polity-prime-minister-cabinet
 polity-salient-features-preamble
+polity-state-executive
 polity-union-territory-citizenship

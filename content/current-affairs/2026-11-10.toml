@@ -21,7 +21,7 @@ frame = [
   "Note the judicial check in Kihoto Hollohan and calls for time-bound decisions.",
   "Suggest reform: an independent tribunal or the Election Commission, with a fixed deadline.",
 ]
-notes = ["polity-parliament-privileges-issues"]
+notes = ["polity-parliament"]
 
 [story.question]
 id = "ca-2026-11-10-1"

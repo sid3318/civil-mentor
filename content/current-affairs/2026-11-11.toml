@@ -20,7 +20,7 @@ frame = [
   "Show the defence: the office is a constitutional check, not a rubber stamp.",
   "Suggest ways ahead: reasonable timelines, written reasons, and following the Sarkaria and Punchhi recommendations.",
 ]
-notes = ["polity-governor"]
+notes = ["polity-state-executive"]
 
 [story.question]
 id = "ca-2026-11-11-1"
