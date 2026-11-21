@@ -1700,6 +1700,7 @@ options = ["III only", "II and III", "I and IV", "None of the above statements i
 answer = "A"
 explanation = "The Lokpal Act sets a minimum age of 45 for the Chairperson and Members. The Act covers public servants in India and abroad, the Chairperson may be a former Supreme Court judge as well as a Chief Justice, and the Prime Minister can be inquired into subject to safeguards."
 trap = "Statement IV sounds like a complete exemption, but the Prime Minister is covered with conditions."
+note = "polity-statutory-regulatory-bodies"
 
 [[question]]
 id = "upsc-2025-099"

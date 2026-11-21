@@ -1,6 +1,9 @@
+economy-basics-national-income
 polity-amendment-basic-structure
 polity-centre-state-fiscal
+polity-constitutional-bodies
 polity-dpsp-duties
+polity-elections-parties-reforms
 polity-emergency
 polity-federalism-interstate
 polity-fundamental-rights
@@ -12,9 +15,11 @@ polity-parliament
 polity-parliamentary-comparative
 polity-president-vice-president
 polity-prime-minister-cabinet
+polity-reservation-official-language
 polity-salient-features-preamble
 polity-state-executive
 polity-state-legislature
+polity-statutory-regulatory-bodies
 polity-supreme-court-judicial-review
 polity-union-territories-special-areas
 polity-union-territory-citizenship

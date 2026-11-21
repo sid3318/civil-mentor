@@ -1186,3 +1186,232 @@ from = "polity-local-government"
 to = "disaster-natural-hazards"
 kind = "same-issue"
 why = "Missing Master Plans, parastatal fragmentation and starved urban revenues explain why Indian cities suffer recurring urban flooding despite Twelfth Schedule planning mandates."
+
+# ---- polity-union-territories-special-areas ----
+
+[[link]]
+from = "polity-union-territories-special-areas"
+to = "polity-union-territory-citizenship"
+kind = "builds-on"
+why = "Read Part I (Articles 1 to 4) and the 1956 States Reorganisation Act first; Part VIII and Part XXI show how Union Territories, Delhi, J&K and asymmetric state safeguards operate in practice."
+
+[[link]]
+from = "polity-union-territories-special-areas"
+to = "polity-federalism-interstate"
+kind = "example-of"
+why = "Fifth and Sixth Schedule autonomy, Article 239AA for Delhi and Part XXI (Articles 371 to 371J) are India's constitutional toolkit of asymmetric federalism."
+
+[[link]]
+from = "polity-union-territories-special-areas"
+to = "polity-local-government"
+kind = "compare"
+why = "Fifth Schedule areas use Tribes Advisory Councils and PESA (1996) Gram Sabhas, whereas Sixth Schedule Autonomous District Councils hold direct legislative, judicial and financial powers outside Part IX."
+
+[[link]]
+from = "polity-union-territories-special-areas"
+to = "polity-state-executive"
+kind = "compare"
+why = "A UT Lieutenant Governor is an agent of the President under Article 239, unlike a State Governor who acts as a constitutional head bound generally by ministerial advice under Article 163."
+
+[[link]]
+from = "polity-union-territories-special-areas"
+to = "security-extremism-insurgency"
+kind = "same-issue"
+why = "Sixth Schedule ADCs, the Bodoland Territorial Region accord (2020) and Articles 371A, 371C and 371G were crafted to channel North-East ethnic aspirations into constitutional self-rule."
+
+[[link]]
+from = "polity-union-territories-special-areas"
+to = "security-terrorism-organised-crime"
+kind = "same-issue"
+why = "The 2019 J&K Reorganisation Act, In Re: Article 370 (2023), the 2024 Assembly polls and Ladakh's 2025-2026 autonomy talks sit directly at the intersection of polity and internal security."
+
+# ---- polity-constitutional-bodies ----
+
+[[link]]
+from = "polity-constitutional-bodies"
+to = "polity-elections-parties-reforms"
+kind = "leads-to"
+why = "Article 324's Election Commission architecture, the 2023 CEC Appointment Act and removal asymmetry directly govern how the RPA 1950/1951, Model Code of Conduct and electoral reforms work on the ground."
+
+[[link]]
+from = "polity-constitutional-bodies"
+to = "polity-parliament"
+kind = "builds-on"
+why = "CAG's three audit reports (Article 151) feed straight into the Public Accounts Committee, and the Attorney General holds the Article 88 right to speak in Parliament without voting."
+
+[[link]]
+from = "polity-constitutional-bodies"
+to = "polity-centre-state-fiscal"
+kind = "compare"
+why = "Read this chapter alongside the Finance Commission (Article 280) and GST Council (Article 279A) in Chapter 10 for the complete constitutional map of India's independent watchdogs."
+
+[[link]]
+from = "polity-constitutional-bodies"
+to = "polity-statutory-regulatory-bodies"
+kind = "compare"
+why = "Prelims routinely tests constitutional versus statutory status—comparing ECI, UPSC, CAG and NCSC/NCST/NCBC against NHRC, CIC, CVC, Lokpal and NITI Aayog."
+
+[[link]]
+from = "polity-constitutional-bodies"
+to = "polity-reservation-official-language"
+kind = "same-issue"
+why = "NCSC (338), NCST (338A), NCBC (338B via the 102nd and 105th Amendments) and the Special Officer for Linguistic Minorities (350B) enforce India's affirmative-action and language safeguards."
+
+[[link]]
+from = "polity-constitutional-bodies"
+to = "governance-civil-services"
+kind = "same-issue"
+why = "UPSC and State PSC recruitment independence (Articles 315 to 323), lateral entry debates and Article 320 advisory limits anchor GS-2 civil service reform answers."
+
+# ---- polity-statutory-regulatory-bodies ----
+
+[[link]]
+from = "polity-statutory-regulatory-bodies"
+to = "polity-constitutional-bodies"
+kind = "compare"
+why = "Unlike constitutional bodies created by the text of the Constitution, NHRC, CIC, CVC and Lokpal derive powers from parliamentary statutes (and CBI from the DSPE Act 1946, NITI Aayog from a Cabinet resolution)."
+
+[[link]]
+from = "polity-statutory-regulatory-bodies"
+to = "polity-high-courts-tribunals-adr"
+kind = "leads-to"
+why = "Quasi-judicial orders of sectoral regulators—SEBI, TRAI, CCI, IRDAI and PFRDA—flow to specialised appellate tribunals (SAT, TDSAT, NCLAT) overseen by High Courts after L. Chandra Kumar."
+
+[[link]]
+from = "polity-statutory-regulatory-bodies"
+to = "governance-good-governance-transparency"
+kind = "same-issue"
+why = "RTI (2005 and 2019 Amendments), the DPDP Act 2023 amendment to Section 8(1)(j), Lokpal, CVC and the unnotified Whistle Blowers Protection Act (2014) form India's transparency framework."
+
+[[link]]
+from = "polity-statutory-regulatory-bodies"
+to = "ethics-probity-governance"
+kind = "same-issue"
+why = "Institutional anti-corruption watchdogs—CVC, CBI, Lokpal and Lokayuktas—and Second ARC's Fourth Report connect directly to GS-4 probity and integrity in public life."
+
+[[link]]
+from = "polity-statutory-regulatory-bodies"
+to = "economy-planning-reforms"
+kind = "compare"
+why = "The 2015 shift from the Planning Commission's top-down plan allocations to NITI Aayog's cooperative think-tank model spans both GS-2 governance and GS-3 economic planning."
+
+[[link]]
+from = "polity-statutory-regulatory-bodies"
+to = "economy-payments-financial-markets"
+kind = "same-issue"
+why = "RBI, SEBI, IRDAI, PFRDA and FSLRC reforms bridge India's GS-2 regulatory-state governance debates with GS-3 financial markets and monetary oversight."
+
+# ---- polity-elections-parties-reforms ----
+
+[[link]]
+from = "polity-elections-parties-reforms"
+to = "polity-constitutional-bodies"
+kind = "builds-on"
+why = "ECI's constitutional mandate under Article 324 and its appointment/removal rules underpin every operational debate over electoral rolls, EVM-VVPATs, MCC enforcement and party de-registration."
+
+[[link]]
+from = "polity-elections-parties-reforms"
+to = "polity-parliament"
+kind = "leads-to"
+why = "RPA 1951 Section 8(3) disqualifications (Lily Thomas), Tenth Schedule anti-defection rules and the 129th ONOE Bill directly determine parliamentary membership and stability."
+
+[[link]]
+from = "polity-elections-parties-reforms"
+to = "polity-fundamental-rights"
+kind = "same-issue"
+why = "The Supreme Court struck down Electoral Bonds (February 2024) by reading voter access to political-funding data into Article 19(1)(a) and applying Article 14 manifest arbitrariness."
+
+[[link]]
+from = "polity-elections-parties-reforms"
+to = "polity-amendment-basic-structure"
+kind = "same-issue"
+why = "Free and fair elections are part of the Basic Structure (Indira Nehru Gandhi, 1975), setting constitutional boundaries for simultaneous-poll proposals under the 129th Amendment Bill."
+
+[[link]]
+from = "polity-elections-parties-reforms"
+to = "polity-parliamentary-comparative"
+kind = "compare"
+why = "India's choice of First-Past-the-Post for Lok Sabha and Assemblies versus Proportional Representation in European democracies shapes party fragmentation, coalition stability and reform proposals."
+
+[[link]]
+from = "polity-elections-parties-reforms"
+to = "governance-policy-development-sector"
+kind = "same-issue"
+why = "Pressure groups, business chambers, trade unions and civil-society advocacy networks like ADR and MKSS mediate between citizens and policy formulation in GS-2 governance."
+
+# ---- polity-reservation-official-language ----
+
+[[link]]
+from = "polity-reservation-official-language"
+to = "polity-fundamental-rights"
+kind = "builds-on"
+why = "Articles 15(4)-(6) and 16(4)-(6) are the substantive-equality core on which Indra Sawhney (1992), Nagaraj (2006), Janhit Abhiyan (2022) and Davinder Singh (2024) built reservation jurisprudence."
+
+[[link]]
+from = "polity-reservation-official-language"
+to = "polity-salient-features-preamble"
+kind = "compare"
+why = "The Eighth Schedule's 22 languages (and the 21st, 71st, 92nd and 96th Amendments) contrast directly with India's 11 Classical Languages (expanded October 2024), where Pali and Prakrit sit outside the Eighth Schedule."
+
+[[link]]
+from = "polity-reservation-official-language"
+to = "polity-constitutional-bodies"
+kind = "same-issue"
+why = "NCSC, NCST, NCBC (102nd and 105th Amendments) and the Special Officer for Linguistic Minorities (Article 350B) are the institutional guardians of affirmative action and language rights."
+
+[[link]]
+from = "polity-reservation-official-language"
+to = "social-justice-scs-sts-minorities"
+kind = "same-issue"
+why = "Constitutional reservation architecture, the Rohini Commission on OBC sub-categorisation and SC/ST sub-classification link directly to GS-2 welfare schemes for vulnerable groups."
+
+[[link]]
+from = "polity-reservation-official-language"
+to = "modern-india-post-independence-consolidation"
+kind = "builds-on"
+why = "The Constituent Assembly's Munshi-Ayyangar formula, the 1965 anti-Hindi agitations in Tamil Nadu and the Official Languages Act (1963/1967) are a core GS-1 post-independence consolidation milestone."
+
+[[link]]
+from = "polity-reservation-official-language"
+to = "social-justice-education-skills"
+kind = "same-issue"
+why = "NEP 2020's Three-Language Formula, mother-tongue primary instruction under Article 350A and the 2024-2026 Samagra Shiksha/PM-SHRI funding debate bridge language policy with education."
+
+# ---- economy-basics-national-income ----
+
+[[link]]
+from = "economy-basics-national-income"
+to = "economy-growth-savings-investment"
+kind = "leads-to"
+why = "Once GDP, GVA and the 2022-23 base-year accounting framework are clear, Chapter 2 examines how savings, ICOR and capital formation drive inclusive growth."
+
+[[link]]
+from = "economy-basics-national-income"
+to = "economy-planning-reforms"
+kind = "leads-to"
+why = "India's transition from Nehruvian mixed-economy planning to post-1991 liberalisation explains why services surged to ~55 per cent of GVA while manufacturing lagged."
+
+[[link]]
+from = "economy-basics-national-income"
+to = "economy-money-rbi-inflation"
+kind = "compare"
+why = "Prelims frequently contrasts the GDP Deflator (covering all domestically produced goods and services) against CPI and WPI inflation baskets."
+
+[[link]]
+from = "economy-basics-national-income"
+to = "economy-poverty-employment"
+kind = "same-issue"
+why = "PLFS 2025's 43 per cent farm-workforce share, NITI Aayog's 12-indicator National MPI and the consumption Gini versus World Inequality Lab gap connect national income to poverty and jobs."
+
+[[link]]
+from = "economy-basics-national-income"
+to = "economy-inclusion-green-economy"
+kind = "leads-to"
+why = "GDP's blindness to environmental depletion motivates the UN 2025 SNA natural-capital depletion deduction, MoSPI's 2026-2030 Environmental Accounts Strategy and green growth."
+
+[[link]]
+from = "economy-basics-national-income"
+to = "social-justice-health-nutrition"
+kind = "same-issue"
+why = "UNDP's HDI (life expectancy, schooling, GNI per capita) and the Global Hunger Index's stunting and wasting indicators link macroeconomic output directly to GS-2 health and nutrition outcomes."
+

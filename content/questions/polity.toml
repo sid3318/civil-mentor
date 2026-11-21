@@ -252,3 +252,4 @@ options = ["Election Commission of India", "Finance Commission", "National Human
 answer = "D"
 explanation = "NITI Aayog replaced the Planning Commission by a Cabinet resolution on 1 January 2015. The Election Commission and the Finance Commission are constitutional bodies, and the National Human Rights Commission is a statutory body set up under the Protection of Human Rights Act, 1993."
 trap = "A body that carries advice to the Government of India is not necessarily constitutional. NITI Aayog, like the Planning Commission before it, is not."
+note = "polity-statutory-regulatory-bodies"

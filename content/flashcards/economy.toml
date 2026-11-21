@@ -30,6 +30,7 @@ topics = ["pre.gs.economy.basics.national-income.gdp-gnp-ndp-and-nnp"]
 source = "Civil Mentor sample"
 front = "How do GDP and GNP differ?"
 back = "GDP is the value of final goods and services produced within the country's borders. GNP adds net factor income from abroad: what residents earn abroad minus what foreigners earn in India."
+note = "economy-basics-national-income"
 
 [[card]]
 id = "economy-gst-council"
