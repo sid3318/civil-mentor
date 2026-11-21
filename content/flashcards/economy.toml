@@ -9,6 +9,7 @@ topics = ["pre.gs.economy.money.monetary-policy.repo-reverse-repo-sdf"]
 source = "Civil Mentor sample"
 front = "What is the repo rate?"
 back = "The rate at which the RBI lends money to banks for a short term, usually overnight, against government securities. The Monetary Policy Committee sets it; raising it makes borrowing dearer and cools inflation."
+note = "economy-monetary-policy-banking"
 
 [[card]]
 id = "economy-inflation-target"
@@ -16,6 +17,7 @@ topics = ["pre.gs.economy.inflation.inflation-targeting-and-the-monetary"]
 source = "Civil Mentor sample"
 front = "What is India's inflation target, and who sets it?"
 back = "4% CPI inflation, with a band of 2% to 6%. The Central Government sets it every five years in consultation with the RBI, under section 45ZA of the RBI Act, 1934. In March 2026 it kept the same target for April 2026 to March 2031."
+note = "economy-monetary-policy-banking"
 
 [[card]]
 id = "economy-fiscal-deficit"

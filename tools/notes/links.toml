@@ -1415,3 +1415,194 @@ to = "social-justice-health-nutrition"
 kind = "same-issue"
 why = "UNDP's HDI (life expectancy, schooling, GNI per capita) and the Global Hunger Index's stunting and wasting indicators link macroeconomic output directly to GS-2 health and nutrition outcomes."
 
+# ---- economy-growth-savings-investment ----
+
+[[link]]
+from = "economy-growth-savings-investment"
+to = "economy-basics-national-income"
+kind = "builds-on"
+why = "Read GDP, GVA and the 2022-23 National Accounts base revision first; savings rates, GFCF and ICOR build directly on those national income identities."
+
+[[link]]
+from = "economy-growth-savings-investment"
+to = "economy-planning-reforms"
+kind = "builds-on"
+why = "India's shift from the Mahalanobis heavy-industry import-substitution model to post-1991 liberalisation and the 11th/12th Plan inclusive-growth paradigm frames modern growth strategy."
+
+[[link]]
+from = "economy-growth-savings-investment"
+to = "economy-industry-disinvestment"
+kind = "leads-to"
+why = "Ending jobless growth and escaping the middle-income trap require solving India's missing-middle MSME dwarfism and lifting manufacturing's GDP share."
+
+[[link]]
+from = "economy-growth-savings-investment"
+to = "economy-poverty-employment"
+kind = "same-issue"
+why = "Falling employment elasticity, PLFS 2025 female LFPR dynamics and the consumption Gini versus World Inequality Lab paradox bridge growth strategy with poverty and labour policy."
+
+[[link]]
+from = "economy-growth-savings-investment"
+to = "polity-centre-state-fiscal"
+kind = "same-issue"
+why = "EAC-PM's North-South GSDP divergence and the 16th Finance Commission's new 10 per cent GDP-contribution devolution weight connect regional equity with fiscal federalism."
+
+[[link]]
+from = "economy-growth-savings-investment"
+to = "economy-infrastructure-energy"
+kind = "leads-to"
+why = "Union capital expenditure crowding-in, NMP 2.0 (₹16.72 lakh crore) and PPP risk-sharing directly translate public savings into productive physical capital formation."
+
+# ---- economy-planning-reforms ----
+
+[[link]]
+from = "economy-planning-reforms"
+to = "polity-statutory-regulatory-bodies"
+kind = "compare"
+why = "NITI Aayog's 2015 executive-resolution think-tank design (reconstituted in April 2026) contrasts directly with the defunct Planning Commission's discretionary Plan grants."
+
+[[link]]
+from = "economy-planning-reforms"
+to = "economy-industry-disinvestment"
+kind = "leads-to"
+why = "The 24 July 1991 New Industrial Policy dismantled the IPR 1956 Licence-Permit-Quota Raj, scrapped MRTP limits and opened PSU monopolies to private competition."
+
+[[link]]
+from = "economy-planning-reforms"
+to = "economy-bop-trade-investment"
+kind = "leads-to"
+why = "The 1991 BoP crisis ($1.2 billion reserves) triggered two-step rupee devaluation, LERMS, 1994 current-account convertibility, FEMA 1999 and India's WTO integration."
+
+[[link]]
+from = "economy-planning-reforms"
+to = "modern-india-post-independence-consolidation"
+kind = "same-era"
+why = "The 1950 Planning Commission, First and Second Five-Year Plans and mixed-economy consensus form the economic backbone of GS-1 post-independence nation building."
+
+[[link]]
+from = "economy-planning-reforms"
+to = "polity-federalism-interstate"
+kind = "same-issue"
+why = "NITI Aayog's Governing Council, State Institutions for Transformation (SITs), Fiscal Health Index and Aspirational Districts operationalise cooperative and competitive federalism."
+
+[[link]]
+from = "economy-planning-reforms"
+to = "economy-taxation-gst"
+kind = "leads-to"
+why = "Tax reform runs directly from the 1991 Raja Chelliah Committee through VAT and GST (2017) to third-generation GST 2.0 rationalisation (September 2025)."
+
+# ---- economy-industry-disinvestment ----
+
+[[link]]
+from = "economy-industry-disinvestment"
+to = "economy-planning-reforms"
+kind = "builds-on"
+why = "Read the 1956 Mahalanobis strategy and 1991 LPG reforms first to understand why India moved from Schedule A PSU monopolies to the 2021 four-strategic-sector PSE policy."
+
+[[link]]
+from = "economy-industry-disinvestment"
+to = "economy-budget-deficits-frbm"
+kind = "leads-to"
+why = "Disinvestment receipts, record CPSE dividends and NMP 2.0 asset monetisation provide non-debt capital receipts that finance infrastructure without inflating fiscal deficits."
+
+[[link]]
+from = "economy-industry-disinvestment"
+to = "economy-infrastructure-energy"
+kind = "same-issue"
+why = "The 11 NICDC industrial corridors, 12 new greenfield smart cities, PM Gati Shakti logistics and NMP 2.0 brownfield monetisation tie manufacturing competitiveness to infrastructure."
+
+[[link]]
+from = "economy-industry-disinvestment"
+to = "economy-bop-trade-investment"
+kind = "same-issue"
+why = "PLI schemes (especially electronics and pharma), June 2025 semiconductor SEZ rules and global value-chain integration link domestic industrial policy to export competitiveness."
+
+[[link]]
+from = "economy-industry-disinvestment"
+to = "economy-monetary-policy-banking"
+kind = "leads-to"
+why = "TReDS bill discounting, CGTMSE collateral-free guarantees, MUDRA Tarun Plus and Priority Sector Lending directly address the formal credit gap behind MSME dwarfism."
+
+[[link]]
+from = "economy-industry-disinvestment"
+to = "geography-industry-population-tribes"
+kind = "same-issue"
+why = "Industrial corridors, PM MITRA textile parks and regional industrial clusters bridge GS-3 industrial policy with GS-1 industrial location theory."
+
+# ---- economy-money-rbi-inflation ----
+
+[[link]]
+from = "economy-money-rbi-inflation"
+to = "economy-monetary-policy-banking"
+kind = "leads-to"
+why = "Once reserve money (M0), broad money (M3), the money multiplier and CPI 2024=100 inflation weights are mastered, Chapter 6 shows how the MPC steers rates and regulates banks."
+
+[[link]]
+from = "economy-money-rbi-inflation"
+to = "economy-basics-national-income"
+kind = "compare"
+why = "Compare the GDP Deflator (all domestic goods and services, dynamic weights) against CPI (2024=100 retail goods + services) and WPI/PPI (2022-23 wholesale/producer prices)."
+
+[[link]]
+from = "economy-money-rbi-inflation"
+to = "economy-msp-marketing-pds"
+kind = "same-issue"
+why = "TOP-crop cobweb cycles, APMC fragmentation, buffer stocks, Price Stabilisation Fund and ad-hoc export bans sit at the heart of India's structural food inflation."
+
+[[link]]
+from = "economy-money-rbi-inflation"
+to = "economy-payments-financial-markets"
+kind = "leads-to"
+why = "Lower currency-deposit ratios driven by UPI, alongside RBI's retail and wholesale CBDC (e-Rupee) pilots, directly alter money velocity and the money multiplier."
+
+[[link]]
+from = "economy-money-rbi-inflation"
+to = "economy-budget-deficits-frbm"
+kind = "same-issue"
+why = "RBI's Ways and Means Advances (WMA) and record ECF dividend surplus transfers (₹2.86 lakh crore in FY26) link central banking directly to Union fiscal arithmetic."
+
+[[link]]
+from = "economy-money-rbi-inflation"
+to = "polity-statutory-regulatory-bodies"
+kind = "compare"
+why = "The RBI Act (1934), Section 7 Central Government directive power and Central Board governance connect macroeconomic stability with GS-2 regulatory independence."
+
+# ---- economy-monetary-policy-banking ----
+
+[[link]]
+from = "economy-monetary-policy-banking"
+to = "economy-money-rbi-inflation"
+kind = "builds-on"
+why = "Read RBI's structure, money-multiplier mechanics and CPI 2024=100 measurement first; the MPC targets headline CPI (4% ± 2%, renewed March 2026) using LAF and reserve tools."
+
+[[link]]
+from = "economy-monetary-policy-banking"
+to = "economy-payments-financial-markets"
+kind = "leads-to"
+why = "Scheduled commercial banks, Payments Banks, Small Finance Banks and NBFC Account Aggregators form the regulated rails beneath UPI, money markets and capital markets."
+
+[[link]]
+from = "economy-monetary-policy-banking"
+to = "economy-inclusion-green-economy"
+kind = "same-issue"
+why = "Priority Sector Lending (2025 Master Directions), One State-One RRB consolidation (May 2025), Payments Banks and Small Finance Banks anchor last-mile financial inclusion."
+
+[[link]]
+from = "economy-monetary-policy-banking"
+to = "economy-bop-trade-investment"
+kind = "same-issue"
+why = "RBI's OMO, Market Stabilisation Scheme (MSS) sterilisation and MPC rate differentials directly shape capital flows, bond yields and exchange-rate stability."
+
+[[link]]
+from = "economy-monetary-policy-banking"
+to = "polity-high-courts-tribunals-adr"
+kind = "same-issue"
+why = "Debt Recovery Tribunals (DRTs) and NCLT/NCLAT under the IBC (amended April 2026) connect banking NPA resolution directly to India's specialised tribunal architecture."
+
+[[link]]
+from = "economy-monetary-policy-banking"
+to = "economy-agri-credit-allied-processing"
+kind = "leads-to"
+why = "NABARD, the three-tier rural cooperative credit structure, RRBs and the 18 per cent agriculture PSL sub-target form the institutional backbone of farm credit."
+
+

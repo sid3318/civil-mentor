@@ -15,6 +15,7 @@ Which of the statements given above are correct?"""
 options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "D"
 explanation = "The committee has three members from the RBI, including the Governor, and three appointed by the central government. Decisions are taken by majority and the Governor has a casting vote in a tie."
+note = "economy-monetary-policy-banking"
 
 [[question]]
 id = "economy-0002"
@@ -30,6 +31,7 @@ options = [
 answer = "C"
 explanation = "Costlier crude oil raises the cost of production and transport across the economy, which pushes prices up from the supply side. The other three options raise demand."
 trap = "Three of the four options are demand-side causes. Sort each option into demand or supply before choosing."
+note = "economy-money-rbi-inflation"
 
 [[question]]
 id = "economy-0003"
@@ -45,6 +47,7 @@ options = [
 answer = "B"
 explanation = "The Statutory Liquidity Ratio is held by the bank itself in liquid assets: cash, gold or unencumbered approved securities. The Cash Reserve Ratio is the part kept as cash with the RBI."
 trap = "Option A describes the Cash Reserve Ratio."
+note = "economy-monetary-policy-banking"
 
 [[question]]
 id = "economy-0004"
@@ -77,6 +80,7 @@ options = ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"]
 answer = "A"
 explanation = "The WPI tracks wholesale prices of goods only, and it is compiled by the Office of the Economic Adviser. The CPI (Combined) is published by the National Statistics Office, not by the RBI, although the RBI's inflation target is set on it."
 trap = "The RBI targets CPI inflation, which makes it easy to assume that it also publishes the index."
+note = "economy-money-rbi-inflation"
 
 [[question]]
 id = "economy-0006"
@@ -87,6 +91,7 @@ options = ["The Governor of the Reserve Bank of India alone", "The Central Gover
 answer = "B"
 explanation = "The RBI Act, as amended in 2016, makes the Central Government responsible for setting the target once every five years, in consultation with the RBI. The Monetary Policy Committee then uses the repo rate to meet it."
 trap = "The committee decides the repo rate to hit the target. It does not decide the target."
+note = "economy-monetary-policy-banking"
 
 [[question]]
 id = "economy-0007"
@@ -97,6 +102,7 @@ options = ["Services and housing", "Goods that are imported", "Food and fuel", "
 answer = "C"
 explanation = "Core inflation strips out food and fuel, whose prices swing widely with weather and global energy markets. What remains gives a steadier view of the underlying trend."
 trap = "Core inflation is not an index of goods alone. Services stay in it."
+note = "economy-money-rbi-inflation"
 
 [[question]]
 id = "economy-0008"
@@ -107,6 +113,7 @@ options = ["Falling prices together with rising output", "Rising prices together
 answer = "D"
 explanation = "Stagflation combines stagnant output and high unemployment with rising prices. The Phillips curve suggests a trade-off between inflation and unemployment, and the supply shocks of the 1970s showed that both can rise together."
 trap = "The Phillips curve would lead one to expect inflation and unemployment to move in opposite directions, so stagflation looks impossible. It happens when the supply side is hit."
+note = "economy-money-rbi-inflation"
 
 [[question]]
 id = "economy-0009"
@@ -117,6 +124,7 @@ options = ["Standing Deposit Facility rate", "Repo rate", "Reverse repo rate", "
 answer = "A"
 explanation = "The Standing Deposit Facility lets banks park surplus funds with the RBI without collateral, at a rate set below the repo rate. The Marginal Standing Facility sits above the repo rate and forms the ceiling of the corridor."
 trap = "Until 2022 the reverse repo rate was the floor. The Standing Deposit Facility has taken that role."
+note = "economy-monetary-policy-banking"
 
 [[question]]
 id = "economy-0010"
@@ -138,6 +146,7 @@ options = ["30 days", "60 days", "90 days", "180 days"]
 answer = "C"
 explanation = "Under the RBI's prudential norms, an asset becomes non-performing when the borrower has not paid interest or principal for more than 90 days. A loan then moves through sub-standard, doubtful and loss categories as time passes."
 trap = "The 30 and 60 day marks matter for special mention accounts, which are an early warning and are still treated as performing."
+note = "economy-monetary-policy-banking"
 
 [[question]]
 id = "economy-0012"

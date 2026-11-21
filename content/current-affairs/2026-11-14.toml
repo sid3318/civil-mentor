@@ -25,6 +25,7 @@ frame = [
   "Show its limit: food and fuel shocks are outside the reach of the repo rate.",
   "Suggest complements: supply management, buffer stocks, fiscal coordination.",
 ]
+notes = ["economy-monetary-policy-banking", "economy-money-rbi-inflation"]
 
 [story.question]
 id = "ca-2026-11-14-1"

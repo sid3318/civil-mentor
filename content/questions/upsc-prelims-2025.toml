@@ -44,6 +44,7 @@ options = ["I and II only", "II, III and IV", "I, III, IV and V", "I, II and V"]
 answer = "A"
 explanation = "The RBI earns mainly from interest on the government securities it holds and from its foreign-exchange operations. It does not run pension funds, it lends to banks and the government rather than to private companies, and printing notes is a cost it bears."
 trap = "Printing currency sounds like the RBI's main earner, but note issue is a liability and a production cost, not income."
+note = "economy-money-rbi-inflation"
 
 [[question]]
 id = "upsc-2025-003"
@@ -1029,6 +1030,7 @@ options = ["Only one", "Only two", "All the three", "None"]
 answer = "D"
 explanation = "The National Automotive Board is under the Ministry of Heavy Industries, the Coir Board under the Ministry of Micro, Small and Medium Enterprises, and the National Centre for Trade Information under the Ministry of Commerce and Industry. Every pair swaps the ministry."
 trap = "Each ministry is plausible for its neighbouring board, so the pairs look right at a glance."
+note = "economy-industry-disinvestment"
 
 [[question]]
 id = "upsc-2025-058"
