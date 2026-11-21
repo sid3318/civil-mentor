@@ -33,7 +33,7 @@ topics = ["pre.gs.polity.constitution.preamble", "pre.gs.polity.amendment.import
 source = "Civil Mentor sample"
 front = "Which amendment added \"socialist\", \"secular\" and \"integrity\" to the Preamble?"
 back = "The 42nd Amendment Act, 1976. It is the only amendment so far to change the Preamble."
-note = "polity-amendment"
+note = "polity-amendment-basic-structure"
 
 [[card]]
 id = "polity-21a"
@@ -49,4 +49,4 @@ topics = ["pre.gs.polity.system.inter-state-relations"]
 source = "Civil Mentor sample"
 front = "Under which Article is the Inter-State Council set up, and when was it first constituted?"
 back = "Article 263 lets the President set up an Inter-State Council. It was first constituted in 1990, on the recommendation of the Sarkaria Commission. Its recommendations are advisory."
-note = "polity-interstate-relations"
+note = "polity-federalism-interstate"

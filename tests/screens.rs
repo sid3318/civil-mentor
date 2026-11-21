@@ -95,15 +95,20 @@ impl Harness {
     /// `anchors` is in view.
     fn reveal(&mut self, id: impl Into<ElementId>, anchors: &[ElementId]) {
         let id = id.into();
-        for _ in 0..20 {
+        for _ in 0..40 {
             let (target, anchor) = self.act(|window, _| {
-                let target = window.try_find(id.clone()).expect("the element exists");
+                let target = window.try_find(id.clone());
                 let anchor = anchors
                     .iter()
                     .find(|a| window.try_find((*a).clone()).is_some_and(|e| e.visible()))
                     .cloned();
                 (target, anchor)
             });
+            let Some(target) = target else {
+                // Virtualized lists do not mount off-screen rows until scrolled near them.
+                self.scroll_down(anchor.expect("something on the page is in view"), 500.);
+                continue;
+            };
             if target.visible() {
                 return;
             }

@@ -127,7 +127,7 @@ options = ["A simple majority of the members present", "Not less than three-four
 answer = "B"
 explanation = "Under Article 279A the Centre's vote carries a weight of one-third and the votes of all the states together carry two-thirds. A decision needs three-fourths of the weighted votes of members present and voting, so the Centre has a veto but cannot decide alone."
 trap = "The Centre holds only one-third of the weight, but because three-fourths are needed, it can block any decision."
-note = "polity-fiscal-federalism"
+note = "polity-centre-state-fiscal"
 
 [[question]]
 id = "economy-0011"

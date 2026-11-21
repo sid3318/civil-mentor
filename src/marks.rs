@@ -101,6 +101,9 @@ impl Blocks {
                 .state
                 .update(cx, |state, cx| state.set_text(&text, cx));
         }
+        if marks.is_empty() && block.painted.is_empty() {
+            return;
+        }
         let current_len = block.state.read(cx).rendered_text().as_str().len();
         if current_len != block.rendered_len {
             block.rendered_len = current_len;
@@ -121,12 +124,13 @@ impl Blocks {
         block.painted = if painted.is_ok() { wanted } else { Vec::new() };
     }
 
-    /// True if any open block reparsed (e.g. after Markdown extensions attached)
-    /// so highlights should be re-anchored on the next render.
+    /// True if any open block with highlights reparsed (e.g. after Markdown
+    /// extensions attached) so highlights should be re-anchored on the next render.
     pub fn rendered_changed(&self, cx: &App) -> bool {
-        self.open
-            .values()
-            .any(|block| block.state.read(cx).rendered_text().as_str().len() != block.rendered_len)
+        self.open.values().any(|block| {
+            !block.painted.is_empty()
+                && block.state.read(cx).rendered_text().as_str().len() != block.rendered_len
+        })
     }
 
     /// The block called `key`, ready to go in a reader.

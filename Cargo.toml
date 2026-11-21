@@ -24,6 +24,8 @@ gpui-kit = { version = "0.9.1", features = ["test-support"] }
 name = "screens"
 harness = false
 
-# Dependencies carry no debug info: keeps target/ small on a tight disk.
+# Dependencies carry no debug info (keeps target/ small) and compile optimized
+# so Markdown parsing, text shaping and layout stay fast in `cargo run`.
 [profile.dev.package."*"]
 debug = false
+opt-level = 2

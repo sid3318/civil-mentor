@@ -954,7 +954,7 @@ options = ["Only one", "Only two", "All the three", "None"]
 answer = "A"
 explanation = "Article 263 of the Constitution provides for the Inter-State Council. Zonal Councils were set up under the States Reorganisation Act, 1956, and the National Security Council was created by an executive decision."
 trap = "All three bodies deal with coordination, but only the Inter-State Council has a constitutional basis."
-note = "polity-interstate-relations"
+note = "polity-federalism-interstate"
 
 [[question]]
 id = "upsc-2025-054"
@@ -1046,7 +1046,7 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "A"
 explanation = "Amendments touching the legislative lists of the Seventh Schedule and the extent of the executive power of the States need ratification by at least half of the State legislatures. The conditions of the Governor's office can be amended by a special majority of Parliament alone."
 trap = "The Governor's office is part of the federal structure, but it is not among the matters listed in the ratification proviso."
-note = "polity-amendment"
+note = "polity-amendment-basic-structure"
 
 [[question]]
 id = "upsc-2025-059"
@@ -1177,7 +1177,7 @@ options = ["I, II and III", "I, II and IV", "I, III and IV", "II, III and IV"]
 answer = "C"
 explanation = "The 15th Finance Commission recommended the education outcome grant, performance incentives for agricultural reforms and a tax effort criterion in the devolution formula. It kept the States' share of divisible taxes at 41 per cent, not 45 per cent."
 trap = "The 14th Commission raised the share to 42 per cent, and 45 per cent sounds like a natural next step, but it did not happen."
-note = "polity-fiscal-federalism"
+note = "polity-centre-state-fiscal"
 
 [[question]]
 id = "upsc-2025-067"

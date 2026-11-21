@@ -1291,6 +1291,66 @@ pub fn sections(markdown: &str) -> Vec<Section<'_>> {
     sections
 }
 
+/// One virtualized block of a note: split at `## ` Topics and `### `
+/// Micro-topics so long textbook chapters only parse and lay out what is on
+/// screen.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BlockSlice<'a> {
+    /// `Some(2)` for a `## ` Topic, `Some(3)` for a `### ` Micro-topic, `None` for lead text.
+    pub level: Option<u8>,
+    /// Heading text without leading `#` marks.
+    pub heading: Option<&'a str>,
+    /// Enclosing `## ` section heading (kept as the highlight `part` key).
+    pub section: &'a str,
+    /// Markdown slice for this block.
+    pub text: &'a str,
+}
+
+/// Splits Markdown at `## ` and `### ` headings outside fenced code blocks.
+pub fn blocks(markdown: &str) -> Vec<BlockSlice<'_>> {
+    fn push<'a>(
+        out: &mut Vec<BlockSlice<'a>>,
+        level: Option<u8>,
+        heading: Option<&'a str>,
+        section: &'a str,
+        text: &'a str,
+    ) {
+        let text = text.trim();
+        if !text.is_empty() {
+            out.push(BlockSlice {
+                level,
+                heading,
+                section,
+                text,
+            });
+        }
+    }
+    let mut out = Vec::new();
+    let (mut level, mut heading, mut section, mut start, mut offset) = (None, None, "", 0, 0);
+    let mut fenced = false;
+    for line in markdown.split_inclusive('\n') {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            fenced = !fenced;
+        } else if !fenced && let Some(title) = line.strip_prefix("## ") {
+            push(&mut out, level, heading, section, &markdown[start..offset]);
+            let title = title.trim();
+            level = Some(2);
+            heading = Some(title);
+            section = title;
+            start = offset;
+        } else if !fenced && let Some(title) = line.strip_prefix("### ") {
+            push(&mut out, level, heading, section, &markdown[start..offset]);
+            level = Some(3);
+            heading = Some(title.trim());
+            start = offset;
+        }
+        offset += line.len();
+    }
+    push(&mut out, level, heading, section, &markdown[start..]);
+    out
+}
+
 /// Extracts `### ` micro-topic headings from a section's Markdown, skipping
 /// lines inside fenced code blocks.
 pub fn subheadings(markdown: &str) -> Vec<&str> {

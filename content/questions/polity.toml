@@ -118,7 +118,7 @@ options = ["7th Amendment Act, 1956", "24th Amendment Act, 1971", "42nd Amendmen
 answer = "C"
 explanation = "The 42nd Amendment Act, 1976 inserted these three words, the only change ever made to the Preamble. The 44th Amendment of 1978 reversed several other changes of the 42nd but left the Preamble alone."
 trap = "The 44th Amendment undid much of the 42nd, so it is tempting to think it also reversed this change. It did not."
-note = "polity-amendment"
+note = "polity-amendment-basic-structure"
 
 [[question]]
 id = "polity-0009"
@@ -241,7 +241,7 @@ options = ["Golaknath v. State of Punjab (1967)", "Maneka Gandhi v. Union of Ind
 answer = "C"
 explanation = "A 13-judge bench in Kesavananda Bharati held that Parliament can amend any part of the Constitution but cannot alter its basic structure. Golaknath had held that Fundamental Rights could not be amended at all, and Kesavananda overruled it."
 trap = "Golaknath came first and also limited Parliament, but it barred amendment of Fundamental Rights altogether. The basic structure doctrine began with Kesavananda."
-note = "polity-basic-structure"
+note = "polity-amendment-basic-structure"
 
 [[question]]
 id = "polity-0017"
