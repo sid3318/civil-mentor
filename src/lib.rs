@@ -22,6 +22,7 @@ mod exam;
 mod mains;
 mod marks;
 pub mod mentor;
+mod note_blocks;
 mod notebook;
 mod notes;
 mod practice;
@@ -72,7 +73,10 @@ gpui_kit::assets::icon_assets!(
         Flag,
         Flame,
         FlaskConical,
+        Gavel,
         Highlighter,
+        Landmark,
+        Layers,
         Lightbulb,
         ListTree,
         LogOut,
@@ -80,6 +84,7 @@ gpui_kit::assets::icon_assets!(
         NotebookText,
         PenLine,
         Repeat,
+        Scale,
         Shuffle,
         SlidersHorizontal,
         SquarePen,

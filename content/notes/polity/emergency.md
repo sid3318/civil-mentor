@@ -1,9 +1,9 @@
 ---
 id: polity-emergency
-title: "Emergency provisions: Articles 352, 356 and 360"
+title: "11. Emergency Provisions (Articles 352–360)"
 subject: "Polity"
-section: "Federal system"
-order: 19
+section: "Part II: System of Government & Federalism"
+order: 11
 topics:
   - mains.gs2.polity.constitution.provisions.emergency-provisions
   - mains.gs2.polity.federalism.challenges.emergency-provisions-and-article-356

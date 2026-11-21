@@ -57,7 +57,7 @@ frame = [
   "Apply them to surveillance and data collection.",
   "Conclude on oversight: judicial or independent review of interception orders.",
 ]
-notes = ["polity-rights-freedom"]
+notes = ["polity-fundamental-rights"]
 
 [story.question]
 id = "ca-2026-11-14-2"

@@ -135,7 +135,7 @@ frame = [
   "Show quality gaps: learning outcomes, teacher vacancies, enforcement.",
   "Suggest a shift of focus to learning outcomes and early years.",
 ]
-notes = ["polity-rights-freedom"]
+notes = ["polity-fundamental-rights"]
 
 [story.question]
 id = "ca-2026-11-16-5"

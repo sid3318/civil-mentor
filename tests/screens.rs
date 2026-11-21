@@ -539,15 +539,23 @@ fn main() {
     assert_eq!(app.note(), Some(preamble), "the reader keeps its note");
     let rights_id = "polity-fundamental-rights";
     let rights = app.note_ix(rights_id);
+    let emergency = app.note_ix("polity-emergency");
     assert!(
         app.shows(("note", preamble)),
         "the open note's folders are open"
     );
-    assert!(!app.shows(("note", rights)), "other sections are closed");
-    app.click("folder:Polity/Rights and duties");
+    assert!(!app.shows(("note", emergency)), "other sections are closed");
+    app.click("folder:Polity/Part II: System of Government & Federalism");
+    assert!(
+        app.shows(("note", emergency)),
+        "clicking opens that section"
+    );
     app.shot("notes-tree");
     app.click("folder:Polity");
-    assert!(!app.shows(("note", preamble)) && !app.shows("folder:Polity/Rights and duties"));
+    assert!(
+        !app.shows(("note", preamble))
+            && !app.shows("folder:Polity/Part II: System of Government & Federalism")
+    );
     app.click("folder:Polity");
     app.click(("note", rights));
     assert_eq!(app.note(), Some(rights));
@@ -555,13 +563,11 @@ fn main() {
     app.shot("notes-read");
 
     // The outline scrolls the reader to a section.
-    app.click(("outline", 3usize));
+    app.click(("outline", 2usize));
     app.shot("notes-outline");
 
-    // Distilled mode, then marking the note read moves syllabus coverage. Its
-    // Prelims topics are its own, so Prelims coverage goes up; its Mains topic,
-    // Fundamental Rights, is shared with the three notes after it, so that one
-    // counts once all four are read.
+    // Distilled mode, then marking the chapter read moves both Prelims and
+    // Mains syllabus coverage since Fundamental Rights is one complete chapter.
     app.click("distilled-mode");
     app.shot("notes-distilled");
     let before = (app.coverage("mains.gs2"), app.coverage("pre.gs"));
@@ -574,10 +580,9 @@ fn main() {
     let after = app.coverage("pre.gs");
     assert!(after.0 > before.1.0, "Prelims coverage goes up");
     assert_eq!(after.1, before.1.1, "Prelims keeps its topics");
-    assert_eq!(
-        app.coverage("mains.gs2"),
-        before.0,
-        "the shared Mains topic waits for the other notes on it"
+    assert!(
+        app.coverage("mains.gs2").0 > before.0.0,
+        "Mains coverage goes up when the full chapter is read"
     );
     app.shot("notes-marked");
     app.click("mark-read");
@@ -639,17 +644,13 @@ fn main() {
     assert_eq!(app.note(), Some(rights));
 
     // Connected notes from links.toml show in the inspector and open on click.
-    let freedom = app.note_ix("polity-rights-freedom");
+    let dpsp = app.note_ix("polity-dpsp-duties");
     assert!(
         app.shows(("inspector-link", 0usize)),
         "connected notes appear in the inspector"
     );
     app.click(("inspector-link", 0usize));
-    assert_eq!(
-        app.note(),
-        Some(freedom),
-        "clicking a connected note opens it"
-    );
+    assert_eq!(app.note(), Some(dpsp), "clicking a connected note opens it");
     app.press("secondary-[");
     assert_eq!(app.note(), Some(rights));
 
@@ -665,8 +666,6 @@ fn main() {
     let legislature = app.topic_ix("mains.gs2.polity.legislature");
     let provisions = app.topic_ix("mains.gs2.polity.constitution.provisions");
     let leaf = app.topic_ix("mains.gs2.polity.constitution.provisions.fundamental-rights");
-    // Four notes share this topic; with the first read, it opens the second.
-    let freedom = app.note_ix("polity-rights-freedom");
     assert!(app.shows(("node", current)), "Prelims GS opens first");
     app.click(("paper", gs2));
     assert!(!app.shows(("node", current)), "one paper at a time");
@@ -683,11 +682,7 @@ fn main() {
     let anchors: Vec<ElementId> = vec![("node", polity).into(), ("topic", leaf).into()];
     app.centre(("topic", leaf), &anchors);
     app.click(("topic", leaf));
-    assert_eq!(
-        app.note(),
-        Some(freedom),
-        "a topic opens its first note not yet read"
-    );
+    assert_eq!(app.note(), Some(rights), "a topic opens its chapter");
     app.press("secondary-[");
     assert_eq!(app.screen(), Screen::Syllabus, "back to the syllabus");
     assert!(app.shows(("topic", leaf)), "where it was");
@@ -707,7 +702,7 @@ fn main() {
     app.click(("part", provisions));
     app.shot("syllabus-mindmap-zoom");
     app.click(("topic", leaf));
-    assert_eq!(app.note(), Some(freedom));
+    assert_eq!(app.note(), Some(rights));
     app.press("secondary-[");
     app.click(("crumb", gs2));
     assert!(app.shows(("part", polity)), "back up to the paper");
@@ -723,7 +718,7 @@ fn main() {
     });
     app.shot("syllabus-mosaic-gs2");
     app.click(("tile", leaf));
-    assert_eq!(app.note(), Some(freedom));
+    assert_eq!(app.note(), Some(rights));
     app.press("secondary-[");
 
     // Treemap: the paper's subjects sized by their topics, chapters inside,
@@ -855,6 +850,7 @@ fn practice() {
     // Keys answer and move; the panel tags confidence; options strike out.
     app.press("b");
     assert_eq!(app.exam().answers[0].chosen, Some(1), "B answers");
+    app.centre("fifty-fifty", &["exam-question".into()]);
     app.click("fifty-fifty");
     assert_eq!(
         app.exam().answers[0].confidence,
@@ -1660,7 +1656,7 @@ fn highlighting() {
     let rights = app.note_ix("polity-fundamental-rights");
     app.click("0-0-1");
     app.click("folder:Polity");
-    app.click("folder:Polity/Rights and duties");
+    app.click("folder:Polity/Part I: Constitutional Framework");
     app.click(("note", rights));
     app.select(("note-section", 0usize));
     app.click("highlight");
@@ -1697,7 +1693,7 @@ fn highlighting() {
     let rights = app.note_ix("polity-fundamental-rights");
     app.click("0-0-1");
     app.click("folder:Polity");
-    app.click("folder:Polity/Rights and duties");
+    app.click("folder:Polity/Part I: Constitutional Framework");
     app.click(("note", rights));
     assert_eq!(app.marks().len(), 2, "both marks were saved");
     assert_eq!(

@@ -60,7 +60,7 @@ options = ["Mandamus", "Prohibition", "Certiorari", "Quo warranto"]
 answer = "B"
 explanation = "Prohibition is preventive: it stops proceedings that are still under way. Certiorari quashes an order that has already been passed. Mandamus commands a public authority to perform a duty, and quo warranto questions a person's title to a public office."
 trap = "Prohibition and certiorari both go to lower courts. The difference is timing: before the order, or after it."
-note = "polity-rights-remedies-writs"
+note = "polity-fundamental-rights"
 
 [[question]]
 id = "polity-0005"
@@ -212,7 +212,7 @@ options = ["1 only", "3 only", "2 and 3 only", "1 and 2 only"]
 answer = "D"
 explanation = "Article 32 is in Part III, so the remedy is itself guaranteed. Article 226 is wider than Article 32 because a High Court can also act for 'any other purpose'. The Supreme Court's writ power under Article 32 is limited to Fundamental Rights."
 trap = "Article 226 gives the High Courts a wider writ jurisdiction than the Supreme Court has under Article 32."
-note = "polity-rights-remedies-writs"
+note = "polity-fundamental-rights"
 
 [[question]]
 id = "polity-0015"

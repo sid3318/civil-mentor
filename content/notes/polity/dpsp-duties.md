@@ -1,9 +1,9 @@
 ---
 id: polity-dpsp-duties
-title: "Directive Principles, Fundamental Duties and the rights–directives balance"
+title: "6. Directive Principles of State Policy & Fundamental Duties"
 subject: "Polity"
-section: "Rights and duties"
-order: 11
+section: "Part I: Constitutional Framework"
+order: 6
 topics:
   - mains.gs2.polity.constitution.provisions.directive-principles-of-state-policy
   - mains.gs2.polity.constitution.provisions.fundamental-duties

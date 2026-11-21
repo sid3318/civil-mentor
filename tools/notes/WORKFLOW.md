@@ -1,85 +1,23 @@
-# Notes
+# Notes: Textbook Chapter Workflow
 
-304 notes in 148 chunks of two, covering every topic in the UPSC syllabus (all 1,440). Each note serves Prelims and Mains together, and the notes are filed by subject: Polity, Economy, Modern India and so on. Neon writes them in Google AI Studio. A small tool on your Mac carries prompts and answers through the clipboard and saves the notes into the app. Claude checks, fixes and links them.
+151 full textbook chapters in 151 chunks (**1 chunk = 1 complete chapter**), covering all 1,440 leaf topics in the UPSC CSE syllabus. Each chapter replaces fragmented mini-notes with a book-sized chapter comparable to standard UPSC textbooks (Laxmikanth, Spectrum, Ramesh Singh / Vivek Singh, G.C. Leong, Shankar IAS, Nitin Singhania, R.S. Sharma, Satish Chandra, Lexicon), integrating Prelims facts and Mains analysis together.
 
-## What the notes are like
+## What every chapter looks like
 
-Like the printed notes of a good coaching institute: a teacher explaining the topic in flowing paragraphs, with the facts woven in. Points, tables, quotations and diagrams appear wherever they make things clearer. Boxes pick out what matters:
+- **Book-sized depth:** ~7,000 to 17,000 words per chapter depending on weight (e.g. Fundamental Rights ~15,000 words, Parliament ~16,000 words), following the explicit **Topics (`##`) → Micro-topics (`###` / `####`)** blueprint in `manifest.toml`.
+- **Distinct visual hierarchy:** Chapter title (`Inter Display`), `##` Major Topics (`Inter Display` + hairline rule), `###` Micro-topics (`Inter` semibold, indexed in the Inspector sub-outline), `####` Sub-points (accent-tinted `Inter`), flowing `Agrave Pro` textbook prose, accent-marked lists, and italic `Source Serif 4` pull-quotes.
+- **Rich visual diversity:**
+  - **7 Native Callout Surfaces:** `> [!prelims]`, `> [!mains]`, `> [!news]`, `> [!case]`, `> [!remember]`, `> [!debate]`, `> [!example]`.
+  - **6 Native Visual Blocks:** ````timeline`, ````compare`, ````flow`, ````keyfacts`, ````cases`, ````framework` — rendered natively in GPUI while staying searchable plain Markdown.
+  - **Structured Tables** (`Inter` tabular layout with horizontal scroll fallback) and **Distilled Quick-Revision** (`<!-- distilled -->`).
 
-- **Prelims pointer:** exact facts and traps;
-- **Mains angle:** how to use the topic in an answer;
-- **Example:** a case, example or key figure;
-- **In the news:** a recent development, with its date;
-- **Remember:** a mnemonic, exception or common confusion.
+## Writing in Batches of 5 Chunks
 
-Each note ends with a quick-revision list, which the app shows when you click **Distilled**.
+Chapters are authored 5 chunks at a time using **Gemini 4 Neon XHigh** (either via parallel subagents in Devin or via `python3 tools/notes/notes.py run` with AI Studio), then verified for coverage, factual accuracy, visual diversity, and cross-subject links in `tools/notes/links.toml`.
 
-## How it works
+## Commands
 
-```text
-notes.py run ──► the chunk's prompt is on your clipboard
-                          │
-                          ▼
-           you: paste it in AI Studio and run it
-                          │
-                          ▼
-           you: copy the answer as Markdown
-                          │
-                          ▼
-notes.py run ──► saves the notes into the app and puts
-                 the next chunk's prompt on your clipboard
-```
-
-## Start, once per sitting
-
-1. In a terminal, run this and leave it running:
-   `cd ~/.t3/projects/civil-mentor && python3 tools/notes/notes.py run`
-2. In Google AI Studio, open a new chat, choose Gemini 4 Neon and turn on **Grounding with Google Search**.
-
-## Each chunk
-
-1. Paste (⌘V) and run it.
-2. When the answer has finished, copy it as Markdown.
-
-A notification says when the notes are saved and the next prompt is ready. Every prompt carries the full instructions, so open a new chat whenever the current one gets long or slow, and switch search grounding on in it. Restart the app to see new notes; they appear in **Notes** under their subject and section.
-
-## Then
-
-Write as many chunks as you like, then tell Claude "verify the new notes". For every note, Claude:
-
-- checks it against its syllabus topics and past Prelims and Mains papers;
-- checks the facts and settles every `[VERIFY]`;
-- makes sure it reads well and isn't a wall of points;
-- adds anything missing;
-- writes the connections between notes;
-- marks it verified.
-
-Say "commit" when you want the notes committed. If a note needs redoing, Claude gives you a message for the Neon chat. While `run` is going, the new answer saves itself in the same way.
-
-## When a notification says
-
-- **"N of its 2 notes are left":** the answer stopped early. The rest of the chunk's prompt is on your clipboard; paste it in the same chat.
-- **"lost its formatting":** you copied plain text. Copy the answer as Markdown.
-- **"no marker lines":** a request to add them is on your clipboard; paste it in the same chat.
-
-If AI Studio says you have reached a limit, stop with Ctrl+C and carry on later. `run` starts where you left off.
-
-## Order
-
-Polity, Economy, Modern India, Geography, Environment and disaster management, Ancient India, Medieval India, Art and culture, Science and technology, Governance and social justice, International relations, Internal security, Indian society, World history, Ethics, the current-affairs backbone, the Essay and language papers, then CSAT. The current-affairs backbone dates fastest, so it gets redone before the exam. To change the order, edit the `chunk =` numbers in `manifest.toml`.
-
-## Files
-
-| File | What it is |
-|---|---|
-| `instructions.md` | What Neon is told in every prompt: the exam, and how the notes should read |
-| `manifest.toml` | Every note, with its subject and section, its chunk and its syllabus topics, in the order the app lists them |
-| `notes.py` | `run` (the clipboard loop), `status` (progress), `check` and `verified` (used by Claude). `test_notes.py` tests it |
-| `links.toml` | The connections between notes, written by Claude |
-| `verified.txt` | The notes Claude has verified |
-
-Claude wrote chunks 1 to 5, the first ten Polity notes, as the benchmark for the rest. Neon carries on from chunk 6. The app's old sample notes are gone.
-
-## Later
-
-Visual notes, perhaps as canvases in the app, are a separate phase.
+- `python3 tools/notes/notes.py status [all]` — progress across all 151 chapters.
+- `python3 tools/notes/notes.py check [1-5 | polity-fundamental-rights | all]` — checks structure, word depth, visual blocks, callouts, `[VERIFY]` tags, links, and 1,440/1,440 syllabus coverage.
+- `python3 tools/notes/notes.py verified <chunk-or-range>` — marks verified chapters in `tools/notes/verified.txt`.
+- `python3 tools/notes/notes.py run` — interactive clipboard loop for Google AI Studio.

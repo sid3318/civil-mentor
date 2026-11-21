@@ -1,15 +1,26 @@
 ---
 id: polity-parliament
-title: "Parliament I: composition, presiding officers and sessions"
+title: "15. Parliament of India"
 subject: "Polity"
-section: "Parliament"
-order: 25
+section: "Part IV: Legislatures"
+order: 15
 topics:
   - mains.gs2.polity.legislature.structure-and-composition
   - mains.gs2.polity.legislature.presiding-officers
   - mains.gs2.polity.legislature.sessions-and-conduct-of-business
   - pre.gs.polity.parliament.composition-and-the-presiding-officers
   - pre.gs.polity.parliament.sessions-motions-and-devices
+  - mains.gs2.polity.legislature.legislative-procedure
+  - pre.gs.polity.parliament.bills
+  - mains.gs2.polity.legislature.budget-and-financial-control
+  - mains.gs2.polity.legislature.parliamentary-committees
+  - pre.gs.polity.parliament.budget-and-financial-procedure
+  - pre.gs.polity.parliament.committees
+  - mains.gs2.polity.legislature.powers-and-privileges
+  - mains.gs2.polity.legislature.anti-defection-law
+  - mains.gs2.polity.legislature.issues
+  - pre.gs.polity.parliament.parliamentary-privileges
+  - pre.gs.polity.parliament.anti-defection-law
 updated: 2026-11-21
 ---
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Civil Mentor's notes: Gemini Neon writes them in Google AI Studio, this tool does the rest.
+"""Civil Mentor's textbook chapters: 1 chunk = 1 full chapter covering Prelims & Mains.
 
     python3 tools/notes/notes.py run             moves prompts and answers through the clipboard
-    python3 tools/notes/notes.py status [all]    progress
-    python3 tools/notes/notes.py check [WHAT]    checks written notes and syllabus coverage
-    python3 tools/notes/notes.py verified WHAT   marks notes verified (Claude does this)
+    python3 tools/notes/notes.py status [all]    progress across all textbook chapters
+    python3 tools/notes/notes.py check [WHAT]    checks written chapters, depth, visuals & syllabus coverage
+    python3 tools/notes/notes.py verified WHAT   marks chapters verified
 
-WHAT is a note id (polity-emergency), a chunk (7), a range of chunks (7-9) or
-"all". See WORKFLOW.md.
+WHAT is a note id (polity-fundamental-rights), a chunk (5), a range of chunks (1-5)
+or "all". See WORKFLOW.md.
 """
 
 import datetime
@@ -27,16 +27,18 @@ NOTES = CONTENT / "notes"
 LINKS = HERE / "links.toml"
 VERIFIED = HERE / "verified.txt"
 
-# The lines Neon puts around each note. Bold, backticks or a heading mark around them are fine.
 NOTE_LINE = re.compile(r"^[#*`\s]*=+\s*NOTE:\s*([a-z0-9-]+)\s*=+[*`\s]*$", re.M)
 REVISION_LINE = re.compile(r"^[#*`\s]*(?:=+\s*REVISION\s*=+|<!--\s*distilled\s*-->)[*`\s]*$", re.M | re.I)
-DISTILLED = "<!-- distilled -->"  # where the app's revision mode starts
+DISTILLED = "<!-- distilled -->"
 KINDS = ("builds-on", "leads-to", "same-era", "compare", "same-issue", "example-of")
 STOP = {"and", "the", "with", "from", "their", "other", "india", "indian", "issues"}
-UTF8 = {**os.environ, "LANG": "en_US.UTF-8"}  # so pbcopy and pbpaste keep › and –
+VISUAL_BLOCKS = ("timeline", "compare", "flow", "keyfacts", "cases", "framework")
+CALLOUT_RE = re.compile(r"^>\s*\[!(prelims|mains|news|case|remember|debate|example)\]\s*$", re.M | re.I)
+VISUAL_BLOCK_RE = re.compile(r"^```(" + "|".join(VISUAL_BLOCKS) + r")\b", re.M | re.I)
+UTF8 = {**os.environ, "LANG": "en_US.UTF-8"}
 
-FIX = ("Send the same notes again, unchanged, but put each note's marker line just before it "
-       "and the line === REVISION === before each revision list. The marker lines are:\n\n{lines}")
+FIX = ("Send the same chapter again, unchanged, but put its marker line just before it "
+       "and the line === REVISION === before the revision list. The marker lines are:\n\n{lines}")
 
 
 def manifest():
@@ -45,7 +47,7 @@ def manifest():
     for order, n in enumerate(notes, 1):
         n["id"] = n["file"].removesuffix(".md").replace("/", "-")
         n["subject"] = plan["subjects"][n["file"].split("/")[0]]
-        n["order"] = order  # where the app lists it
+        n["order"] = order
     return notes
 
 
@@ -64,6 +66,13 @@ def leaves(node, kids):
 
 def verified():
     return set(VERIFIED.read_text().split()) if VERIFIED.exists() else set()
+
+
+def parse_word_floor(target_words):
+    if not target_words:
+        return 0
+    m = re.search(r"(\d[\d,]*)", str(target_words))
+    return int(m.group(1).replace(",", "")) if m else 0
 
 
 def state(n, done):
@@ -87,27 +96,51 @@ def select(what, notes):
 
 # ---- the prompt ---------------------------------------------------------------
 
+def format_outline(outline):
+    lines = []
+    for entry in outline:
+        if "::" in entry:
+            topic, micros = entry.split("::", 1)
+            lines.append(f"- **{topic.strip()}**")
+            for micro in micros.split("|"):
+                micro = micro.strip()
+                if micro:
+                    lines.append(f"  - {micro}")
+        else:
+            lines.append(f"- **{entry.strip()}**")
+    return "\n".join(lines)
+
+
 def chunk_prompt(targets, notes):
-    """The instructions and the notes to write, as one message for AI Studio."""
+    """The instructions and the textbook chapter(s) to write, as one message."""
     by_id, kids = syllabus()
     text = (HERE / "instructions.md").read_text().strip()
-    text += (f"\n\n## Write these notes now\n\nToday is {datetime.date.today():%-d %B %Y}. "
-             f"Write these {len(targets)} notes in this order, one after another.\n")
+    noun = "this full textbook chapter" if len(targets) == 1 else f"these {len(targets)} textbook chapters in order"
+    text += f"\n\n## Write {noun} now\n\nToday is {datetime.date.today():%-d %B %Y}.\n"
     for i, n in enumerate(targets, 1):
-        text += f"\n### {i}. {n['title']}\n\nMarker line: === NOTE: {n['id']} ===\n\nSyllabus topics it covers:\n"
+        text += f"\n### {i}. {n['title']}\n\nMarker line: === NOTE: {n['id']} ===\n"
+        if n.get("section"):
+            text += f"Book Part: {n['section']}\n"
+        if n.get("book_ref"):
+            text += f"Book Reference: {n['book_ref']}\n"
+        if n.get("target_words"):
+            text += f"Target Length: {n['target_words']} words (main body, excluding the distilled revision list)\n"
+        if n.get("outline"):
+            text += "\nRequired Chapter Blueprint (Topics `##` & Micro-topics `###`):\n"
+            text += format_outline(n["outline"]) + "\n"
+        text += "\nOfficial Syllabus Topics Covered:\n"
         for t in n["topics"]:
             parts = t.split(".")
             text += "- " + " › ".join(by_id[".".join(parts[:k])]["title"] for k in range(2, len(parts) + 1)) + "\n"
             text += "".join(f"  - {by_id[x]['title']}\n" for x in leaves(t, kids) if x != t)
-    # Neighbours: the subject's other notes, and any note on the same syllabus chapters.
     mine = {n["id"] for n in targets}
     folders = {n["file"].split("/")[0] for n in targets}
     chapters = {".".join(t.split(".")[:4]) for n in targets for t in n["topics"]}
     near = [m["title"] for m in notes if m["id"] not in mine and (
         m["file"].split("/")[0] in folders or any(".".join(t.split(".")[:4]) in chapters for t in m["topics"]))]
     if near:
-        text += ("\n### Neighbouring topics\n\nOther notes in the set cover these, so bring them in "
-                 "only where a note above needs them:\n" + "".join(f"- {t}\n" for t in near))
+        text += ("\n### Neighbouring chapters\n\nOther chapters in the book cover these, so cross-reference "
+                 "them cleanly rather than duplicating them in full:\n" + "".join(f"- {t}\n" for t in near))
     return text
 
 
@@ -144,16 +177,16 @@ def looks_like_notes(text):
 
 def run(notes):
     print("Leave this running. Paste each prompt into AI Studio, run it, then copy the whole answer "
-          "as Markdown: the notes save themselves and the next prompt takes their place on your "
+          "as Markdown: the chapter saves itself and the next chunk's prompt takes its place on your "
           "clipboard. Ctrl+C stops; running it again carries on.\n", flush=True)
-    prompt, last, clip = None, None, paste()  # an answer copied earlier is taken first
+    prompt, last, clip = None, None, paste()
     try:
         while True:
             saved, problems = take(clip, notes) if clip != last else ([], [])
             done = verified()
             todo = [n for n in notes if state(n, done) == "todo"]
             if not todo:
-                say("Every note is written. Tell Claude to verify the new notes.")
+                say("Every chapter is written. Verify the new chapters.")
                 return
             chunk = min(n["chunk"] for n in todo)
             targets = [n for n in todo if n["chunk"] == chunk]
@@ -188,13 +221,13 @@ def split_answer(text):
 
 
 def take(text, notes):
-    """Saves every note in a copied answer that isn't verified yet. Returns (saved ids, problems)."""
+    """Saves every chapter in a copied answer that isn't verified yet. Returns (saved ids, problems)."""
     by_note = {n["id"]: n for n in notes}
     done, saved, problems = verified(), [], []
     for nid, part in split_answer(text).items():
         n = by_note.get(nid)
         if n is None:
-            problems.append(f"{nid} is not a note in the manifest")
+            problems.append(f"{nid} is not a chapter in the manifest")
         elif nid in done:
             problems.append(f"{nid} is verified already, so it was not replaced")
         elif not re.search(r"^## ", part, re.M):
@@ -218,9 +251,9 @@ def save(n, text):
         text = fenced.group(1).strip()
     first = re.search(r"^## ", text, re.M)
     if first and len(text[:first.start()].split()) <= 60:
-        text = text[first.start():]  # a title or "Here are the notes" before the first section
+        text = text[first.start():]
     if text.count("```") % 2 and text.endswith("```"):
-        text = text[:-3].rstrip()  # the closing fence of an answer wrapped in one
+        text = text[:-3].rstrip()
     body, distilled = (REVISION_LINE.split(text, maxsplit=1) + [""])[:2]
     path = NOTES / n["file"]
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -229,7 +262,7 @@ def save(n, text):
 
 
 def header(n, updated):
-    """A note's front matter, which the app reads. All of it but the date comes from the manifest."""
+    """A chapter's front matter, which the app reads. All of it but the date comes from the manifest."""
     lines = [f"id: {n['id']}", f"title: {json.dumps(n['title'], ensure_ascii=False)}",
              f"subject: {json.dumps(n['subject'])}"]
     if "section" in n:
@@ -241,7 +274,7 @@ def header(n, updated):
 
 
 def refresh(notes):
-    """Rewrites written notes' headers when the manifest changes their title, section, order or topics."""
+    """Rewrites written chapters' headers when the manifest changes their title, section, order or topics."""
     for n in notes:
         path = NOTES / n["file"]
         if not path.exists():
@@ -267,14 +300,18 @@ def read_links():
 
 
 def lint(n, notes, final=False):
-    """Problems with a written note: errors stop it being marked verified."""
+    """Problems with a written chapter: errors stop it being marked verified."""
     errors, warnings = [], []
     by_id, kids = syllabus()
     text = body_of(n)
     body, _, distilled = text.partition(DISTILLED)
     prose = re.sub(r"```.*?```", "", body, flags=re.S)
-    if not re.search(r"^## ", prose, re.M):
+    h2_count = len(re.findall(r"^## ", prose, re.M))
+    h3_count = len(re.findall(r"^### ", prose, re.M))
+    if not h2_count:
         errors.append("no ## sections, so the app has no outline")
+    if not h3_count:
+        warnings.append("no ### micro-topic headings; add hierarchical micro-topics")
     if not distilled.strip():
         errors.append("no revision list")
     tags = len(re.findall(r"\[VERIFY", text))
@@ -282,8 +319,18 @@ def lint(n, notes, final=False):
         (errors if final else warnings).append(f"{tags} [VERIFY] tag(s) to settle")
     if re.search(r"^# ", prose, re.M):
         warnings.append("a '# ' title line; the app shows the title itself")
-    if re.search(r"!\[|```mermaid|<(div|img|table)\b", text):  # <br> renders as a line break
+    if re.search(r"!\[|```mermaid|<(div|img|table)\b", text):
         warnings.append("an image, Mermaid or HTML, which the app can't show")
+    main_words = len(body.split())
+    floor = parse_word_floor(n.get("target_words"))
+    if floor and main_words < int(floor * 0.75):
+        warnings.append(f"short for a book chapter: {main_words:,} words vs target {n['target_words']}")
+    visuals = len(VISUAL_BLOCK_RE.findall(body))
+    callouts = len(CALLOUT_RE.findall(body))
+    if visuals < 3:
+        warnings.append(f"only {visuals} native visual block(s) ({'/'.join(VISUAL_BLOCKS)}); add more visual diversity")
+    if callouts < 2:
+        warnings.append(f"only {callouts} semantic callout box(es) (> [!prelims]/[mains]/[news]/...)")
     lower = body.lower()
     for t in n["topics"]:
         for leaf in leaves(t, kids):
@@ -312,7 +359,12 @@ def check(picked, notes):
         if now == "todo":
             continue
         errors, warnings = lint(n, notes, final=now == "verified")
-        print(f"{n['id']} ({now}, {len(body_of(n).split()):,} words)")
+        text = body_of(n)
+        body, _, dist = text.partition(DISTILLED)
+        v_cnt = len(VISUAL_BLOCK_RE.findall(body))
+        c_cnt = len(CALLOUT_RE.findall(body))
+        print(f"{n['id']} ({now}, {len(body.split()):,} body words + {len(dist.split()):,} distilled, "
+              f"{v_cnt} visual blocks, {c_cnt} callouts)")
         report(errors, warnings)
         bad += bool(errors)
     by_id, kids = syllabus()
@@ -324,10 +376,10 @@ def check(picked, notes):
     for t in unknown:
         print(f"manifest: unknown topic {t}")
     for t in missing:
-        print(f"manifest: no note covers {t}")
+        print(f"manifest: no chapter covers {t}")
     for i in repeats:
         print(f"manifest: {i} is listed twice")
-    print(f"Syllabus: {len(every) - len(missing)} of {len(every)} topics have a note.")
+    print(f"Syllabus: {len(every) - len(missing)} of {len(every)} topics have a chapter.")
     if bad or unknown or missing or repeats:
         sys.exit(1)
 
@@ -353,14 +405,23 @@ def status(notes, everything):
     for n in notes:
         chunks[n["chunk"]].append((n, state(n, done)))
     counts = Counter(s for items in chunks.values() for _, s in items)
-    print(f"{len(notes)} notes in {len(chunks)} chunks: {counts['verified']} verified, "
-          f"{counts['written']} written and waiting for Claude, {counts['todo']} to write.")
-    nxt = min((c for c, items in chunks.items() if any(s == "todo" for _, s in items)), default=None)
+    print(f"{len(notes)} textbook chapters in {len(chunks)} chunks (1 chunk = 1 chapter): "
+          f"{counts['verified']} verified, {counts['written']} written/legacy, {counts['todo']} to write.")
+    nxt = min((c for c, items in chunks.items() if any(s != "verified" for _, s in items)), default=None)
     for c, items in sorted(chunks.items()):
         if everything or c == nxt or any(s == "written" for _, s in items):
             print(f"\nchunk {c}" + (" (next)" if c == nxt else ""))
             for n, s in items:
-                print(f"  {'✓' if s == 'verified' else '•' if s == 'written' else ' '} {n['id']}")
+                mark = "✓" if s == "verified" else "•" if s == "written" else " "
+                extra = ""
+                if s == "written":
+                    words = len(body_of(n).partition(DISTILLED)[0].split())
+                    floor = parse_word_floor(n.get("target_words"))
+                    if floor and words < int(floor * 0.75):
+                        extra = f"  [legacy concise: {words:,}w — rewrite]"
+                    else:
+                        extra = f"  [{words:,}w — awaiting verify]"
+                print(f"  {mark} {n['id']}{extra}")
 
 
 def main():

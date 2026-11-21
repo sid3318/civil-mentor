@@ -1,44 +1,23 @@
 ---
 name: verify-notes
-description: Verify Civil Mentor's new notes, which the user writes with Gemini Neon in AI Studio and `notes.py run` saves. Each note covers a topic for Prelims and Mains together. Checks coverage, facts and readability, writes the connections between notes and marks them verified. Use when the user says "verify the new notes", "verify chunk N" or "/verify-notes".
+description: Verify Civil Mentor's textbook-sized chapters (1 chunk = 1 chapter), written 5 chunks at a time with Gemini 4 Neon XHigh. Checks book-length coverage against the chapter outline & syllabus, factual accuracy, visual hierarchy & rich visual blocks, writes cross-chapter links, and marks chapters verified. Use when the user says "verify the new notes", "verify chunk N" or "/verify-notes".
 ---
 
 # Verify notes
 
-The argument is a chunk number, a range of chunks or a note id. With none, verify every chunk that `python3 tools/notes/notes.py status` shows with written (•) notes, oldest first, reporting after each chunk. The standard is in `tools/notes/instructions.md`: one note per topic for Prelims and Mains together, reading like good coaching material, with flowing explanation as the backbone.
+The argument is a chunk number, a range of chunks (e.g. `1-5`), or a note id. With none, verify every chunk that `python3 tools/notes/notes.py status` shows as written (`•`), oldest first, reporting after each batch. The standard is in `tools/notes/instructions.md`: **1 chunk = 1 full textbook chapter** covering both Prelims and Mains thoroughly, with clear 4-level visual hierarchy (`##`, `###`, `####`, prose/lists) and rich native visual diversity.
 
-For each note:
+For each chapter:
 
-1. Run `python3 tools/notes/notes.py check <chunk>`. Read the note (`content/notes/<file>`) in full, with its syllabus topics from `tools/notes/manifest.toml`.
-2. **Coverage.** Every syllabus topic is covered for both stages: the facts Prelims can demand, and the understanding, dimensions, judgments, committees, data and way forward Mains rewards. Recall what UPSC has asked on these topics (Prelims about 2011 onwards, Mains about 2013 onwards; search the web for recent papers when unsure), and make sure the note equips the student for each such question. Add what is missing.
-3. **Facts.** Check every number, date, Article, name, place, quotation and attribution. Settle each `[VERIFY]` with a web search against an official or primary source, then remove the tag. Confirm recent items and their dates. Drop a quotation you cannot confirm word for word, or put it in reported speech.
-4. **Readability.** The note reads like a teacher explaining: paragraphs that flow, with points, tables, boxes and quotations where they help. Turn runs of bare bullets into prose where explanation is needed. Cut padding, repetition, and what belongs to a neighbouring note.
-5. **The app.** The note has `##` sections. Its tables and text diagrams render, the diagrams are no wider than about 60 characters, and there are no images, Mermaid or HTML. The revision list after `<!-- distilled -->` holds the points most worth remembering.
-6. **Connections.** In `tools/notes/links.toml`, add four to ten links from this note to other notes, written or not, using ids from the manifest:
-
-   ```toml
-   [[link]]
-   from = "modern-india-british-conquest"
-   to = "modern-india-revolt-1857"
-   kind = "leads-to"
-   why = "The annexations of Jhansi (1853, doctrine of lapse) and Awadh (1856, misgovernance) gave the revolt two of its leaders, Rani Lakshmibai and Begum Hazrat Mahal."
-   ```
-
-   The kinds are:
-   - `builds-on`: read the other note first.
-   - `leads-to`: a cause, or what followed.
-   - `same-era`: contemporaries.
-   - `compare`: asked together, or confused.
-   - `same-issue`: the same issue in another subject or paper.
-   - `example-of`: a case of the other.
-
-   The reason names the specific link, as a mentor would. Link across subjects and papers, and to contemporaries in history and culture.
-7. **Verdict.** If the note is sound, fix what is left by hand and run `python3 tools/notes/notes.py verified <note-id>`. If it is too weak to fix by hand, write the user a message to paste into the Neon chat. Say what to redo, and ask for the whole note again, starting with the line `=== NOTE: <note-id> ===` and ending with `=== REVISION ===` and its list. With `notes.py run` going, the answer saves itself. Verify it once it is saved.
-
-Then:
-
-- A note's title, section and place in the list come from `tools/notes/manifest.toml`. To change them, edit the manifest: `notes.py check` rewrites the headers of written notes to match.
-- Where a question, flashcard or story in `content/` is plainly about a newly verified note, point its `note` or `notes` field at that note's id. Questions also reach notes through their topics without it.
-- Run `cargo test --lib embedded_content_has_no_problems`. The UI test in `tests/screens.rs` opens four of Claude's benchmark notes (`polity-fundamental-rights`, `polity-rights-freedom`, `polity-salient-features-preamble` and `polity-making-of-the-constitution`). If any of them is edited, run the full `cargo test` as well.
-- Report each note's verdict, the facts you corrected (with sources), what you added, cut or rewrote, and the links you made.
-- Commit only when the user asks, and commit straight to `main`.
+1. Run `python3 tools/notes/notes.py check <chunk>`. Read the chapter (`content/notes/<file>`) in full alongside its `book_ref`, `target_words`, `outline` (Topics & Micro-topics) and `topics` from `tools/notes/manifest.toml`.
+2. **Book-Sized Coverage.** Verify every planned `##` Topic and `###` Micro-topic from `outline` and every syllabus leaf topic is covered at genuine textbook depth—never thin summaries. Check both Prelims traps (exact Articles, Amendments, dates, committees, exceptions, majorities) and Mains value-addition (case law, committees, empirical data, constitutional debates, Way Forward).
+3. **Facts.** Check every number, date, Article, Amendment, committee, quotation, and recent judgment/law (2024–2026). Settle every `[VERIFY]` against a primary/official source and remove the tag.
+4. **Visual Hierarchy & Diversity.** Verify:
+   - Clean 4-level hierarchy (`##` numbered Topics, `###` Micro-topics, `####` Sub-points, flowing paragraphs, crisp bullet lists).
+   - Rich mix of native callout surfaces (`> [!prelims]`, `> [!mains]`, `> [!news]`, `> [!case]`, `> [!remember]`, `> [!debate]`, `> [!example]`), native visual blocks (````timeline`, ````compare`, ````flow`, ````keyfacts`, ````cases`, ````framework`), editorial quotations, and tables.
+   - No images, Mermaid, or raw HTML.
+   - Comprehensive distilled quick-revision section after `<!-- distilled -->`.
+5. **Connections.** In `tools/notes/links.toml`, ensure 5 to 10 meaningful links from this chapter to other chapters using IDs from `tools/notes/manifest.toml` (`builds-on`, `leads-to`, `same-era`, `compare`, `same-issue`, `example-of`).
+6. **Verdict & Cleanup.** Fix any factual or structural gaps, run `python3 tools/notes/notes.py verified <chunk>`, update any matching `note`/`notes` pointers in `content/questions/`, `content/flashcards/`, and `content/current-affairs/`, and remove any superseded old split files replaced by this batch.
+7. **Tests.** Run `cargo test --lib embedded_content_has_no_problems` (and `cargo test` whenever UI-tested notes change).
+8. Report each chapter's word count, visual elements count, facts verified/corrected, links written, and test status. Commit only when the user asks.

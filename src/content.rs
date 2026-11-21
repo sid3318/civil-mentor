@@ -1291,6 +1291,25 @@ pub fn sections(markdown: &str) -> Vec<Section<'_>> {
     sections
 }
 
+/// Extracts `### ` micro-topic headings from a section's Markdown, skipping
+/// lines inside fenced code blocks.
+pub fn subheadings(markdown: &str) -> Vec<&str> {
+    let mut out = Vec::new();
+    let mut fenced = false;
+    for line in markdown.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            fenced = !fenced;
+        } else if !fenced && let Some(title) = line.strip_prefix("### ") {
+            let title = title.trim();
+            if !title.is_empty() {
+                out.push(title);
+            }
+        }
+    }
+    out
+}
+
 /// The first line of `text`, cut to about `max` characters.
 pub fn one_line(text: &str, max: usize) -> String {
     let line = text

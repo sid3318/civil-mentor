@@ -17,9 +17,10 @@ use gpui_kit::*;
 
 use crate::AppState;
 use crate::app::Shell;
-use crate::content::{Library, Note, Target, sections};
+use crate::content::{Library, Note, Target, sections, subheadings};
 use crate::marks::{self, Blocks, Marking, Selection};
 use crate::mentor;
+use crate::note_blocks;
 use crate::screens::count;
 use crate::store::{MarkKind, NewMark, Study};
 use crate::syllabus::Status;
@@ -63,6 +64,8 @@ pub struct NotesScreen {
     open: HashSet<Folder>,
     /// Whether the outline and reading panel shows beside the note.
     inspector: bool,
+    /// The outline topic whose micro-topics (`###`) are expanded in the inspector.
+    expanded_topic: Option<usize>,
 }
 
 /// A subject, or a section of one, in the list of notes.
@@ -169,6 +172,7 @@ impl NotesScreen {
             selected: None,
             open: HashSet::new(),
             inspector: true,
+            expanded_topic: None,
         }
     }
 
@@ -194,6 +198,7 @@ impl NotesScreen {
             self.blocks.clear();
             self.marking.close();
             self.selected = None;
+            self.expanded_topic = None;
         }
         AppState::update_reading(cx, &id, |reading, today| reading.last = today);
         if self.clock.as_ref().is_none_or(|clock| clock.item != id) {
@@ -246,6 +251,7 @@ impl NotesScreen {
             self.scroll.set_offset(Point::default());
             self.blocks.clear();
             self.marking.close();
+            self.expanded_topic = None;
             cx.notify();
         }
     }
@@ -417,6 +423,8 @@ impl NotesScreen {
         if let Some(selection) = self.blocks.selection(cx) {
             self.selected = Some(selection);
             cx.notify();
+        } else if self.blocks.rendered_changed(cx) {
+            cx.notify();
         }
     }
 
@@ -550,6 +558,9 @@ impl NotesScreen {
             ));
         }
         let topic = note.topics.first().cloned().unwrap_or_default();
+        let subject_color = ui::subject_color(&topic, cx);
+        let view_style = note_blocks::reader_style(size, subject_color, cx);
+        let view_ext = note_blocks::extensions(size, subject_color);
         let header = v_flex()
             .pt_8()
             .pb_5()
@@ -557,14 +568,14 @@ impl NotesScreen {
             .items_start()
             .child(ui::subject_chip(
                 library.subject_label(&topic),
-                ui::subject_color(&topic, cx),
+                subject_color,
                 cx,
             ))
             .child(
                 div()
                     .font_family(ui::DISPLAY)
-                    .text_size(px(size as f32 * 1.75))
-                    .line_height(relative(1.2))
+                    .text_size(px(size as f32 * 1.9))
+                    .line_height(relative(1.18))
                     .font_semibold()
                     .child(note.title.clone()),
             )
@@ -630,22 +641,26 @@ impl NotesScreen {
             let trap = section.heading == Some("The trap");
             column(
                 div()
-                    .when(section.heading.is_some(), |this| this.pt_6())
+                    .when(section.heading.is_some(), |this| this.pt_7())
                     .child(
                         div()
                             .id(("note-section", k))
                             .test_support()
                             .font_family(ui::NOTES)
-                            .line_height(relative(1.65))
+                            .line_height(relative(1.68))
                             .when(trap, |this| {
                                 this.px_4()
                                     .py_3()
                                     .rounded(px(8.))
                                     .bg(t.attention.opacity(0.1))
-                                    .border_l_2()
-                                    .border_color(t.attention)
+                                    .border_1()
+                                    .border_color(t.attention.opacity(0.35))
                             })
-                            .child(self.blocks.view(&k.to_string())),
+                            .child(self.blocks.styled_view(
+                                &k.to_string(),
+                                view_style.clone(),
+                                view_ext.clone(),
+                            )),
                     )
                     .into_any_element(),
             )
@@ -683,22 +698,32 @@ impl NotesScreen {
             cx,
         );
 
-        // The outline: each heading, then the questions and connections, as reader positions.
-        let mut outline: Vec<(SharedString, usize)> = sections
+        // The outline: each topic heading with its micro-topics, then the
+        // questions and connections, as reader positions.
+        let mut outline: Vec<(SharedString, usize, Vec<SharedString>)> = sections
             .iter()
             .enumerate()
-            .filter_map(|(k, section)| Some((section.heading?.to_string().into(), k + 1)))
+            .filter_map(|(k, section)| {
+                let heading = section.heading?.replace('`', "").into();
+                let subs = subheadings(section.text)
+                    .into_iter()
+                    .map(|sub| sub.replace('`', "").into())
+                    .collect();
+                Some((heading, k + 1, subs))
+            })
             .collect();
         if !questions.is_empty() {
             outline.push((
                 format!("Questions ({})", questions.len()).into(),
                 sections.len() + 2,
+                Vec::new(),
             ));
         }
         if !related.is_empty() {
             outline.push((
                 format!("Connected notes ({})", related.len()).into(),
                 sections.len() + 2 + usize::from(!questions.is_empty()),
+                Vec::new(),
             ));
         }
 
@@ -728,7 +753,7 @@ impl NotesScreen {
     fn inspector(
         &self,
         ix: usize,
-        outline: Vec<(SharedString, usize)>,
+        outline: Vec<(SharedString, usize, Vec<SharedString>)>,
         cx: &mut Context<Self>,
     ) -> impl IntoElement + use<> {
         let t = ui::tokens(cx);
@@ -770,27 +795,78 @@ impl NotesScreen {
             })
             .collect();
         let shell = self.shell.clone();
+        let expanded_topic = self.expanded_topic;
         let entries = outline
             .into_iter()
             .enumerate()
-            .map(|(entry, (title, child))| {
-                div()
-                    .id(("outline", entry))
-                    .test_support()
-                    .h(px(28.))
-                    .px(px(10.))
-                    .flex()
-                    .items_center()
-                    .rounded(px(6.))
-                    .text_size(px(13.))
-                    .text_color(t.text_2)
-                    .cursor_pointer()
-                    .hover(|this| this.bg(t.hover).text_color(t.text))
-                    .child(div().truncate().child(title))
-                    .on_click(cx.listener(move |this, _, _, cx| {
-                        this.scroll.scroll_to_top_of_item(child);
-                        cx.notify();
-                    }))
+            .map(|(entry, (title, child, subs))| {
+                let has_subs = !subs.is_empty();
+                let open = has_subs && expanded_topic == Some(entry);
+                v_flex()
+                    .w_full()
+                    .child(
+                        h_flex()
+                            .id(("outline", entry))
+                            .test_support()
+                            .h(px(28.))
+                            .px(px(8.))
+                            .gap(px(5.))
+                            .items_center()
+                            .rounded(px(6.))
+                            .text_size(px(13.))
+                            .font_medium()
+                            .text_color(if open { t.text } else { t.text_2 })
+                            .when(open, |this| this.bg(t.hover))
+                            .cursor_pointer()
+                            .hover(|this| this.bg(t.hover).text_color(t.text))
+                            .when(has_subs, |row| {
+                                row.child(
+                                    Icon::new(if open {
+                                        IconName::ChevronDown
+                                    } else {
+                                        IconName::ChevronRight
+                                    })
+                                    .size(px(11.))
+                                    .text_color(t.text_4),
+                                )
+                            })
+                            .child(div().flex_1().min_w_0().truncate().child(title))
+                            .on_click(cx.listener(move |this, _, _, cx| {
+                                this.scroll.scroll_to_top_of_item(child);
+                                if has_subs {
+                                    this.expanded_topic = Some(entry);
+                                }
+                                cx.notify();
+                            })),
+                    )
+                    .when(open, |col| {
+                        col.child(
+                            v_flex()
+                                .ml(px(15.))
+                                .pl(px(8.))
+                                .my(px(2.))
+                                .border_l_1()
+                                .border_color(t.border)
+                                .children(subs.into_iter().enumerate().map(|(sub_ix, sub)| {
+                                    div()
+                                        .id(("outline-sub", entry * 100 + sub_ix))
+                                        .h(px(23.))
+                                        .px(px(6.))
+                                        .flex()
+                                        .items_center()
+                                        .rounded(px(5.))
+                                        .text_size(px(11.5))
+                                        .text_color(t.text_3)
+                                        .cursor_pointer()
+                                        .hover(|this| this.bg(t.hover).text_color(t.text_2))
+                                        .child(div().truncate().child(sub))
+                                        .on_click(cx.listener(move |this, _, _, cx| {
+                                            this.scroll.scroll_to_top_of_item(child);
+                                            cx.notify();
+                                        }))
+                                })),
+                        )
+                    })
             });
         v_flex()
             .w(px(300.))

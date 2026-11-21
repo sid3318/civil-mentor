@@ -1,9 +1,9 @@
 ---
 id: polity-prime-minister-cabinet
-title: "The Prime Minister, the Council of Ministers and the Cabinet system"
+title: "13. Prime Minister, Council of Ministers & Central Administration"
 subject: "Polity"
-section: "Executive"
-order: 22
+section: "Part III: Union & State Executive"
+order: 13
 topics:
   - mains.gs2.polity.executive-judiciary.executive.prime-minister-and-council
   - mains.gs2.polity.executive-judiciary.executive.cabinet-secretariat-and-the-central

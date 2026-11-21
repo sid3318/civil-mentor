@@ -26,6 +26,9 @@ struct Block {
     /// The part of the item it shows, which its marks are filed under.
     part: String,
     text: String,
+    /// Length of the rendered text when highlights were last anchored, so
+    /// reparsing with Markdown extensions re-anchors highlights cleanly.
+    rendered_len: usize,
     /// The ranges painted, so they are set again only when they change.
     painted: Vec<Range<usize>>,
 }
@@ -75,6 +78,7 @@ impl Blocks {
     ) {
         if !self.open.contains_key(key) {
             let state = cx.new(|cx| TextViewState::markdown(text, cx));
+            let rendered_len = state.read(cx).rendered_text().as_str().len();
             self.new.push(state.clone());
             self.open.insert(
                 key.to_string(),
@@ -82,6 +86,7 @@ impl Blocks {
                     state,
                     part: part.to_string(),
                     text: text.to_string(),
+                    rendered_len,
                     painted: Vec::new(),
                 },
             );
@@ -95,6 +100,11 @@ impl Blocks {
             block
                 .state
                 .update(cx, |state, cx| state.set_text(&text, cx));
+        }
+        let current_len = block.state.read(cx).rendered_text().as_str().len();
+        if current_len != block.rendered_len {
+            block.rendered_len = current_len;
+            block.painted.clear();
         }
         let wanted = ranges(&block.state, part, marks, cx);
         if block.painted == wanted {
@@ -111,12 +121,37 @@ impl Blocks {
         block.painted = if painted.is_ok() { wanted } else { Vec::new() };
     }
 
+    /// True if any open block reparsed (e.g. after Markdown extensions attached)
+    /// so highlights should be re-anchored on the next render.
+    pub fn rendered_changed(&self, cx: &App) -> bool {
+        self.open
+            .values()
+            .any(|block| block.state.read(cx).rendered_text().as_str().len() != block.rendered_len)
+    }
+
     /// The block called `key`, ready to go in a reader.
     pub fn view(&self, key: &str) -> AnyElement {
         let Some(block) = self.open.get(key) else {
             return div().into_any_element();
         };
         TextView::new(&block.state).into_any_element()
+    }
+
+    /// The block called `key`, rendered with explicit `gpui_kit::base` style
+    /// and Markdown extensions for note hierarchy and custom visual blocks.
+    pub fn styled_view(
+        &self,
+        key: &str,
+        style: gpui_kit::base::TextViewStyle,
+        extensions: gpui_kit::base::text::MarkdownExtensions,
+    ) -> AnyElement {
+        let Some(block) = self.open.get(key) else {
+            return div().into_any_element();
+        };
+        gpui_kit::base::TextView::new(&block.state)
+            .style(style)
+            .markdown_extensions(extensions)
+            .into_any_element()
     }
 
     /// What the student has selected in the block on screen, if anything.

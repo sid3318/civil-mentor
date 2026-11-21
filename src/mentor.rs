@@ -904,6 +904,10 @@ fn brief_task(
     })
 }
 
+/// One daily sitting on a long textbook chapter (> 30 min left), leaving room
+/// in a 90-minute day for the brief, reviews, a Prelims drill and Mains writing.
+pub const NOTE_SESSION_MINUTES: u32 = 25;
+
 fn note_task(library: &Library, reading: &HashMap<String, Reading>, left: u32) -> Option<PlanTask> {
     if left < MIN_TASK_MINUTES {
         return None;
@@ -913,11 +917,13 @@ fn note_task(library: &Library, reading: &HashMap<String, Reading>, left: u32) -
         None => (next_unread(library, reading)?, "Read"),
     };
     let spent = reading.get(&note.id).map_or(0, |r| r.seconds / 60);
-    let minutes = note
-        .minutes
-        .saturating_sub(spent)
-        .max(MIN_TASK_MINUTES)
-        .min(left);
+    let remaining = note.minutes.saturating_sub(spent);
+    let planned = if remaining > 30 {
+        NOTE_SESSION_MINUTES
+    } else {
+        remaining.max(MIN_TASK_MINUTES)
+    };
+    let minutes = planned.min(left);
     Some(PlanTask {
         kind: TaskKind::Note.key().into(),
         target: note.id.clone(),
