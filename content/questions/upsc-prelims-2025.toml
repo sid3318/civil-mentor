@@ -1575,7 +1575,7 @@ options = ["I and II only", "II and III only", "I and III only", "I, II and III"
 answer = "D"
 explanation = "States with a population below 20 lakh need not have an intermediate tier, the minimum age to contest Panchayat elections is 21, and the State Finance Commission is constituted by the Governor, not the Chief Minister. All three statements are therefore incorrect."
 trap = "The question asks for statements that are not correct, and all three contain a small factual error."
-note = "polity-panchayati-raj"
+note = "polity-local-government"
 
 [[question]]
 id = "upsc-2025-092"

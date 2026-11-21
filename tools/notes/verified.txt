@@ -4,7 +4,9 @@ polity-dpsp-duties
 polity-emergency
 polity-federalism-interstate
 polity-fundamental-rights
+polity-high-courts-tribunals-adr
 polity-historical-background
+polity-local-government
 polity-making-of-the-constitution
 polity-parliament
 polity-parliamentary-comparative
@@ -12,4 +14,7 @@ polity-president-vice-president
 polity-prime-minister-cabinet
 polity-salient-features-preamble
 polity-state-executive
+polity-state-legislature
+polity-supreme-court-judicial-review
+polity-union-territories-special-areas
 polity-union-territory-citizenship
